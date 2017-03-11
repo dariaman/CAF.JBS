@@ -22,8 +22,11 @@
     "Microsoft.AspNetCore.Server.Kestrel": "1.1.1",
     "Microsoft.AspNetCore.StaticFiles": "1.1.1",
     "Microsoft.EntityFrameworkCore": "1.1.1",
-    "MySql.Data.Core": "7.0.4-ir-191",
-    "MySql.Data.EntityFrameworkCore": "7.0.6-IR31",
+    //"MySql.Data.Core": "7.0.4-ir-191",
+    //"MySql.Data.EntityFrameworkCore": "7.0.6-IR31",
+    "SapientGuardian.EntityFrameworkCore.MySql": "7.1.*",
+    "Pomelo.EntityFrameworkCore.MySql": "1.1.1-prerelease-10020",
+    "Pomelo.EntityFrameworkCore.MySql.Design": "1.1.1-prerelease-10020",
     "Microsoft.EntityFrameworkCore.SqlServer": "1.1.1",
     "Microsoft.EntityFrameworkCore.SqlServer.Design": {
       "version": "1.1.1",
@@ -42,17 +45,20 @@
     "Microsoft.Extensions.Options.ConfigurationExtensions": "1.1.1",
     "Microsoft.VisualStudio.Web.BrowserLink.Loader": "14.1.0",
     "Microsoft.VisualStudio.Web.CodeGeneration.Tools": {
-      "version": "1.1.0-preview4-final",
+      "version": "1.*",
       "type": "build"
     },
     "Microsoft.VisualStudio.Web.CodeGenerators.Mvc": {
-      "version": "1.1.0",
+      "version": "1.*",
       "type": "build"
     },
-    "Microsoft.AspNetCore.Mvc.ViewFeatures": "1.1.2"
+    "Microsoft.AspNetCore.Mvc.ViewFeatures": "1.1.2",
+    "Microsoft.EntityFrameworkCore.Relational": "1.1.1"
+
   },
 
   "tools": {
+    "Microsoft.EntityFrameworkCore.Tools.DotNet": "1.1.0-preview4-final",
     "BundlerMinifier.Core": "2.0.238",
     "Microsoft.AspNetCore.Razor.Tools": "1.0.0-preview2-final",
     "Microsoft.AspNetCore.Server.IISIntegration.Tools": "1.0.0-preview2-final",
