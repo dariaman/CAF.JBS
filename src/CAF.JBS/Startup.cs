@@ -14,6 +14,8 @@ using Microsoft.ApplicationInsights.AspNetCore;
 using CAF.JBS.Data;
 using CAF.JBS.Models;
 using CAF.JBS.Services;
+using NonFactors.Mvc.Grid;
+
 
 namespace CAF.JBS
 {
@@ -67,6 +69,7 @@ namespace CAF.JBS
             
             services.AddMvcCore().AddViewLocalization();
             //services.AddMvc();
+            services.AddMvcGrid();
 
             // Add application services.
             services.AddTransient<IEmailSender, AuthMessageSender>();

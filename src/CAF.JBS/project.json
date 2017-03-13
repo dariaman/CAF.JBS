@@ -27,11 +27,11 @@
     "SapientGuardian.EntityFrameworkCore.MySql": "7.1.*",
     "Pomelo.EntityFrameworkCore.MySql": "1.1.1-prerelease-10020",
     "Pomelo.EntityFrameworkCore.MySql.Design": "1.1.1-prerelease-10020",
-    "Microsoft.EntityFrameworkCore.SqlServer": "1.1.1",
-    "Microsoft.EntityFrameworkCore.SqlServer.Design": {
-      "version": "1.1.1",
-      "type": "build"
-    },
+    //"Microsoft.EntityFrameworkCore.SqlServer": "1.1.1",
+    //"Microsoft.EntityFrameworkCore.SqlServer.Design": {
+    //  "version": "1.1.1",
+    //  "type": "build"
+    //},
     "Microsoft.EntityFrameworkCore.Tools": {
       "version": "1.1.0",
       "type": "build"
@@ -45,16 +45,16 @@
     "Microsoft.Extensions.Options.ConfigurationExtensions": "1.1.1",
     "Microsoft.VisualStudio.Web.BrowserLink.Loader": "14.1.0",
     "Microsoft.VisualStudio.Web.CodeGeneration.Tools": {
-      "version": "1.*",
+      "version": "1.1.0-preview4-final",
       "type": "build"
     },
     "Microsoft.VisualStudio.Web.CodeGenerators.Mvc": {
-      "version": "1.*",
+      "version": "1.1.0-preview4-final",
       "type": "build"
     },
     "Microsoft.AspNetCore.Mvc.ViewFeatures": "1.1.2",
-    "Microsoft.EntityFrameworkCore.Relational": "1.1.1"
-
+    "Microsoft.EntityFrameworkCore.Relational": "1.1.1",
+    "NonFactors.Grid.Mvc6": "1.4.0"
   },
 
   "tools": {
@@ -65,7 +65,7 @@
     "Microsoft.EntityFrameworkCore.Tools": "1.0.0-preview2-final",
     "Microsoft.Extensions.SecretManager.Tools": "1.0.0-msbuild3-final",
     "Microsoft.VisualStudio.Web.CodeGeneration.Tools": {
-      "version": "1.0.0-preview2-final",
+      "version": "1.1.0-preview4-final",
       "imports": [
         "portable-net45+win8"
       ]

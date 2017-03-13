@@ -1,0 +1,16 @@
+@using NonFactors.Mvc.Grid;
+
+@model IEnumerable<CardIssuerBankModel>
+
+@{
+    ViewData["Title"] = "Card Issuer Bank";
+}
+
+<h2>Card Issuer Bank</h2>
+
+<p>
+    <a asp-action="Create">ADD</a>
+</p>
+
+@Html.AjaxGrid(Url.Action("GridPartial", new { param = "Ajax" }))
+

@@ -1,0 +1,22 @@
+﻿@using NonFactors.Mvc.Grid;
+
+@model IEnumerable<CardIssuerBankModel>
+
+@(Html
+    .Grid(Model)
+    .Build(columns =>
+    {
+        columns.Add(model => model.Prefix).Titled("Bin Number");
+        columns.Add(model => model.Type).Titled("Type");
+        columns.Add(model => model.acquirer_bank_id).Titled("acquirer_bank_id");
+        columns.Add(model => model.Description).Titled("Description");
+    })
+    .Pageable(pager =>
+    {
+        pager.PagesToDisplay = 10;
+        pager.RowsPerPage = 10;
+    })
+    .Sortable()
+    .Filterable()
+    .Css("table-hover")
+)
