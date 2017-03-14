@@ -22,16 +22,9 @@
     "Microsoft.AspNetCore.Server.Kestrel": "1.1.1",
     "Microsoft.AspNetCore.StaticFiles": "1.1.1",
     "Microsoft.EntityFrameworkCore": "1.1.1",
-    //"MySql.Data.Core": "7.0.4-ir-191",
-    //"MySql.Data.EntityFrameworkCore": "7.0.6-IR31",
     "SapientGuardian.EntityFrameworkCore.MySql": "7.1.*",
     "Pomelo.EntityFrameworkCore.MySql": "1.1.1-prerelease-10020",
     "Pomelo.EntityFrameworkCore.MySql.Design": "1.1.1-prerelease-10020",
-    //"Microsoft.EntityFrameworkCore.SqlServer": "1.1.1",
-    //"Microsoft.EntityFrameworkCore.SqlServer.Design": {
-    //  "version": "1.1.1",
-    //  "type": "build"
-    //},
     "Microsoft.EntityFrameworkCore.Tools": {
       "version": "1.1.0",
       "type": "build"
@@ -54,7 +47,8 @@
     },
     "Microsoft.AspNetCore.Mvc.ViewFeatures": "1.1.2",
     "Microsoft.EntityFrameworkCore.Relational": "1.1.1",
-    "NonFactors.Grid.Mvc6": "1.4.0"
+    "NonFactors.Grid.Mvc6": "1.4.0",
+    "MySql.Data.EntityFrameworkCore": "7.0.6-IR31",
   },
 
   "tools": {

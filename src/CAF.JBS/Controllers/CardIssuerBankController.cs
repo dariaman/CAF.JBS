@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using CAF.JBS.Data;
 using CAF.JBS.Models;
+using CAF.JBS.ViewModels;
 
 namespace CAF.JBS.Controllers
 {    
@@ -22,10 +23,7 @@ namespace CAF.JBS.Controllers
         [HttpGet]
         public ActionResult Index()
         {
-            //var banks = _context.cctypeModel.OrderBy(c => c.CountryName).Select(x => new { Id = x.Code, Value = x.Name });
-
-            //var model = new HomeViewModel();
-            return View(_context.CardIssuerBankModel.ToList());
+            return View();
         }
 
         [HttpGet]
@@ -37,7 +35,10 @@ namespace CAF.JBS.Controllers
         [HttpGet]
         public IActionResult Create()
         {
-            //List<cctypeModel>
+            //List<bankModel> BankList = new List<bankModel>();
+            //BankList = (from bm in _context.BankModel select bm).ToList();
+            //BankList.Insert(0, new bankModel { bank_id = 0, bank_code = "select Bank" });
+            //ViewBag.Bank = BankList;
             return View();
         }
 

@@ -18,10 +18,23 @@ namespace CAF.JBS.Data
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
-            builder.Entity<CardIssuerBankModel>().ToTable("card_issuer_bank");
+            //builder.Entity<CardIssuerBankModel>( entity =>
+            //{
+            //    entity.HasOne(d => d.Bank)
+            //});
+            //builder.Entity<bankModel>().HasKey(;
+            //builder.Entity<BankModel>().HasKey(c => c.bank_id);
+            //builder.Ignore<IdentityUserLogin<string>>();
+            //builder.Ignore<IdentityUserRole<string>>();
+            //builder.Ignore<IdentityUserClaim<string>>();
+            //builder.Ignore<IdentityUserToken<string>>();
+            //builder.Ignore<IdentityUser<string>>();
+            //builder.Ignore<ApplicationUser>();
+            //builder.Entity<CardIssuerBankModel>().ToTable("card_issuer_bank");
         }
 
         public DbSet<CardIssuerBankModel> CardIssuerBankModel { get; set; }
         public DbSet<cctypeModel> cctypeModel { get; set; }
+        public DbSet<bankModel> BankModel { get; set; }
     }
 }
