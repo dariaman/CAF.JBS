@@ -20,7 +20,6 @@ namespace CAF.JBS.Models
 
         [Required]
         [StringLength(6)]
-        [RegularExpression("([0-9])")]
         public string Prefix { get; set; }
         public string Description { get; set; }
 
