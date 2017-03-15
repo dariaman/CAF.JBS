@@ -14,7 +14,7 @@ namespace CAF.JBS.Models
 
         [Required]
         public int Id { get; set; }
-        public string ITypeCardd { get; set; }
+        public string TypeCard { get; set; }
         //public List<SelectListItem> Banks { set; get; }
     }
 }

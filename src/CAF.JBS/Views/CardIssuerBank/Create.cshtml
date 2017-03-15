@@ -15,7 +15,7 @@
         <hr />
         <div asp-validation-summary="ModelOnly" class="text-danger"></div>
         <div class="form-group">
-            <label asp-for="Prefix" class="col-md-2 control-label" style="max-width:6;">Bin Number</label>
+            <label asp-for="Prefix" class="col-md-2 control-label">Bin Number</label>
             <div class="col-md-10">
                 <input asp-for="Prefix" class="form-control" />
                 <span asp-validation-for="Prefix" class="text-danger"></span>
@@ -23,7 +23,7 @@
         </div>
 
         <div class="form-group">
-            <label asp-for="Type" class="col-md-2 control-label"></label>
+            <label asp-for="Type" class="col-md-2 control-label">Card Type</label>
             <div class="col-md-10">
                 <input asp-for="Type" class="form-control" />
                 <span asp-validation-for="Type" class="text-danger"></span>
@@ -33,17 +33,22 @@
         <div class="form-group">
             <label asp-for="acquirer_bank_id" class="col-md-2 control-label">Acquirer Bank</label>
             <div class="col-md-10">
-                <input asp-for="acquirer_bank_id" class="form-control" />
-                <span asp-validation-for="acquirer_bank_id" class="text-danger"></span>
+                @*<input asp-for="acquirer_bank_id" class="form-control" />*@
+                <select asp-for="acquirer_bank_id"
+                        asp-items="@(new SelectList(ViewBag.banks,"bank_id","bank_code"))">
+                    <option>Please select one</option>
+                </select>
+                @Html.ValidationMessageFor(Model=>Model.acquirer_bank_id);
+                @*<span asp-validation-for="acquirer_bank_id" class="text-danger"></span>*@
                 @*<select asp-for="acquirer_bank_id"
                         asp-items="@(new SelectList(Model.,"Id","TypeCard"))">
                     <option>Please select one</option>
                 </select>*@
-</div>
+            </div>
         </div>
 
         <div class="form-group">
-            <label asp-for="Description" class="col-md-2 control-label"></label>
+            <label asp-for="Description" class="col-md-2 control-label">Description</label>
             <div class="col-md-10">
                 <input asp-for="Description" class="form-control" />
                 <span asp-validation-for="Description" class="text-danger"></span>

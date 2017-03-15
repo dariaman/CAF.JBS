@@ -23,65 +23,136 @@ namespace CAF.JBS.Controllers
         [HttpGet]
         public ActionResult Index()
         {
-            return View();
+            //var customerlist = (from Cust in orderdb.Customers
+            //                join Ord in orderdb.Orders on Cust.CustomerID equals Ord.CustomerID
+            //                select new { Cust.Name, Cust.Mobileno, Cust.Address, Ord.OrderDate, Ord.OrderPrice}).ToList();
+
+            ///*CardIssuerBankViewModel cards = new CardIssuerBankViewModel();
+
+            //cards = from ci in _context.CardIssuerBankModel
+            //         join b in _context.BankModel on ci.card_issuer_bank_id equals b.bank_id into bx from b in bx.DefaultIfEmpty()
+            //         join ct in _context.cctypeModel on ci.Type equals ct.Id
+            //         select new { ci.Prefix, ct.TypeCard, b.bank_code,ci.Description};
+
+            //var InnerJoinOutput =
+            //         from emp in Employees 
+            //         join dep in Departments on emp.DepartmentId equals dep.Id
+            //         join proj in Projects on emp.ProjectId equals proj.Id
+            //         select new
+            //         {
+            //             Emp_Name = emp.Name,
+            //             Dep_Name = dep.Name,
+            //             Proj_Name = proj.Name
+            //         };
+
+            //var LeftJoinOutput =
+            //    from emp in Employees
+            //    join dep in Departments on emp.DepartmentId equals dep.Id into temp from j in temp.DefaultIfEmpty()
+            //    join proj in Projects on emp.ProjectId equals proj.Id into temp1 from j1 in temp1.DefaultIfEmpty()
+            //    select new
+            //    {
+            //        Emp_Name = emp.Name,
+            //        Dep_Name = j == null ? "No Dep" : j.Name,
+            //        Proj_Name = j1 == null ? "No Proj" : j1.Name
+            //    };
+
+            IEnumerable<CardIssuerBankViewModel> cards;            
+            cards = (from cd in _context.CardIssuerBankModel
+                        join bk in _context.BankModel on cd.acquirer_bank_id equals bk.bank_id into bx
+                        from bankx in bx.DefaultIfEmpty()
+                        join ct in _context.cctypeModel on cd.Type equals ct.Id.ToString() into cx
+                        from cardx in cx.DefaultIfEmpty()
+                        select new CardIssuerBankViewModel()
+                        {
+                            Prefix = cd.Prefix,
+                            //TypeCard = cardx.TypeCard,
+                            //card_issuer_bank_id = cd.card_issuer_bank_id,
+                            BankName = bankx.bank_code,
+                            Description = cd.Description
+                        });
+            
+            return View(cards);
         }
 
-        [HttpGet]
-        public ActionResult GridPartial()
-        {
-            return PartialView("_IndexGrid", _context.CardIssuerBankModel.ToList());
-        }
+        //[HttpGet]
+        //public ActionResult GridPartial()
+        //{
+        //    return PartialView("_IndexGrid", _context.CardIssuerBankModel.ToList());
+        //}
 
         [HttpGet]
         public IActionResult Create()
         {
-            //List<bankModel> BankList = new List<bankModel>();
-            //BankList = (from bm in _context.BankModel select bm).ToList();
-            //BankList.Insert(0, new bankModel { bank_id = 0, bank_code = "select Bank" });
-            //ViewBag.Bank = BankList;
+            ViewBag.banks = _context.BankModel.ToList();
             return View();
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Create(CardIssuerBankModel author)
+        public IActionResult Create(CardIssuerBankModel card)
         {
             if (ModelState.IsValid)
             {
-                _context.CardIssuerBankModel.Add(author);
+                _context.CardIssuerBankModel.Add(card);
                 _context.SaveChanges();
                 return RedirectToAction("Index");
             }
-            return View(author);
+            return View(card);
         }
 
-        // GET: CardIssuerBank/Edit/5
-        public ActionResult Edit(int id)
+
+        public async Task<IActionResult> Edit(int? id)
         {
-            return View();
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var cardIssuerBankModel = await _context.CardIssuerBankModel.SingleOrDefaultAsync(m => m.card_issuer_bank_id == id);
+            if (cardIssuerBankModel == null)
+            {
+                return NotFound();
+            }
+            return View(cardIssuerBankModel);
         }
 
-        // POST: CardIssuerBank/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Edit(int id, IFormCollection collection)
+        public async Task<IActionResult> Edit(int id, [Bind("card_issuer_bank_id,Type,Prefix,Description,acquirer_bank_id")] CardIssuerBankModel cardIssuerBankModel)
         {
-            try
+            if (id != cardIssuerBankModel.card_issuer_bank_id)
             {
-                // TODO: Add update logic here
+                return NotFound();
+            }
 
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    _context.Update(cardIssuerBankModel);
+                    await _context.SaveChangesAsync();
+                }
+                catch (DbUpdateConcurrencyException)
+                {
+                    if (!CardIssuerBankModelExists(cardIssuerBankModel.card_issuer_bank_id))
+                    {
+                        return NotFound();
+                    }
+                    else
+                    {
+                        throw;
+                    }
+                }
                 return RedirectToAction("Index");
             }
-            catch
-            {
-                return View();
-            }
+            return View(cardIssuerBankModel);
         }
 
-        // GET: CardIssuerBank/Delete/5
-        public ActionResult Delete(int id)
+        private bool CardIssuerBankModelExists(int id)
         {
-            return View();
+            return _context.CardIssuerBankModel.Any(e => e.card_issuer_bank_id == id);
         }
+
+
     }
 }

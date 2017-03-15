@@ -30,11 +30,12 @@ namespace CAF.JBS.Data
             //builder.Ignore<IdentityUserToken<string>>();
             //builder.Ignore<IdentityUser<string>>();
             //builder.Ignore<ApplicationUser>();
-            //builder.Entity<CardIssuerBankModel>().ToTable("card_issuer_bank");
+            builder.Entity<CardIssuerBankModel>().ToTable("card_issuer_bank");
+            builder.Entity<BankModel>().ToTable("bank");
         }
 
         public DbSet<CardIssuerBankModel> CardIssuerBankModel { get; set; }
         public DbSet<cctypeModel> cctypeModel { get; set; }
-        public DbSet<bankModel> BankModel { get; set; }
+        public DbSet<BankModel> BankModel { get; set; }
     }
 }
