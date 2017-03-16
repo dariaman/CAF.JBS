@@ -58,18 +58,17 @@ namespace CAF.JBS.Controllers
 
             IEnumerable<CardIssuerBankViewModel> cards;            
             cards = (from cd in _context.CardIssuerBankModel
-                        join bk in _context.BankModel on cd.acquirer_bank_id equals bk.bank_id into bx
-                        from bankx in bx.DefaultIfEmpty()
-                        join ct in _context.cctypeModel on cd.Type equals ct.Id.ToString() into cx
-                        from cardx in cx.DefaultIfEmpty()
-                        select new CardIssuerBankViewModel()
-                        {
-                            Prefix = cd.Prefix,
-                            //TypeCard = cardx.TypeCard,
-                            //card_issuer_bank_id = cd.card_issuer_bank_id,
-                            BankName = bankx.bank_code,
-                            Description = cd.Description
-                        });
+                join bk in _context.BankModel on cd.acquirer_bank_id equals bk.bank_id into bx from bankx in bx.DefaultIfEmpty()
+                join ct in _context.cctypeModel on cd.Type equals ct.Id.ToString() into cx from cardx in cx.DefaultIfEmpty()
+                orderby cd.acquirer_bank_id
+                select new CardIssuerBankViewModel()
+                {
+                    Prefix = cd.Prefix,
+                    TypeCard = cardx == null ? string.Empty : cardx.TypeCard,
+                    card_issuer_bank_id = cd.card_issuer_bank_id,
+                    BankName = bankx == null ? string.Empty : bankx.bank_code,
+                    Description = cd.Description
+                });
             
             return View(cards);
         }

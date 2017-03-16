@@ -23,8 +23,9 @@
     "Microsoft.AspNetCore.StaticFiles": "1.1.1",
     "Microsoft.EntityFrameworkCore": "1.1.1",
     "SapientGuardian.EntityFrameworkCore.MySql": "7.1.*",
-    "Pomelo.EntityFrameworkCore.MySql": "1.1.1-prerelease-10020",
-    "Pomelo.EntityFrameworkCore.MySql.Design": "1.1.1-prerelease-10020",
+    //"Pomelo.EntityFrameworkCore.MySql": "1.1.1-prerelease-10020",
+    //"Pomelo.EntityFrameworkCore.MySql.Design": "1.1.1-prerelease-10020",
+    //"MySql.Data.EntityFrameworkCore": "7.0.6-IR31",
     "Microsoft.EntityFrameworkCore.Tools": {
       "version": "1.1.0",
       "type": "build"
@@ -47,8 +48,10 @@
     },
     "Microsoft.AspNetCore.Mvc.ViewFeatures": "1.1.2",
     "Microsoft.EntityFrameworkCore.Relational": "1.1.1",
-    "NonFactors.Grid.Mvc6": "1.4.0",
-    "MySql.Data.EntityFrameworkCore": "7.0.6-IR31",
+    "NonFactors.Grid.Mvc6": "1.4.0"
+    //"MySql.Data.Entity": "6.9.9",
+    //"MySql.Data": "6.9.9",
+    //"MySql.Web": "6.9.9"
   },
 
   "tools": {
@@ -70,8 +73,14 @@
     "netcoreapp1.0": {
       "imports": [
         "dotnet5.6",
+        //"dnxcore50",
+        //"net46",
         "portable-net45+win8"
       ]
+      //"imports": [
+      //  "dotnet5.6",
+      //  "portable-net45+win8"
+      //]
     }
   },
 

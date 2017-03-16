@@ -32,6 +32,7 @@ namespace CAF.JBS.Data
             //builder.Ignore<ApplicationUser>();
             builder.Entity<CardIssuerBankModel>().ToTable("card_issuer_bank");
             builder.Entity<BankModel>().ToTable("bank");
+            builder.Entity<cctypeModel>().ToTable("cctype");
         }
 
         public DbSet<CardIssuerBankModel> CardIssuerBankModel { get; set; }

@@ -16,6 +16,7 @@ using CAF.JBS.Models;
 using CAF.JBS.Services;
 using NonFactors.Mvc.Grid;
 using System.Reflection;
+using MySQL.Data.Entity.Extensions;
 
 namespace CAF.JBS
 {
@@ -30,7 +31,7 @@ namespace CAF.JBS
 
             if (env.IsDevelopment())
             {
-                builder.AddUserSecrets();
+                builder.AddUserSecrets("dariaman46@");
                 builder.AddApplicationInsightsSettings(developerMode: true);
             }
 
@@ -47,7 +48,7 @@ namespace CAF.JBS
             services.AddApplicationInsightsTelemetry(Configuration);
 
             //////services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
-            services.AddDbContext<ApplicationDbContext>(options => options.UseMySql(Configuration.GetConnectionString("jbsDB")));
+            services.AddDbContext<ApplicationDbContext>(options => options.UseMySQL(Configuration.GetConnectionString("jbsDB")));
             
             services.AddIdentity<ApplicationUser, IdentityRole>(
                 options => {
