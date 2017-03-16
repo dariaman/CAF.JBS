@@ -23,66 +23,46 @@ namespace CAF.JBS.Controllers
         [HttpGet]
         public ActionResult Index()
         {
-            //var customerlist = (from Cust in orderdb.Customers
-            //                join Ord in orderdb.Orders on Cust.CustomerID equals Ord.CustomerID
-            //                select new { Cust.Name, Cust.Mobileno, Cust.Address, Ord.OrderDate, Ord.OrderPrice}).ToList();
-
-            ///*CardIssuerBankViewModel cards = new CardIssuerBankViewModel();
-
-            //cards = from ci in _context.CardIssuerBankModel
-            //         join b in _context.BankModel on ci.card_issuer_bank_id equals b.bank_id into bx from b in bx.DefaultIfEmpty()
-            //         join ct in _context.cctypeModel on ci.Type equals ct.Id
-            //         select new { ci.Prefix, ct.TypeCard, b.bank_code,ci.Description};
-
-            //var InnerJoinOutput =
-            //         from emp in Employees 
-            //         join dep in Departments on emp.DepartmentId equals dep.Id
-            //         join proj in Projects on emp.ProjectId equals proj.Id
-            //         select new
-            //         {
-            //             Emp_Name = emp.Name,
-            //             Dep_Name = dep.Name,
-            //             Proj_Name = proj.Name
-            //         };
-
-            //var LeftJoinOutput =
-            //    from emp in Employees
-            //    join dep in Departments on emp.DepartmentId equals dep.Id into temp from j in temp.DefaultIfEmpty()
-            //    join proj in Projects on emp.ProjectId equals proj.Id into temp1 from j1 in temp1.DefaultIfEmpty()
-            //    select new
-            //    {
-            //        Emp_Name = emp.Name,
-            //        Dep_Name = j == null ? "No Dep" : j.Name,
-            //        Proj_Name = j1 == null ? "No Proj" : j1.Name
-            //    };
-
-            IEnumerable<CardIssuerBankViewModel> cards;            
-            cards = (from cd in _context.CardIssuerBankModel
-                join bk in _context.BankModel on cd.acquirer_bank_id equals bk.bank_id into bx from bankx in bx.DefaultIfEmpty()
-                join ct in _context.cctypeModel on cd.Type equals ct.Id.ToString() into cx from cardx in cx.DefaultIfEmpty()
-                orderby cd.acquirer_bank_id
-                select new CardIssuerBankViewModel()
-                {
-                    Prefix = cd.Prefix,
-                    TypeCard = cardx == null ? string.Empty : cardx.TypeCard,
-                    card_issuer_bank_id = cd.card_issuer_bank_id,
-                    BankName = bankx == null ? string.Empty : bankx.bank_code,
-                    Description = cd.Description
-                });
-            
-            return View(cards);
+            //(from ct in _context.cctypeModel orderby ct.TypeCard
+            //                 select new { ct.Id, ct.TypeCard}).ToList();            
+            return View();
+            //return PartialView("index", cards);
         }
 
-        //[HttpGet]
-        //public ActionResult GridPartial()
-        //{
-        //    return PartialView("_IndexGrid", _context.CardIssuerBankModel.ToList());
-        //}
+        [HttpGet]
+        public ActionResult Ajax()
+        {
+            return View();
+        }
+
+        [HttpGet]
+        public ActionResult GridPartial()
+        {
+
+            IEnumerable<CardIssuerBankViewModel> cards;
+            cards = (from cd in _context.CardIssuerBankModel
+                     join bk in _context.BankModel on cd.acquirer_bank_id equals bk.bank_id into bx
+                     from bankx in bx.DefaultIfEmpty()
+                     join ct in _context.cctypeModel on cd.Type equals ct.Id.ToString() into cx
+                     from cardx in cx.DefaultIfEmpty()
+                     orderby cd.acquirer_bank_id
+                     select new CardIssuerBankViewModel()
+                     {
+                         Prefix = cd.Prefix,
+                         TypeCard = cardx == null ? string.Empty : cardx.TypeCard,
+                         card_issuer_bank_id = cd.card_issuer_bank_id,
+                         BankName = bankx == null ? string.Empty : bankx.bank_code,
+                         Description = cd.Description
+                     });
+
+            return PartialView("_IndexGrid", cards);
+        }
 
         [HttpGet]
         public IActionResult Create()
         {
-            ViewBag.banks = _context.BankModel.ToList();
+            TempData["cType"] = _context.cctypeModel.ToList();
+
             return View();
         }
 

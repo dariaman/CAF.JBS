@@ -48,7 +48,8 @@
     },
     "Microsoft.AspNetCore.Mvc.ViewFeatures": "1.1.2",
     "Microsoft.EntityFrameworkCore.Relational": "1.1.1",
-    "NonFactors.Grid.Mvc6": "1.4.0"
+    "NonFactors.Grid.Mvc6": "1.4.0",
+    "Microsoft.AspNetCore.Session": "1.1.1"
     //"MySql.Data.Entity": "6.9.9",
     //"MySql.Data": "6.9.9",
     //"MySql.Web": "6.9.9"

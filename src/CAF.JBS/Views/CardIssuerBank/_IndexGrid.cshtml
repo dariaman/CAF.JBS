@@ -1,14 +1,14 @@
 ﻿@using NonFactors.Mvc.Grid;
 
-@model IEnumerable<CardIssuerBankModel>
+@model IEnumerable<CAF.JBS.ViewModels.CardIssuerBankViewModel>
 
 @(Html
     .Grid(Model)
     .Build(columns =>
     {
         columns.Add(model => model.Prefix).Titled("Bin Number");
-        columns.Add(model => model.Type).Titled("Type");
-        columns.Add(model => model.acquirer_bank_id).Titled("Acquirer Bank");
+        columns.Add(model => model.TypeCard).Titled("Type");
+        columns.Add(model => model.BankName).Titled("Acquirer Bank");
         columns.Add(model => model.Description).Titled("Description").Filterable(false);
         columns.Add(model => "<a href='./CardIssuerBank/Edit/" + model.card_issuer_bank_id + "'>Edit</a>").Encoded(false).Filterable(false);
 
