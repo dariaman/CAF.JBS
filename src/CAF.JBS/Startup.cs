@@ -48,8 +48,9 @@ namespace CAF.JBS
             services.AddApplicationInsightsTelemetry(Configuration);
 
             //////services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
-            services.AddDbContext<ApplicationDbContext>(options => options.UseMySQL(Configuration.GetConnectionString("jbsDB")));
-            
+            services.AddDbContext<JbsDbContext>(options => options.UseMySQL(Configuration.GetConnectionString("jbsDB")));
+            services.AddDbContext<Life21DbContext>(options => options.UseMySQL(Configuration.GetConnectionString("Life21")));
+
             services.AddIdentity<ApplicationUser, IdentityRole>(
                 options => {
                     // configure identity options
@@ -65,7 +66,7 @@ namespace CAF.JBS
                     // User settings
                     options.User.RequireUniqueEmail = true;
                 })
-                .AddEntityFrameworkStores<ApplicationDbContext>()
+                .AddEntityFrameworkStores<JbsDbContext>()
                 .AddDefaultTokenProviders();
             
             services.AddMvcCore().AddViewLocalization();

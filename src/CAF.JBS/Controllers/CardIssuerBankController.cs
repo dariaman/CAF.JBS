@@ -13,20 +13,34 @@ namespace CAF.JBS.Controllers
 {    
     public class CardIssuerBankController : Controller
     {
-        private ApplicationDbContext _context;
+        private readonly JbsDbContext _jbsDB;
+        private readonly Life21DbContext _Life21DB;
 
-        public CardIssuerBankController(ApplicationDbContext context)
+        public CardIssuerBankController(JbsDbContext context1, Life21DbContext contex2)
         {
-            _context = context;
+            _jbsDB = context1;
+            _Life21DB = contex2;
         }
 
         [HttpGet]
         public ActionResult Index()
         {
-            //(from ct in _context.cctypeModel orderby ct.TypeCard
-            //                 select new { ct.Id, ct.TypeCard}).ToList();            
-            return View();
-            //return PartialView("index", cards);
+            IEnumerable<CardIssuerBankViewModel> cards;
+            cards = (from cd in _Life21DB.CardIssuerBankModel
+                     join bk in _Life21DB.BankModel on cd.acquirer_bank_id equals bk.bank_id into bx
+                     from bankx in bx.DefaultIfEmpty()
+                     join ct in _jbsDB.cctypeModel on cd.Type equals ct.Id.ToString() into cx
+                     from cardx in cx.DefaultIfEmpty()
+                     orderby cd.acquirer_bank_id
+                     select new CardIssuerBankViewModel()
+                     {
+                         Prefix = cd.Prefix,
+                         //TypeCard = cardx == null ? string.Empty : cardx.TypeCard,
+                         card_issuer_bank_id = cd.card_issuer_bank_id,
+                         //BankName = bankx == null ? string.Empty : bankx.bank_code,
+                         Description = cd.Description
+                     });
+            return View(cards);
         }
 
         [HttpGet]
@@ -40,10 +54,10 @@ namespace CAF.JBS.Controllers
         {
 
             IEnumerable<CardIssuerBankViewModel> cards;
-            cards = (from cd in _context.CardIssuerBankModel
-                     join bk in _context.BankModel on cd.acquirer_bank_id equals bk.bank_id into bx
+            cards = (from cd in _Life21DB.CardIssuerBankModel
+                     join bk in _Life21DB.BankModel on cd.acquirer_bank_id equals bk.bank_id into bx
                      from bankx in bx.DefaultIfEmpty()
-                     join ct in _context.cctypeModel on cd.Type equals ct.Id.ToString() into cx
+                     join ct in _jbsDB.cctypeModel on cd.Type equals ct.Id.ToString() into cx
                      from cardx in cx.DefaultIfEmpty()
                      orderby cd.acquirer_bank_id
                      select new CardIssuerBankViewModel()
@@ -57,12 +71,10 @@ namespace CAF.JBS.Controllers
 
             return PartialView("_IndexGrid", cards);
         }
-
         [HttpGet]
+
         public IActionResult Create()
         {
-            TempData["cType"] = _context.cctypeModel.ToList();
-
             return View();
         }
 
@@ -72,8 +84,8 @@ namespace CAF.JBS.Controllers
         {
             if (ModelState.IsValid)
             {
-                _context.CardIssuerBankModel.Add(card);
-                _context.SaveChanges();
+                _Life21DB.CardIssuerBankModel.Add(card);
+                _Life21DB.SaveChanges();
                 return RedirectToAction("Index");
             }
             return View(card);
@@ -87,7 +99,7 @@ namespace CAF.JBS.Controllers
                 return NotFound();
             }
 
-            var cardIssuerBankModel = await _context.CardIssuerBankModel.SingleOrDefaultAsync(m => m.card_issuer_bank_id == id);
+            var cardIssuerBankModel = await _Life21DB.CardIssuerBankModel.SingleOrDefaultAsync(m => m.card_issuer_bank_id == id);
             if (cardIssuerBankModel == null)
             {
                 return NotFound();
@@ -108,8 +120,8 @@ namespace CAF.JBS.Controllers
             {
                 try
                 {
-                    _context.Update(cardIssuerBankModel);
-                    await _context.SaveChangesAsync();
+                    _Life21DB.Update(cardIssuerBankModel);
+                    await _Life21DB.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -129,7 +141,7 @@ namespace CAF.JBS.Controllers
 
         private bool CardIssuerBankModelExists(int id)
         {
-            return _context.CardIssuerBankModel.Any(e => e.card_issuer_bank_id == id);
+            return _Life21DB.CardIssuerBankModel.Any(e => e.card_issuer_bank_id == id);
         }
 
 

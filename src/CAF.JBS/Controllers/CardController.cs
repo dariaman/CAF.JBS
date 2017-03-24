@@ -12,17 +12,19 @@ namespace CAF.JBS.Controllers
 {
     public class CardController : Controller
     {
-        private readonly ApplicationDbContext _context;
+        private readonly JbsDbContext _jbsDB;
+        private readonly Life21DbContext _Life21DB;
 
-        public CardController(ApplicationDbContext context)
+        public CardController(JbsDbContext context1, Life21DbContext contex2)
         {
-            _context = context;    
+            _jbsDB = context1;
+            _Life21DB = contex2;
         }
 
         // GET: Card
         public async Task<IActionResult> Index()
         {
-            return View(await _context.CardIssuerBankModel.ToListAsync());
+            return View(await _Life21DB.CardIssuerBankModel.ToListAsync());
         }
 
         // GET: Card/Details/5
@@ -33,7 +35,7 @@ namespace CAF.JBS.Controllers
                 return NotFound();
             }
 
-            var cardIssuerBankModel = await _context.CardIssuerBankModel
+            var cardIssuerBankModel = await _Life21DB.CardIssuerBankModel
                 .SingleOrDefaultAsync(m => m.card_issuer_bank_id == id);
             if (cardIssuerBankModel == null)
             {
@@ -58,8 +60,8 @@ namespace CAF.JBS.Controllers
         {
             if (ModelState.IsValid)
             {
-                _context.Add(cardIssuerBankModel);
-                await _context.SaveChangesAsync();
+                _Life21DB.Add(cardIssuerBankModel);
+                await _Life21DB.SaveChangesAsync();
                 return RedirectToAction("Index");
             }
             return View(cardIssuerBankModel);
@@ -73,7 +75,7 @@ namespace CAF.JBS.Controllers
                 return NotFound();
             }
 
-            var cardIssuerBankModel = await _context.CardIssuerBankModel.SingleOrDefaultAsync(m => m.card_issuer_bank_id == id);
+            var cardIssuerBankModel = await _Life21DB.CardIssuerBankModel.SingleOrDefaultAsync(m => m.card_issuer_bank_id == id);
             if (cardIssuerBankModel == null)
             {
                 return NotFound();
@@ -97,8 +99,8 @@ namespace CAF.JBS.Controllers
             {
                 try
                 {
-                    _context.Update(cardIssuerBankModel);
-                    await _context.SaveChangesAsync();
+                    _Life21DB.Update(cardIssuerBankModel);
+                    await _Life21DB.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -119,15 +121,13 @@ namespace CAF.JBS.Controllers
         // GET: Card/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
-            if (id == null)
-            {
+            if (id == null){
                 return NotFound();
             }
 
-            var cardIssuerBankModel = await _context.CardIssuerBankModel
+            var cardIssuerBankModel = await _Life21DB.CardIssuerBankModel
                 .SingleOrDefaultAsync(m => m.card_issuer_bank_id == id);
-            if (cardIssuerBankModel == null)
-            {
+            if (cardIssuerBankModel == null){
                 return NotFound();
             }
 
@@ -139,15 +139,15 @@ namespace CAF.JBS.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var cardIssuerBankModel = await _context.CardIssuerBankModel.SingleOrDefaultAsync(m => m.card_issuer_bank_id == id);
-            _context.CardIssuerBankModel.Remove(cardIssuerBankModel);
-            await _context.SaveChangesAsync();
+            var cardIssuerBankModel = await _Life21DB.CardIssuerBankModel.SingleOrDefaultAsync(m => m.card_issuer_bank_id == id);
+            _Life21DB.CardIssuerBankModel.Remove(cardIssuerBankModel);
+            await _Life21DB.SaveChangesAsync();
             return RedirectToAction("Index");
         }
 
         private bool CardIssuerBankModelExists(int id)
         {
-            return _context.CardIssuerBankModel.Any(e => e.card_issuer_bank_id == id);
+            return _Life21DB.CardIssuerBankModel.Any(e => e.card_issuer_bank_id == id);
         }
     }
 }
