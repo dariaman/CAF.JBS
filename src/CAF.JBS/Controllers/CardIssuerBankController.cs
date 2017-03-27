@@ -71,8 +71,8 @@ namespace CAF.JBS.Controllers
 
             return PartialView("_IndexGrid", cards);
         }
-        [HttpGet]
 
+        [HttpGet]
         public IActionResult Create()
         {
             return View();

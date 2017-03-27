@@ -245,6 +245,7 @@
 C:\Dariaman\CAF.JBS\src\CAF.JBS\Program.cs
 C:\Dariaman\CAF.JBS\src\CAF.JBS\Startup.cs
 C:\Dariaman\CAF.JBS\src\CAF.JBS\Controllers\AccountController.cs
+C:\Dariaman\CAF.JBS\src\CAF.JBS\Controllers\BillingController.cs
 C:\Dariaman\CAF.JBS\src\CAF.JBS\Controllers\CardController.cs
 C:\Dariaman\CAF.JBS\src\CAF.JBS\Controllers\CardIssuerBankController.cs
 C:\Dariaman\CAF.JBS\src\CAF.JBS\Controllers\HomeController.cs
@@ -253,6 +254,7 @@ C:\Dariaman\CAF.JBS\src\CAF.JBS\Data\JbsDbContext.cs
 C:\Dariaman\CAF.JBS\src\CAF.JBS\Data\Life21DbContext.cs
 C:\Dariaman\CAF.JBS\src\CAF.JBS\Models\ApplicationUser.cs
 C:\Dariaman\CAF.JBS\src\CAF.JBS\Models\BankModel.cs
+C:\Dariaman\CAF.JBS\src\CAF.JBS\Models\BillingModel.cs
 C:\Dariaman\CAF.JBS\src\CAF.JBS\Models\CardIssuerBankModel.cs
 C:\Dariaman\CAF.JBS\src\CAF.JBS\Models\cctypeModel.cs
 C:\Dariaman\CAF.JBS\src\CAF.JBS\Models\AccountViewModels\ExternalLoginConfirmationViewModel.cs
@@ -276,3 +278,4 @@ C:\Dariaman\CAF.JBS\src\CAF.JBS\Services\IEmailSender.cs
 C:\Dariaman\CAF.JBS\src\CAF.JBS\Services\ISmsSender.cs
 C:\Dariaman\CAF.JBS\src\CAF.JBS\Services\MessageServices.cs
 C:\Dariaman\CAF.JBS\src\CAF.JBS\ViewModels\CardIssuerBankViewModel.cs
+C:\Dariaman\CAF.JBS\src\CAF.JBS\ViewModels\DownloadBillingVM.cs

@@ -20,9 +20,11 @@ namespace CAF.JBS.Data
             base.OnModelCreating(builder);
             builder.Entity<cctypeModel>().ToTable("cctype");
             builder.Entity<BankModel>().ToTable("bank");
+            builder.Entity<BillingModel>().ToTable("billing");
         }
 
         public DbSet<cctypeModel> cctypeModel { get; set; }
         public DbSet<BankModel> BankModel { get; set; }
+        public DbSet<BillingModel> BillingModel { get; set; }
     }
 }

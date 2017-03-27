@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -7,6 +8,8 @@ namespace CAF.JBS.Models
 {
     public class BillingModel
     {
+        [Required]
+        [Key]
         public string BillingID { get; set; }
         public int policy_id { get; set; }
         public int recurring_seq { get; set; }
