@@ -10,10 +10,8 @@ namespace CAF.JBS.Data
 {
     public class Life21DbContext : IdentityDbContext<ApplicationUser>
     {
-        public Life21DbContext(DbContextOptions<Life21DbContext> options)
-            : base(options)
-        {
-        }
+        public Life21DbContext(DbContextOptions<Life21DbContext> options) : base(options)
+        {        }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {

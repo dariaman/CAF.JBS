@@ -1,0 +1,11 @@
+@model  IEnumerable<CAF.JBS.ViewModels.DataDownload>
+
+@{
+    ViewData["Title"] = "Data Download";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    foreach(var item in Model)
+    {
+        @item.a;
+    }
+}

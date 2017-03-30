@@ -8,10 +8,16 @@ namespace CAF.JBS.ViewModels
     public class DownloadBillingVM
     {
         public string Total { get; set; }
-        public string BcaCC { get; set; }
-        public string MandiriCC { get; set; }
-        public string Bni { get; set; }
-        public string MegaOn { get; set; }
-        public string MegaOf { get; set; }
+        public bool BcaCC { get; set; }
+        public bool MandiriCC { get; set; }
+        public bool BniCC { get; set; }
+        public bool MegaCC { get; set; }
+
+        public bool BcaAC { get; set; }
+        public bool MandiriAC { get; set; }
+
+        public bool BcaRegularPremium { get; set; }
+
+        public bool BCAOther { get; set; }
     }
 }

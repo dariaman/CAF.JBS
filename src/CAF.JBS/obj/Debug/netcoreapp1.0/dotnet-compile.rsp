@@ -246,7 +246,6 @@ C:\Dariaman\CAF.JBS\src\CAF.JBS\Program.cs
 C:\Dariaman\CAF.JBS\src\CAF.JBS\Startup.cs
 C:\Dariaman\CAF.JBS\src\CAF.JBS\Controllers\AccountController.cs
 C:\Dariaman\CAF.JBS\src\CAF.JBS\Controllers\BillingController.cs
-C:\Dariaman\CAF.JBS\src\CAF.JBS\Controllers\CardController.cs
 C:\Dariaman\CAF.JBS\src\CAF.JBS\Controllers\CardIssuerBankController.cs
 C:\Dariaman\CAF.JBS\src\CAF.JBS\Controllers\HomeController.cs
 C:\Dariaman\CAF.JBS\src\CAF.JBS\Controllers\ManageController.cs
@@ -278,4 +277,5 @@ C:\Dariaman\CAF.JBS\src\CAF.JBS\Services\IEmailSender.cs
 C:\Dariaman\CAF.JBS\src\CAF.JBS\Services\ISmsSender.cs
 C:\Dariaman\CAF.JBS\src\CAF.JBS\Services\MessageServices.cs
 C:\Dariaman\CAF.JBS\src\CAF.JBS\ViewModels\CardIssuerBankViewModel.cs
+C:\Dariaman\CAF.JBS\src\CAF.JBS\ViewModels\DataDownload.cs
 C:\Dariaman\CAF.JBS\src\CAF.JBS\ViewModels\DownloadBillingVM.cs

@@ -26,36 +26,8 @@ namespace CAF.JBS.Controllers
         public ActionResult Index()
         {
             IEnumerable<CardIssuerBankViewModel> cards;
-            cards = (from cd in _Life21DB.CardIssuerBankModel
-                     join bk in _Life21DB.BankModel on cd.acquirer_bank_id equals bk.bank_id into bx
-                     from bankx in bx.DefaultIfEmpty()
-                     join ct in _jbsDB.cctypeModel on cd.Type equals ct.Id.ToString() into cx
-                     from cardx in cx.DefaultIfEmpty()
-                     orderby cd.acquirer_bank_id
-                     select new CardIssuerBankViewModel()
-                     {
-                         Prefix = cd.Prefix,
-                         //TypeCard = cardx == null ? string.Empty : cardx.TypeCard,
-                         card_issuer_bank_id = cd.card_issuer_bank_id,
-                         //BankName = bankx == null ? string.Empty : bankx.bank_code,
-                         Description = cd.Description
-                     });
-            return View(cards);
-        }
-
-        [HttpGet]
-        public ActionResult Ajax()
-        {
-            return View();
-        }
-
-        [HttpGet]
-        public ActionResult GridPartial()
-        {
-
-            IEnumerable<CardIssuerBankViewModel> cards;
-            cards = (from cd in _Life21DB.CardIssuerBankModel
-                     join bk in _Life21DB.BankModel on cd.acquirer_bank_id equals bk.bank_id into bx
+            cards = (from cd in _jbsDB.CardIssuerBankModel
+                     join bk in _jbsDB.BankModel on cd.acquirer_bank_id equals bk.bank_id into bx
                      from bankx in bx.DefaultIfEmpty()
                      join ct in _jbsDB.cctypeModel on cd.Type equals ct.Id.ToString() into cx
                      from cardx in cx.DefaultIfEmpty()
@@ -68,8 +40,7 @@ namespace CAF.JBS.Controllers
                          BankName = bankx == null ? string.Empty : bankx.bank_code,
                          Description = cd.Description
                      });
-
-            return PartialView("_IndexGrid", cards);
+            return View(cards);
         }
 
         [HttpGet]
@@ -84,24 +55,21 @@ namespace CAF.JBS.Controllers
         {
             if (ModelState.IsValid)
             {
-                _Life21DB.CardIssuerBankModel.Add(card);
-                _Life21DB.SaveChanges();
+                _jbsDB.CardIssuerBankModel.Add(card);
+                _jbsDB.SaveChanges();
                 return RedirectToAction("Index");
             }
             return View(card);
         }
 
-
         public async Task<IActionResult> Edit(int? id)
         {
-            if (id == null)
-            {
+            if (id == null) {
                 return NotFound();
             }
 
             var cardIssuerBankModel = await _Life21DB.CardIssuerBankModel.SingleOrDefaultAsync(m => m.card_issuer_bank_id == id);
-            if (cardIssuerBankModel == null)
-            {
+            if (cardIssuerBankModel == null) {
                 return NotFound();
             }
             return View(cardIssuerBankModel);
@@ -111,8 +79,7 @@ namespace CAF.JBS.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("card_issuer_bank_id,Type,Prefix,Description,acquirer_bank_id")] CardIssuerBankModel cardIssuerBankModel)
         {
-            if (id != cardIssuerBankModel.card_issuer_bank_id)
-            {
+            if (id != cardIssuerBankModel.card_issuer_bank_id) {
                 return NotFound();
             }
 

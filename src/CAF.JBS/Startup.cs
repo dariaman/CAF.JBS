@@ -108,9 +108,15 @@ namespace CAF.JBS
 
             app.UseStaticFiles();
             app.UseIdentity();
-                        
+            app.UseDeveloperExceptionPage();
+
             app.UseMvc(routes =>
             {
+                //routes.MapRoute(name: "SampleSolution",
+                //    template: "{controller=Settings}/{action=ViewApplicationSolution}/{ bugID ?}/{ view ?}");
+                //routes.MapRoute(name: "Sample",
+                //    template: "{controller=Settings}/{action=ViewApplication}/{applicationID?}/{ applicationVersionID ?}/{ view ?}");
+
                 routes.MapRoute(
                     name: "default",
                     template: "{controller=Home}/{action=Index}/{id?}");

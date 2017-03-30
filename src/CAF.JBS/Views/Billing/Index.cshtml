@@ -1,26 +1,25 @@
-@model IEnumerable<CAF.JBS.ViewModels.DownloadBillingVM>
+@model CAF.JBS.ViewModels.DownloadBillingVM
 
 @{
     ViewData["Title"] = "Index";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<form asp-action="Create">
+<form asp-action="Download">
     <div class="container" style="margin: auto; padding: 20px;">
         <div class="panel panel-primary" style="margin: auto;width:250px;">
             <div class="panel-heading">Download Billing</div>
             <div class="panel-body">
-                <input type="checkbox" id="bcacc" /> BCA CC<br />
-                <input type="checkbox" id="mandiricc" /> Mandiri CC <br />
-                <input type="checkbox" id="bnicc" /> BNI CC <br />
-                <input type="checkbox" id="megaonuscc" /> Mega On Us CC <br />
-                <input type="checkbox" id="megaoffuscc" /> Mega Off Us CC
+                <input type="checkbox" asp-for="BcaCC" /> BCA CC<br />
+                <input type="checkbox" asp-for="MandiriCC" /> Mandiri CC <br />
+                <input type="checkbox" asp-for="BniCC" /> BNI CC <br />
+                <input type="checkbox" asp-for="MegaCC" /> Mega CC 
             </div>
             <div class="panel-body">
-                <input type="checkbox" id="bcaac" /> BCA Auto Collection <br />
-                <input type="checkbox" id="mandiriac" /> Mandiri Auto Collection <br />
-                <input type="checkbox" id="bcaregulerpremium" /> BCA Reguler Premium <br />
-                <input type="checkbox" id="bcaotherpayment" /> BCA Other Payment
+                <input type="checkbox" asp-for="BcaAC" /> BCA Auto Collection <br />
+                <input type="checkbox" asp-for="MandiriAC" /> Mandiri Auto Collection <br />
+                <input type="checkbox" asp-for="BcaRegularPremium" /> BCA Reguler Premium <br />
+                <input type="checkbox" asp-for="BCAOther" /> BCA Other Payment
             </div>
             <div class="panel-footer" style="margin: auto; padding: 10px;">
                 <input type="submit" value="Create File" class="btn btn-success" />
