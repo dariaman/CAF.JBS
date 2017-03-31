@@ -10,15 +10,19 @@ using CAF.JBS.ViewModels;
 using System.IO;
 using System.Data.Common;
 using Microsoft.EntityFrameworkCore;
+using System.Data;
+using MySql.Data.MySqlClient;
 
 namespace CAF.JBS.Controllers
 {
     public class BillingController : Controller
     {
         private readonly JbsDbContext _jbsDB;
+        private readonly  string TempFile;
         public BillingController(JbsDbContext context1)
         {
             _jbsDB = context1;
+            TempFile = "./FileBilling/";
         }
 
         [HttpGet]
@@ -72,12 +76,74 @@ namespace CAF.JBS.Controllers
             await Response.Body.WriteAsync(arr, 0, arr.Length);
         }
 
+        public async void GenerateFile(string filename)
+        {
+            Response.Headers.Add("content-disposition", "attachment; filename=" + filename);
+            //byte[] arr = System.IO.File.ReadAllBytes(source);
+            //await Response.Body.WriteAsync(arr, 0, arr.Length);
+        }
+
         protected void BcaCCFile(int id)
         {
+
             /* id
              * 1 = bca only
              */
-            DbCommand cmd = _jbsDB.Database.GetDbConnection().CreateCommand();            
+            FileInfo FileName = new FileInfo("CAF" + DateTime.Now.ToString("ddMM") + ".prn");
+            var files = Directory.GetFiles(".").Where(s => s.EndsWith(".prn"));
+
+            foreach (string file in files) {
+                if (FileName.ToString() == file) { continue; }
+                System.IO.File.Delete(file);
+            }
+            
+            if (FileName.Exists) { System.IO.File.Delete(FileName.ToString()); }
+                
+
+            var cmd = _jbsDB.Database.GetDbConnection().CreateCommand();
+            cmd.CommandType = CommandType.StoredProcedure;
+            cmd.CommandText = "GenerateBillingBCA_sp ";
+            cmd.Parameters.Add(new MySqlParameter("@BankCode", MySqlDbType.Int16) { Value = 0});
+            cmd.Connection.Open();
+
+            //await cmd.ExecuteNonQueryAsync();
+            try
+            {
+                using (var result = cmd.ExecuteReader())
+                {
+                    using (FileStream fs = new FileStream(FileName.ToString(), FileMode.OpenOrCreate, FileAccess.Write))
+                    {
+                        using (StreamWriter writer = new StreamWriter(fs))
+                        {
+                            while (result.Read())
+                            {
+                                writer.Write(result["a"]);
+                                writer.Write(result["b"]);
+                                writer.Write(result["c"]);
+                                writer.Write(result["d"]);
+                                writer.Write(result["e"]);
+                                writer.Write(result["f"]);
+                                writer.Write(result["g"]);
+                                writer.Write(result["h"]);
+                                writer.Write(result["i"]);
+                                writer.Write(result["j"]);
+                                writer.Write(result["k"]);
+                                writer.Write(result["l"]);
+                                writer.WriteLine();
+                            }
+                        }
+                    }
+                }
+            }
+            finally
+            {
+                cmd.Connection.Close();
+            }
+
+            //DbCommand cmd = _jbsDB.Database.GetDbConnection().CreateCommand();
+            //List<dummyDownload> dd = _jbsDB.dummyDownload
+            //        .FromSql("GenerateBillingBCA_sp").ToList();
+            //return dd;
 
         }
 
