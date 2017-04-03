@@ -243,3 +243,4 @@ ModelManifest.xml
 src/CAF.JBS/appsettings.json
 src/CAF.JBS/appsettings.json
 src/CAF.JBS/appsettings.json
+*.prn

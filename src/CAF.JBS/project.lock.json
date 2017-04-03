@@ -2008,6 +2008,17 @@
           }
         }
       },
+      "MimeTypes/1.0.6": {
+        "type": "package",
+        "contentFiles": {
+          "contentFiles/cs/any/MimeTypes.cs.pp": {
+            "buildAction": "Compile",
+            "codeLanguage": "cs",
+            "copyToOutput": false,
+            "ppOutputPath": "MimeTypes.cs"
+          }
+        }
+      },
       "NETStandard.Library/1.6.1": {
         "type": "package",
         "dependencies": {
@@ -6461,6 +6472,17 @@
         "runtimes/win/lib/net46/Microsoft.Win32.Registry.dll",
         "runtimes/win/lib/netcore50/_._",
         "runtimes/win/lib/netstandard1.3/Microsoft.Win32.Registry.dll"
+      ]
+    },
+    "MimeTypes/1.0.6": {
+      "sha512": "cvT4Xls7/Q3rFEj7OdX1Ma6L+sqW3dvgRP2WHz34FsPY/v/68au4QaKTmMkVFRehnAQnzb0790e9gkdRx7+6kQ==",
+      "type": "package",
+      "path": "MimeTypes/1.0.6",
+      "files": [
+        "MimeTypes.1.0.6.nupkg.sha512",
+        "MimeTypes.nuspec",
+        "content/MimeTypes.cs.pp",
+        "contentFiles/cs/any/MimeTypes.cs.pp"
       ]
     },
     "NETStandard.Library/1.6.1": {
@@ -11772,6 +11794,7 @@
       "Microsoft.VisualStudio.Web.BrowserLink.Loader >= 14.1.0",
       "Microsoft.VisualStudio.Web.CodeGeneration.Tools >= 1.1.0-preview4-final",
       "Microsoft.VisualStudio.Web.CodeGenerators.Mvc >= 1.1.0-preview4-final",
+      "MimeTypes >= 1.0.6",
       "NonFactors.Grid.Mvc6 >= 1.4.0",
       "SapientGuardian.EntityFrameworkCore.MySql >= 7.1.*"
     ],

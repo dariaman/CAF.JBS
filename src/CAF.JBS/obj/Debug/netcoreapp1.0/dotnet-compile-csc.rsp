@@ -238,6 +238,7 @@
 -r:"C:\Users\dariaman.siagian\.nuget\packages\System.Xml.ReaderWriter\4.3.0\ref\netstandard1.3\System.Xml.ReaderWriter.dll"
 -r:"C:\Users\dariaman.siagian\.nuget\packages\System.Xml.XDocument\4.3.0\ref\netstandard1.3\System.Xml.XDocument.dll"
 -resource:"C:\Dariaman\CAF.JBS\src\CAF.JBS\obj\Debug\netcoreapp1.0\CAF.JBSdotnet-compile.deps.json",CAF.JBS.deps.json
+"C:\Dariaman\CAF.JBS\src\CAF.JBS\obj\Debug\netcoreapp1.0\MimeTypes.cs.pp"
 "C:\Dariaman\CAF.JBS\src\CAF.JBS\Program.cs"
 "C:\Dariaman\CAF.JBS\src\CAF.JBS\Startup.cs"
 "C:\Dariaman\CAF.JBS\src\CAF.JBS\Controllers\AccountController.cs"

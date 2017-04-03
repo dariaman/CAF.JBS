@@ -19,10 +19,22 @@ namespace CAF.JBS.Controllers
     {
         private readonly JbsDbContext _jbsDB;
         private readonly  string TempFile;
+
+        private readonly string BCAFile;
+        private readonly string Mandiriile;
+        private readonly string MegaFile;
+        private readonly string BNIFile;
+        private List<string> DownloadFile;
         public BillingController(JbsDbContext context1)
         {
             _jbsDB = context1;
             TempFile = "./FileBilling/";
+
+            BCAFile = "CAF" + DateTime.Now.ToString("ddMM") + ".prn";
+            Mandiriile = "";
+            MegaFile = "";
+            BNIFile = "";
+            DownloadFile = new List<string>();
         }
 
         [HttpGet]
@@ -65,40 +77,53 @@ namespace CAF.JBS.Controllers
                 }
             }
 
+            foreach (var filex in this.DownloadFile)
+            {
+                FileInfo FileName = new FileInfo(filex);
+                if (FileName.Exists) {
+                    Download(FileName.ToString());
+                    //Download2(FileName.ToString());
+                }
+            }
+
             return RedirectToAction("Index");
         }
 
-        [HttpGet]
-        public async void DownloadFile(string source,string filename)
+        public async void Download(string fileName)
         {
-            Response.Headers.Add("content-disposition", "attachment; filename=" + filename);
-            byte[] arr = System.IO.File.ReadAllBytes(source);
-            await Response.Body.WriteAsync(arr, 0, arr.Length);
+            ActionContext context = new ActionContext();
+            var filepath = $"{fileName}";
+            byte[] fileBytes = System.IO.File.ReadAllBytes(filepath);
+            //await Response.Body.WriteAsync(fileBytes, 0, fileBytes.Length);
+            using (var fileStream = new FileStream(filepath, FileMode.Open))
+            {
+                await fileStream.CopyToAsync(context.HttpContext.Response.Body);
+            }
+            //return File(fileBytes, "application/x-msdownload", fileName);
         }
 
-        public async void GenerateFile(string filename)
+        public FileStreamResult Download2(string fileName)
         {
-            Response.Headers.Add("content-disposition", "attachment; filename=" + filename);
-            //byte[] arr = System.IO.File.ReadAllBytes(source);
-            //await Response.Body.WriteAsync(arr, 0, arr.Length);
+            Response.Headers.Add("content-disposition", "attachment; filename=" + fileName);
+            return File(new FileStream(fileName, FileMode.Open),"application/octet-stream"); 
         }
 
         protected void BcaCCFile(int id)
         {
 
             /* id
+             * 0 = All data
              * 1 = bca only
              */
-            FileInfo FileName = new FileInfo("CAF" + DateTime.Now.ToString("ddMM") + ".prn");
-            var files = Directory.GetFiles(".").Where(s => s.EndsWith(".prn"));
+            FileInfo FileName = new FileInfo("./tempFile/" + this.BCAFile);
+            var files = Directory.GetFiles("./tempFile/").Where(s => s.EndsWith(".prn"));
 
             foreach (string file in files) {
                 if (FileName.ToString() == file) { continue; }
                 System.IO.File.Delete(file);
             }
             
-            if (FileName.Exists) { System.IO.File.Delete(FileName.ToString()); }
-                
+            if (FileName.Exists) { System.IO.File.Delete(FileName.ToString()); }                
 
             var cmd = _jbsDB.Database.GetDbConnection().CreateCommand();
             cmd.CommandType = CommandType.StoredProcedure;
@@ -106,7 +131,6 @@ namespace CAF.JBS.Controllers
             cmd.Parameters.Add(new MySqlParameter("@BankCode", MySqlDbType.Int16) { Value = 0});
             cmd.Connection.Open();
 
-            //await cmd.ExecuteNonQueryAsync();
             try
             {
                 using (var result = cmd.ExecuteReader())
@@ -132,6 +156,7 @@ namespace CAF.JBS.Controllers
                                 writer.WriteLine();
                             }
                         }
+                        this.DownloadFile.Add(FileName.ToString());
                     }
                 }
             }
@@ -139,12 +164,6 @@ namespace CAF.JBS.Controllers
             {
                 cmd.Connection.Close();
             }
-
-            //DbCommand cmd = _jbsDB.Database.GetDbConnection().CreateCommand();
-            //List<dummyDownload> dd = _jbsDB.dummyDownload
-            //        .FromSql("GenerateBillingBCA_sp").ToList();
-            //return dd;
-
         }
 
         protected void MandiriCCFile(int id)

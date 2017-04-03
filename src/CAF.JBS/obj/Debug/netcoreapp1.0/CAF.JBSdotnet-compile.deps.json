@@ -1,7 +1,7 @@
 {
   "runtimeTarget": {
     "name": ".NETCoreApp,Version=v1.0/",
-    "signature": "4f6c6c622f2150b6bae4a486e361858f79f34532"
+    "signature": "ca467ac0c709bc259aecff01f9d2b8337af04936"
   },
   "compilationOptions": {
     "defines": [
@@ -41,7 +41,8 @@
           "Microsoft.AspNetCore.Mvc.ViewFeatures": "1.1.2",
           "Microsoft.EntityFrameworkCore.Relational": "1.1.1",
           "NonFactors.Grid.Mvc6": "1.4.0",
-          "Microsoft.AspNetCore.Session": "1.1.1"
+          "Microsoft.AspNetCore.Session": "1.1.1",
+          "MimeTypes": "1.0.6"
         },
         "compile": {
           "CAF.JBS.dll": {}
@@ -1243,6 +1244,7 @@
           "ref/netstandard1.3/Microsoft.Win32.Registry.dll": {}
         }
       },
+      "MimeTypes/1.0.6": {},
       "NETStandard.Library/1.6.1": {
         "dependencies": {
           "Microsoft.NETCore.Platforms": "1.1.0",
@@ -2894,7 +2896,8 @@
           "Microsoft.AspNetCore.Mvc.ViewFeatures": "1.1.2",
           "Microsoft.EntityFrameworkCore.Relational": "1.1.1",
           "NonFactors.Grid.Mvc6": "1.4.0",
-          "Microsoft.AspNetCore.Session": "1.1.1"
+          "Microsoft.AspNetCore.Session": "1.1.1",
+          "MimeTypes": "1.0.6"
         },
         "runtime": {
           "CAF.JBS.dll": {}
@@ -4093,6 +4096,7 @@
           "System.Runtime.InteropServices": "4.3.0"
         }
       },
+      "MimeTypes/1.0.6": {},
       "NETStandard.Library/1.6.1": {
         "dependencies": {
           "Microsoft.NETCore.Platforms": "1.1.0",
@@ -6130,6 +6134,11 @@
       "type": "package",
       "serviceable": true,
       "sha512": "sha512-Lw1/VwLH1yxz6SfFEjVRCN0pnflLEsWgnV4qsdJ512/HhTwnKXUG+zDQ4yTO3K/EJQemGoNaBHX5InISNKTzUQ=="
+    },
+    "MimeTypes/1.0.6": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-cvT4Xls7/Q3rFEj7OdX1Ma6L+sqW3dvgRP2WHz34FsPY/v/68au4QaKTmMkVFRehnAQnzb0790e9gkdRx7+6kQ=="
     },
     "NETStandard.Library/1.6.1": {
       "type": "package",
