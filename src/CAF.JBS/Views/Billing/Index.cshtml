@@ -7,25 +7,89 @@
 
 <form asp-action="Download">
     <div class="container" style="margin: auto; padding: 20px;">
-        <div class="panel panel-primary" style="margin: auto;width:250px;">
+        <div class="panel panel-primary" style="margin: auto;width:700px;">
             <div class="panel-heading">Download Billing</div>
             <div class="panel-body">
-                <input type="checkbox" asp-for="BcaCC" /> BCA CC<br />
-                <input type="checkbox" asp-for="MandiriCC" /> Mandiri CC <br />
-                <input type="checkbox" asp-for="BniCC" /> BNI CC <br />
-                <input type="checkbox" asp-for="MegaCC" /> Mega CC 
+                <table class="table table-bordered table-striped">
+                    <tr>
+                        <td style="width:175px;"><input type="checkbox" asp-for="BcaCC" /> BCA CC</td>
+                        <td> <b>  @{ if (ViewBag.BCACC != null)
+                                    {
+                                        @Html.ActionLink((string)ViewBag.BCACC, "DownloadFile", new { fileName = ViewBag.BCACC });
+                                    } } </b>
+                        </td>
+                        <td></td>
+                    </tr>
+
+                    <tr>
+                        <td><input type="checkbox" asp-for="MandiriCC" /> Mandiri CC </td>
+                        <td> <b> @{ if (ViewBag.MandiriCC != null)
+                                    {
+                                        @Html.ActionLink((string)ViewBag.MandiriCC, "DownloadFile", new { fileName = ViewBag.MandiriCC });
+                                    } } </b>
+                        </td>
+                        <td></td>
+                    </tr>
+
+                    <tr>
+                        <td><input type="checkbox" asp-for="MegaCC" /> Mega CC </td>
+                        <td>
+                            <b> @{ if (ViewBag.MegaOnUs != null)
+                                    {
+                                        @Html.ActionLink((string)ViewBag.MegaOnUs, "DownloadFile", new { fileName = ViewBag.MegaOnUs });
+                                    }
+                                }
+                                @{
+                                    if (ViewBag.MegaOfUs != null)
+                                    {
+                                        @Html.ActionLink((string)ViewBag.MegaOfUs, "DownloadFile", new { fileName = ViewBag.MegaOfUs });
+                                    }
+
+                                } </b>
+                        </td>
+                        <td></td>
+                    </tr>
+
+                    <tr>
+                        <td><input type="checkbox" asp-for="BniCC" /> BNI CC </td>
+                        <td>
+                            <b>
+                                @{ if (ViewBag.BNICC != null)
+                                    {
+                                        @Html.ActionLink((string)ViewBag.BNICC, "DownloadFile", new { fileName = ViewBag.BNICC });
+                                    }
+                                }
+                            </b>
+                        </td>
+                        <td><input type="button" value="Upload Result" class="btn btn-primary" /></td>
+                    </tr>
+                </table>
+                <div class="panel-body">
+                    <input type="checkbox" asp-for="BcaAC" /> BCA Auto Collection <br />
+                    <input type="checkbox" asp-for="MandiriAC" /> Mandiri Auto Collection <br />
+                    <input type="checkbox" asp-for="BcaRegularPremium" /> BCA Reguler Premium (VA) <br />
+                    <input type="checkbox" asp-for="BCAOther" /> BCA Other Payment
+                </div>
             </div>
-            <div class="panel-body">
-                <input type="checkbox" asp-for="BcaAC" /> BCA Auto Collection <br />
-                <input type="checkbox" asp-for="MandiriAC" /> Mandiri Auto Collection <br />
-                <input type="checkbox" asp-for="BcaRegularPremium" /> BCA Reguler Premium <br />
-                <input type="checkbox" asp-for="BCAOther" /> BCA Other Payment
-            </div>
-            <div class="panel-footer" style="margin: auto; padding: 10px;">
+            <div class="panel-footer" style="margin: auto; text-align:center; padding: 10px;">
                 <input type="submit" value="Create File" class="btn btn-success" />
-                <input type="button" asp-action="DownloadVA" asp-controller="Billing" value="Download VA" class="btn btn-primary" onclick="Download()" />
             </div>
         </div>            
     </div>
 
 </form>
+
+@{
+    var Files = (ViewBag.Files as string[]);
+
+    if (Files != null && Files.Any())
+    {
+        foreach (var file in Files)
+        {
+            <br />
+            @Html.ActionLink(file, "DownloadFile", new { fileName = file })
+            <br />
+
+        }
+    }
+}
