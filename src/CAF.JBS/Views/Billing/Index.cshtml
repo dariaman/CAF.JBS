@@ -5,20 +5,46 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
+<script language="javascript" type="text/javascript">
+
+    function UploadFileNow() {
+
+        var value = $("#FileUpload2").val();
+
+        if (value != '') {
+
+            $("#form1").submit();
+
+        }
+
+    };
+</script>
+
 <form asp-action="Download">
     <div class="container" style="margin: auto; padding: 20px;">
         <div class="panel panel-primary" style="margin: auto;width:700px;">
             <div class="panel-heading">Download Billing</div>
             <div class="panel-body">
+                <h4>Billing CC</h4>
                 <table class="table table-bordered table-striped">
+                    <thead>
+                        <tr>
+                            <th style="width:200px;">Bank Collector</thstyle="width:175px;">
+                            <th>File Billing</th>
+                            <th style="width:125px;">Upload Result</th>
+                        </tr>
+                    </thead>
                     <tr>
-                        <td style="width:175px;"><input type="checkbox" asp-for="BcaCC" /> BCA CC</td>
+                        <td><input type="checkbox" asp-for="BcaCC" /> BCA CC</td>
                         <td> <b>  @{ if (ViewBag.BCACC != null)
                                     {
                                         @Html.ActionLink((string)ViewBag.BCACC, "DownloadFile", new { fileName = ViewBag.BCACC });
                                     } } </b>
                         </td>
-                        <td></td>
+                        <td>@{ if (ViewBag.BCACC != null)
+                            {
+                                @Html.ActionLink("Upload", "UploadResult", new { fileName = "masih Kosong" });
+                            } }</td>
                     </tr>
 
                     <tr>
@@ -28,7 +54,10 @@
                                         @Html.ActionLink((string)ViewBag.MandiriCC, "DownloadFile", new { fileName = ViewBag.MandiriCC });
                                     } } </b>
                         </td>
-                        <td></td>
+                        <td>@{ if (ViewBag.MandiriCC != null)
+                            {
+                                @Html.ActionLink("Upload", "UploadResult", new { fileName = "masih Kosong" });
+                            } }</td>
                     </tr>
 
                     <tr>
@@ -47,7 +76,11 @@
 
                                 } </b>
                         </td>
-                        <td></td>
+                        <td>@{ if (ViewBag.MegaOnUs != null)
+                            {
+                                @Html.ActionLink("Upload", "UploadResult", new { fileName = "masih Kosong" });
+                            }
+                        }</td>
                     </tr>
 
                     <tr>
@@ -61,13 +94,40 @@
                                 }
                             </b>
                         </td>
-                        <td><input type="button" value="Upload Result" class="btn btn-primary" /></td>
+                        <td>
+                            @{ if (ViewBag.BNICC != null)
+                                {
+                                    @Html.ActionLink("Upload", "UploadResult", new { fileName = "masih Kosong" });
+                                } }
+                        </td>
                     </tr>
                 </table>
+                
+                    <h4>Billing AC</h4>
+                    <table class="table table-bordered table-striped">
+                        <thead>
+                            <tr>
+                                <th style="width:200px;">Bank Collector</thstyle="width:175px;">
+                                <th>File Billing</th>
+                                <th style="width:125px;">Upload Result</th>
+                            </tr>
+                        </thead>
+                        <tr>
+                            <td><input type="checkbox" asp-for="BcaAC" /> BCA Auto Collection</td>
+                            <td>
+                            </td>
+                            <td>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><input type="checkbox" asp-for="MandiriAC" /> Mandiri Auto Collection</td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                    </table>
                 <div class="panel-body">
-                    <input type="checkbox" asp-for="BcaAC" /> BCA Auto Collection <br />
-                    <input type="checkbox" asp-for="MandiriAC" /> Mandiri Auto Collection <br />
-                    <input type="checkbox" asp-for="BcaRegularPremium" /> BCA Reguler Premium (VA) <br />
+                    <input type="checkbox" asp-for="BcaRegularPremium" /> BCA Reguler Premium (VA)
+                    <br />
                     <input type="checkbox" asp-for="BCAOther" /> BCA Other Payment
                 </div>
             </div>

@@ -25,80 +25,80 @@ namespace CAF.JBS.Controllers
     public class BillingController : Controller
     {
         private readonly JbsDbContext _jbsDB;
-        private readonly  string TempFile;      //folder Billing yang standby hari ini
+        private readonly  string DirBilling;      //folder Billing yang standby hari ini
         private readonly string BackupFile;     //folder Backup billing hari2 sebelumnya
         private readonly string Template;       //folder template billing
 
-        private readonly string BCAFile;
-        private readonly string MandiriFile;
-        private readonly string MegaOnUsFile;
-        private readonly string MegaOfUsFile;
-        private readonly string BNIFile;
+        private readonly string BCAccFile;
+        private readonly string MandiriccFile;
+        private readonly string MegaOnUsccFile;
+        private readonly string MegaOfUsccFile;
+        private readonly string BNIccFile;
+
+        private readonly string BCAacFile;
+        private readonly string MandiriAcFile;
+
         private readonly string TempBniFile;
         private readonly string TempMandiriFile;
+        private readonly string TempBCAacFile;
         public BillingController(JbsDbContext context1)
         {
             _jbsDB = context1;
-            TempFile = "./FileBilling/";
+            DirBilling = "./FileBilling/";
             BackupFile = "./BillingBackup/";
             Template = "./Template/";
 
-            BCAFile = "CAF" + DateTime.Now.ToString("ddMM") + ".prn";
-            MandiriFile = "Mandiri_" + DateTime.Now.ToString("ddMMyyyy") + ".xls";
-            MegaOnUsFile = "CAF"+DateTime.Now.ToString("yyyyMMdd")+"_MegaOnUs.bpmt";
-            MegaOfUsFile = "CAF" + DateTime.Now.ToString("yyyyMMdd") + "_MegaOffUs.bpmt";
-            BNIFile = "BNI_" + DateTime.Now.ToString("ddMMyyyy")  + ".xlsx";
-            TempBniFile = "./Template/BNI.xlsx";
-            TempMandiriFile = "./Template/MANDIRI.xls";
+            BCAccFile = "CAF" + DateTime.Now.ToString("ddMM") + ".prn";
+            MandiriccFile = "Mandiri_" + DateTime.Now.ToString("ddMMyyyy") + ".xls";
+            MegaOnUsccFile = "CAF"+DateTime.Now.ToString("yyyyMMdd")+"_MegaOnUs.bpmt";
+            MegaOfUsccFile = "CAF" + DateTime.Now.ToString("yyyyMMdd") + "_MegaOffUs.bpmt";
+            BNIccFile = "BNI_" + DateTime.Now.ToString("ddMMyyyy")  + ".xlsx";
 
-            //string pattern = "CAF*.prn";
-            //string[] matches = Directory.GetFiles(TempFile, pattern);
-            //foreach (FileInfo fInfo in matches.ToString())
+            BCAacFile = "BCAacFile" + DateTime.Now.ToString("yyyyMMdd") + ".xls";
+            MandiriAcFile = "MandiriAcFile" + DateTime.Now.ToString("yyyyMMdd") + ".csv";
+
+            TempBniFile = "./Template/BniCC.xlsx";
+            TempMandiriFile = "./Template/MandiriCC.xls";
+            TempBCAacFile = "./Template/BcaAc.xls";
+
+            // Move(backup) existing file BCA => dilakukan pada saat upload result
+            // file tidak akan hilang jika data result tidak hilang
+            //var files = Directory.GetFiles(TempFile);
+            //foreach (string file in files)
             //{
-            //    if (!fInfo.Name.StartsWith("AAA") ||
-            //        !fInfo.Name.EndsWith("BBB"))
-            //    {
-            //        fInfo.Delete();
-            //    }
+            //    FileInfo FileName = new FileInfo(file);
+            //    if ((FileName.ToString() == TempFile + BCAFile) ||      // File BCA
+            //        (FileName.ToString() == TempFile + MandiriFile) ||  // File Mandiri
+            //        (FileName.ToString() == TempFile + MegaOnUsFile) || // File MegaOnUs
+            //        (FileName.ToString() == TempFile + MegaOfUsFile) || // File MegaOffUs
+            //        (FileName.ToString() == TempFile + BNIFile)         // File BNI
+            //        )
+            //    { continue; }
+
+            //    FileInfo filex = new FileInfo(BackupFile + FileName.Name);
+            //    if (filex.Exists) System.IO.File.Delete(filex.ToString());
+            //    FileName.MoveTo(BackupFile + FileName.Name);
             //}
-
-            // Move(backup) existing file BCA
-            var files = Directory.GetFiles(TempFile);
-            foreach (string file in files)
-            {
-                FileInfo FileName = new FileInfo(file);
-                if ((FileName.ToString() == TempFile + BCAFile) ||      // File BCA
-                    (FileName.ToString() == TempFile + MandiriFile) ||  // File Mandiri
-                    (FileName.ToString() == TempFile + MegaOnUsFile) || // File MegaOnUs
-                    (FileName.ToString() == TempFile + MegaOfUsFile) || // File MegaOffUs
-                    (FileName.ToString() == TempFile + BNIFile)         // File BNI
-                    )
-                { continue; }
-
-                FileInfo filex = new FileInfo(BackupFile + FileName.Name);
-                if (filex.Exists) System.IO.File.Delete(filex.ToString());
-                FileName.MoveTo(BackupFile + FileName.Name);
-            }
         }
 
         [HttpGet]
         public ActionResult Index()
         {
             // cek file BCA CC Per Tgl Skrg tuk ditampilkan di web interface
-            FileInfo FileName = new FileInfo(TempFile + this.BCAFile);
-            if (FileName.Exists) ViewBag.BCACC = BCAFile;
+            FileInfo FileName = new FileInfo(DirBilling + this.BCAccFile);
+            if (FileName.Exists) ViewBag.BCACC = BCAccFile;
 
-            FileName = new FileInfo(TempFile + this.MandiriFile);
-            if (FileName.Exists) ViewBag.MandiriCC = MandiriFile;
+            FileName = new FileInfo(DirBilling + this.MandiriccFile);
+            if (FileName.Exists) ViewBag.MandiriCC = MandiriccFile;
 
-            FileName = new FileInfo(TempFile + this.MegaOnUsFile);
-            if (FileName.Exists) ViewBag.MegaOnUs = MegaOnUsFile;
+            FileName = new FileInfo(DirBilling + this.MegaOnUsccFile);
+            if (FileName.Exists) ViewBag.MegaOnUs = MegaOnUsccFile;
 
-            FileName = new FileInfo(TempFile + this.MegaOfUsFile);
-            if (FileName.Exists) ViewBag.MegaOfUs = MegaOfUsFile;
+            FileName = new FileInfo(DirBilling + this.MegaOfUsccFile);
+            if (FileName.Exists) ViewBag.MegaOfUs = MegaOfUsccFile;
 
-            FileName = new FileInfo(TempFile + this.BNIFile);
-            if (FileName.Exists) ViewBag.BNICC = BNIFile;
+            FileName = new FileInfo(DirBilling + this.BNIccFile);
+            if (FileName.Exists) ViewBag.BNICC = BNIccFile;
 
             //string[] files = Directory.GetFiles(TempFile);
             //foreach (string file in files)
@@ -124,38 +124,39 @@ namespace CAF.JBS.Controllers
                 if (dw.BcaCC && !(dw.MandiriCC || dw.MegaCC || dw.BniCC))
                 {   // jika dipilih BCA saja
                     // semua data dikeluarkan dgn format BCA
-                    BcaCCFile(0); // BCA semua
+                    GenBcaCCFile(0); // BCA semua
                 }
                 else if (dw.BcaCC && dw.MandiriCC && !(dw.MegaCC || dw.BniCC))
                 {   // jika dipilih BCA dan Mandiri
                     // semua data kecuali mandiri dikeluarkan format BCA, dan Mandiri data sendiri
-                    BcaCCFile(2); // BCA semua kecuali mandiri
-                    MandiriCCFile();
+                    GenBcaCCFile(2); // BCA semua kecuali mandiri
+                    GenMandiriCCFile();
                 }
                 else if (dw.BcaCC && dw.MandiriCC && dw.MegaCC && !dw.BniCC)
                 {   // jika dipilih BCA,Mandiri dan Mega
                     // BCA data sendiri, Mandiri data sendiri, dan Selebihnya Mega Off Us
-                    BcaCCFile(1); // BCA sendiri
+                    GenBcaCCFile(1); // BCA sendiri
                 }
                 else if (dw.BcaCC && dw.MandiriCC && dw.BniCC && !dw.MegaCC)
                 {   // jika dipilih BCA,Mandiri dan BNI
                     // BCA data sendiri, Mandiri data sendiri, dan Selebihnya BNI
-                    BcaCCFile(1); // BCA sendiri
+                    GenBcaCCFile(1); // BCA sendiri
                 }
                 else if (dw.BcaCC && dw.BniCC&& !(dw.MandiriCC || dw.MegaCC))
                 {   // jika dipilih BCA dan BNI
                     // BCA data sendiri, dan Selebihnya BNI
-                    BcaCCFile(1); // BCA sendiri
-                    BniCCFile(0);
+                    GenBcaCCFile(1); // BCA sendiri
+                    GenBniCCFile(0);
                 }
                 else if (dw.BcaCC && dw.MegaCC && !(dw.MandiriCC || dw.BniCC))
                 {   // jika dipilih BCA dan Mega
                     // BCA data sendiri, dan Selebihnya BNI
-                    BcaCCFile(1); // BCA sendiri
-                    MegaOnUsCCFile();
-                    MegaOffUsCCFile(0);
+                    GenBcaCCFile(1); // BCA sendiri
+                    GenMegaOnUsCCFile();
+                    GenMegaOffUsCCFile(0);
                 }
             }
+            GenBcaAcFile();
             return RedirectToAction("Index");
         }
 
@@ -183,16 +184,16 @@ namespace CAF.JBS.Controllers
         public FileStreamResult DownloadFile(string fileName)
         {
             Response.Headers.Add("content-disposition", "attachment; filename=" + fileName);
-            return File(new FileStream(TempFile + fileName, FileMode.Open),"application/octet-stream"); 
+            return File(new FileStream(DirBilling + fileName, FileMode.Open),"application/octet-stream"); 
         }
 
-        protected void BcaCCFile(int id)
+        protected void GenBcaCCFile(int id)
         {
             /* id
              * 0 = All data
              * 1 = bca only
              */
-            FileInfo FileName = new FileInfo(TempFile + this.BCAFile);
+            FileInfo FileName = new FileInfo(DirBilling + this.BCAccFile);
             //var files = Directory.GetFiles(TempFile).Where(s => s.EndsWith(".prn"));
 
             //foreach (string file in files) {
@@ -207,7 +208,7 @@ namespace CAF.JBS.Controllers
                 {
                     var cmd = _jbsDB.Database.GetDbConnection().CreateCommand();
                     cmd.CommandType = CommandType.StoredProcedure;
-                    cmd.CommandText = "GenerateBillingBCA_sp ";
+                    cmd.CommandText = "BillingBCAcc_sp ";
                     cmd.Parameters.Add(new MySqlParameter("@BankCode", MySqlDbType.Int16) { Value = 0 });
                     cmd.Connection.Open();
                     using (var result = cmd.ExecuteReader())
@@ -244,15 +245,15 @@ namespace CAF.JBS.Controllers
             }
         }
 
-        protected void MandiriCCFile()
+        protected void GenMandiriCCFile()
         {
-            FileInfo FileName = new FileInfo(TempFile + this.BNIFile);
+            FileInfo FileName = new FileInfo(DirBilling + this.MandiriccFile);
             if (!FileName.Exists)
             {
 
                 FileName = new FileInfo(TempMandiriFile);
-                FileName.CopyTo(TempFile + this.MandiriFile);
-                FileName = new FileInfo(TempFile + this.MandiriFile);
+                FileName.CopyTo(DirBilling + this.MandiriccFile);
+                FileName = new FileInfo(DirBilling + this.MandiriccFile);
 
                 using (ExcelPackage package = new ExcelPackage(FileName))
                 {
@@ -260,7 +261,7 @@ namespace CAF.JBS.Controllers
                     ExcelWorksheet ws = workBook.Worksheets.SingleOrDefault(w => w.Name == "sheet1");
                     var cmd = _jbsDB.Database.GetDbConnection().CreateCommand();
                     cmd.CommandType = CommandType.StoredProcedure;
-                    cmd.CommandText = "BillingMandiri_sp ";
+                    cmd.CommandText = "BillingMandiriCC_sp ";
                     cmd.Connection.Open();
                     try
                     {
@@ -389,14 +390,14 @@ namespace CAF.JBS.Controllers
             //}
         }
 
-        protected void MegaOnUsCCFile()
+        protected void GenMegaOnUsCCFile()
         {
-            FileInfo FileName = new FileInfo(TempFile + this.MegaOnUsFile);
+            FileInfo FileName = new FileInfo(DirBilling + this.MegaOnUsccFile);
             if (!FileName.Exists) //jika file belum ada akan di generate tp jika sudah ada maka akan pake file exist
             {
                 var cmd = _jbsDB.Database.GetDbConnection().CreateCommand();
                 cmd.CommandType = CommandType.StoredProcedure;
-                cmd.CommandText = "BillingMegaOnUs_sp ";
+                cmd.CommandText = "BillingMegaOnUsCC_sp ";
                 cmd.Connection.Open();
                 try
                 {                    
@@ -436,14 +437,14 @@ namespace CAF.JBS.Controllers
 
         }
 
-        protected void MegaOffUsCCFile(int id)
+        protected void GenMegaOffUsCCFile(int id)
         {
-            FileInfo FileName = new FileInfo(TempFile + this.MegaOfUsFile);
+            FileInfo FileName = new FileInfo(DirBilling + this.MegaOfUsccFile);
             if (!FileName.Exists) //jika file belum ada akan di generate tp jika sudah ada maka akan pake file exist
             {
                 var cmd = _jbsDB.Database.GetDbConnection().CreateCommand();
                 cmd.CommandType = CommandType.StoredProcedure;
-                cmd.CommandText = "BillingMegaOffUs_sp ";
+                cmd.CommandText = "BillingMegaOffUsCC_sp ";
                 cmd.Parameters.Add(new MySqlParameter("@BankCode", MySqlDbType.Int16) { Value = id });
                 cmd.Connection.Open();
                 try
@@ -483,15 +484,15 @@ namespace CAF.JBS.Controllers
             }
         }
 
-        protected void BniCCFile(int id)
+        protected void GenBniCCFile(int id)
         {
-            FileInfo FileName = new FileInfo(TempFile + this.BNIFile);
+            FileInfo FileName = new FileInfo(DirBilling + this.BNIccFile);
             if (!FileName.Exists)
             {
 
                 FileName = new FileInfo(TempBniFile);
-                FileName.CopyTo(TempFile + this.BNIFile);
-                FileName = new FileInfo(TempFile + this.BNIFile);
+                FileName.CopyTo(DirBilling + this.BNIccFile);
+                FileName = new FileInfo(DirBilling + this.BNIccFile);
 
                 using (ExcelPackage package = new ExcelPackage(FileName))
                 {
@@ -499,7 +500,7 @@ namespace CAF.JBS.Controllers
                     ExcelWorksheet ws = workBook.Worksheets.SingleOrDefault(w => w.Name == "sheet1");
                     var cmd = _jbsDB.Database.GetDbConnection().CreateCommand();
                     cmd.CommandType = CommandType.StoredProcedure;
-                    cmd.CommandText = "BillingBNI_sp ";
+                    cmd.CommandText = "BillingBNIcc_sp ";
                     cmd.Parameters.Add(new MySqlParameter("@BankCode", MySqlDbType.Int16) { Value = id });
                     cmd.Connection.Open();
                     try
@@ -535,6 +536,73 @@ namespace CAF.JBS.Controllers
                 }
             }
         }
-        
+
+        protected void GenBcaAcFile()
+        {
+            FileInfo FileName = new FileInfo(DirBilling + this.TempBCAacFile);
+            if (!FileName.Exists)
+            {
+
+                FileName = new FileInfo(TempBCAacFile);
+                //FileName.CopyTo(DirBilling + this.BCAacFile);
+                //FileName = new FileInfo(DirBilling + this.BCAacFile);
+
+
+                HSSFWorkbook hssfwb;
+                using (FileStream file = new FileStream(FileName.ToString(), FileMode.Open, FileAccess.ReadWrite))
+                {
+                    hssfwb = new HSSFWorkbook(file);
+                }
+
+                MemoryStream mstream = new MemoryStream();
+                hssfwb.Write(mstream);
+
+
+                FileStream xfile = new FileStream(Path.Combine(DirBilling + this.BCAacFile), FileMode.Create, System.IO.FileAccess.Write);
+                byte[] bytes = new byte[mstream.Length];
+                mstream.Read(bytes, 0, (int)mstream.Length);
+                xfile.Write(bytes, 0, bytes.Length);
+                xfile.Close();
+                mstream.Close();
+
+                //using (ExcelPackage package = new ExcelPackage(FileName))
+                //{
+                //    ExcelWorkbook workBook = package.Workbook;
+                //    ExcelWorksheet ws = workBook.Worksheets.SingleOrDefault(w => w.Name == "sheet1");
+                //    var cmd = _jbsDB.Database.GetDbConnection().CreateCommand();
+                //    cmd.CommandType = CommandType.StoredProcedure;
+                //    cmd.CommandText = "BillingBcaAC_sp ";
+                //    cmd.Connection.Open();
+                //    try
+                //    {
+                //        using (var result = cmd.ExecuteReader())
+                //        {
+                //            var i = 16;
+                //            while (result.Read())
+                //            {
+                //                ws.Cells[i, 3].Value = result["a"];
+                //                ws.Cells[i, 5].Value = result["b"];
+                //                ws.Cells[i, 7].Value = result["c"];
+                //                ws.Cells[i, 9].Value = result["d"];
+                //                ws.Cells[i, 11].Value = result["e"];
+                //                ws.Cells[i, 13].Value = result["f"];
+                //                i++;
+                //            }
+                //        }
+                //    }
+                //    catch (Exception ex)
+                //    {
+                //        throw ex;
+                //    }
+                //    finally
+                //    {
+                //        cmd.Dispose();
+                //        cmd.Connection.Close();
+                //    }
+                //    package.Save();
+                //}
+            }
+        }
+
     }
 }
