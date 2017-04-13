@@ -244,3 +244,4 @@ src/CAF.JBS/appsettings.json
 src/CAF.JBS/appsettings.json
 src/CAF.JBS/appsettings.json
 *.prn
+/src/CAF.JBS/FileBilling

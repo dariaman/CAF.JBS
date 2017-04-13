@@ -19,6 +19,8 @@ using Npoi.Core.SS.UserModel;
 using Npoi.Core.SS.Util;
 using Npoi.Core.HSSF.UserModel;
 using Npoi.Core.HSSF.Util;
+using Excel = Microsoft.Office.Interop.Excel;
+using System.Runtime.InteropServices;
 
 namespace CAF.JBS.Controllers
 {
@@ -544,65 +546,217 @@ namespace CAF.JBS.Controllers
             {
 
                 FileName = new FileInfo(TempBCAacFile);
-                //FileName.CopyTo(DirBilling + this.BCAacFile);
-                //FileName = new FileInfo(DirBilling + this.BCAacFile);
+                Excel.Application xlApp = new Excel.Application();
+                Excel.Range range;
+                Excel.Workbook wb;
+                Excel.Worksheet ws;
+                var cmd = _jbsDB.Database.GetDbConnection().CreateCommand();
+                wb = xlApp.Workbooks.Open(FileName.FullName.ToString(), 0, true, 5, "", "", true, Excel.XlPlatform.xlWindows, "\t", false, false, 0, true, false,false);
+                ws = (Excel.Worksheet)wb.Worksheets.get_Item(1);
+                
 
-
-                HSSFWorkbook hssfwb;
-                using (FileStream file = new FileStream(FileName.ToString(), FileMode.Open, FileAccess.ReadWrite))
+                try
                 {
-                    hssfwb = new HSSFWorkbook(file);
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.CommandText = "BillingBcaAC_sp";
+                    
+                    xlApp.Visible = false;
+                    
+                    range = ws.UsedRange;
+                    cmd.Connection.Open();
+
+                    using (var result = cmd.ExecuteReader())
+                    {
+                        var baris = 2;
+                        while (result.Read())
+                        {
+                            ws.Cells[baris, "A"] = "ID Number";
+                            //range = (Range)ws.Cells[baris, 1];
+                            //range.Value2 = "test";
+                            baris++;
+                        }
+
+                    }
+
+                    FileName = new FileInfo(DirBilling + this.BCAacFile);
+                    wb.SaveAs(FileName.FullName.ToString());
+                    //wb.SaveAs(FileName.FullName.ToString(), Microsoft.Office.Interop.Excel.XlFileFormat.xlWorkbookDefault, Type.Missing, Type.Missing,
+                        //false, false, Microsoft.Office.Interop.Excel.XlSaveAsAccessMode.xlNoChange,
+                        //Type.Missing, Type.Missing, Type.Missing, Type.Missing, Type.Missing);
                 }
+                catch (Exception ex)
+                {
+                    throw ex;
+                }
+                finally
+                {
+                    cmd.Connection.Close();
 
-                MemoryStream mstream = new MemoryStream();
-                hssfwb.Write(mstream);
+                    wb.Close();
+                    xlApp.Quit();
 
-
-                FileStream xfile = new FileStream(Path.Combine(DirBilling + this.BCAacFile), FileMode.Create, System.IO.FileAccess.Write);
-                byte[] bytes = new byte[mstream.Length];
-                mstream.Read(bytes, 0, (int)mstream.Length);
-                xfile.Write(bytes, 0, bytes.Length);
-                xfile.Close();
-                mstream.Close();
-
-                //using (ExcelPackage package = new ExcelPackage(FileName))
-                //{
-                //    ExcelWorkbook workBook = package.Workbook;
-                //    ExcelWorksheet ws = workBook.Worksheets.SingleOrDefault(w => w.Name == "sheet1");
-                //    var cmd = _jbsDB.Database.GetDbConnection().CreateCommand();
-                //    cmd.CommandType = CommandType.StoredProcedure;
-                //    cmd.CommandText = "BillingBcaAC_sp ";
-                //    cmd.Connection.Open();
-                //    try
-                //    {
-                //        using (var result = cmd.ExecuteReader())
-                //        {
-                //            var i = 16;
-                //            while (result.Read())
-                //            {
-                //                ws.Cells[i, 3].Value = result["a"];
-                //                ws.Cells[i, 5].Value = result["b"];
-                //                ws.Cells[i, 7].Value = result["c"];
-                //                ws.Cells[i, 9].Value = result["d"];
-                //                ws.Cells[i, 11].Value = result["e"];
-                //                ws.Cells[i, 13].Value = result["f"];
-                //                i++;
-                //            }
-                //        }
-                //    }
-                //    catch (Exception ex)
-                //    {
-                //        throw ex;
-                //    }
-                //    finally
-                //    {
-                //        cmd.Dispose();
-                //        cmd.Connection.Close();
-                //    }
-                //    package.Save();
-                //}
+                    xlApp = null;
+                    ws = null;
+                    wb = null;
+                    range = null;
+                }
             }
         }
 
+        //public ActionResult Download2()
+        //{
+        //    try
+        //    {
+        //        var cmd = _jbsDB.Database.GetDbConnection().CreateCommand();
+        //        cmd.CommandType = CommandType.StoredProcedure;
+        //        cmd.CommandText = "BillingBcaAC_sp";
+        //        cmd.Connection.Open();
+        //        //var reader = cmd.ExecuteReader();
+
+        //        Application xlApp = new Application();
+        //        xlApp.Visible = false;
+        //        Workbook wb = xlApp.Workbooks.Open(@"c:\temp\testfile.xls", 0, false, 5, "", "", true, XlPlatform.xlWindows, "\t", false, false, 0, true, false, false);
+        //        //Workbook wb = xlApp.Workbooks.Add(XlWBATemplate.xlWBATWorksheet);
+        //        Worksheet ws = (Worksheet)wb.Worksheets[1];
+        //        Range range;
+
+        //        int i = 2;
+        //        using (var result = cmd.ExecuteReader())
+        //        {
+                    
+        //            //while (result.Read())
+        //            //{
+        //            //    ws.Cells[i, 1] = result["a"].ToString();
+        //            //    i++;
+        //            //}
+        //            for (i=2; i <= 5; i++)
+        //            {
+        //                //range = ws.get_Range("A" + i.ToString(), "D" + i.ToString());
+
+        //                //System.Array myvalues = (System.Array)range.Cells.Value2;
+        //                //string[] strArray = ConvertToStringArray(myvalues);
+        //                //range = ws.get_Range("B6", "H20");
+        //                range = ws.UsedRange;
+        //                ws.Cells.set_Item(1, i, "asd");
+        //                //ws.Cells[i, 1] = "asdfasdf";
+        //                //range.Value2 = "aaaaaaa";
+
+        //            }
+        //        }
+                
+        //        wb.SaveAs(@"c:\temp\testfile2.xls", Microsoft.Office.Interop.Excel.XlFileFormat.xlWorkbookDefault, Type.Missing, Type.Missing,
+        //            false, false, Microsoft.Office.Interop.Excel.XlSaveAsAccessMode.xlNoChange,
+        //            Type.Missing, Type.Missing, Type.Missing, Type.Missing, Type.Missing);
+
+        //        wb.Close();
+        //        xlApp.Quit();
+
+        //        xlApp = null;
+        //        ws = null;
+        //        wb = null;
+        //        range = null;
+        //        //Marshal.ReleaseComObject(ws);
+        //        //Marshal.ReleaseComObject(wb);
+        //        //Marshal.ReleaseComObject(xlApp);
+        //        //Filex.MoveTo("C:\\tmp\\tmp\\" + Filex.Name);
+        //        //cmd.Connection.Close();
+        //        //ws = null;
+        //        //wb = null;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        throw ex;
+        //    }
+        //    finally
+        //    {
+        //    }
+        //        return RedirectToAction("Index");
+        //}
+
+        //public ActionResult Download3()
+        //{
+        //    string FullfileName = @"c:\temp\testfile2.xls";
+        //    FileInfo Filex = new FileInfo(FullfileName);
+        //    try
+        //    {
+        //        //var cmd = _jbsDB.Database.GetDbConnection().CreateCommand();
+        //        //cmd.CommandType = CommandType.StoredProcedure;
+        //        //cmd.CommandText = "BillingBcaAC_sp";
+        //        //cmd.Connection.Open();
+
+        //        //var reader = cmd.ExecuteReader();
+
+        //        Microsoft.Office.Interop.Excel.Application xlApp = new Microsoft.Office.Interop.Excel.Application();
+        //        xlApp.Visible = false;
+        //        Range range;
+        //        Workbook wb;
+        //        Worksheet ws;
+        //        object misValue = System.Reflection.Missing.Value;
+                
+
+        //        wb = xlApp.Workbooks.Add(misValue);
+        //        ws = (Worksheet)wb.Worksheets.get_Item(1);
+
+        //        //int i = 2;
+        //        //while (reader.Read())
+        //        //{
+        //        //    ws.Cells[i, 1] = reader["a"].ToString();
+        //        //    ws.Cells[i, 2] = reader["b"].ToString();
+        //        //    ws.Cells[i, 3] = reader["c"].ToString();
+        //        //    ws.Cells[i, 4] = reader["d"].ToString();
+        //        //    ws.Cells[i, 5] = reader["e"].ToString();
+        //        //    ws.Cells[i, 6] = reader["f"].ToString();
+        //        //    ws.Cells[i, 7] = reader["g"].ToString();
+        //        //    ws.Cells[i, 8] = reader["i"].ToString();
+        //        //    ws.Cells[i, 9] = reader["j"].ToString();
+        //        //    i++;
+        //        //}
+        //        ws.Range["A1","D1"].Value= "asdasd";
+                
+
+        //        //ws.Cells["A1"] = "ID";
+        //        //ws.Cells[1, 2] = "Name";
+        //        //ws.Cells[2, 1] = "1";
+        //        //ws.Cells[2, 2] = "One";
+        //        //ws.Cells[3, 1] = "2";
+        //        //ws.Cells[3, 2] = "Two";
+
+        //        wb.SaveAs(FullfileName.ToString(), XlFileFormat.xlWorkbookNormal, misValue, misValue, misValue, misValue, XlSaveAsAccessMode.xlExclusive, misValue, misValue, misValue, misValue, misValue);
+        //        wb.Close(true, misValue, misValue);
+        //        xlApp.Quit();
+
+        //        Marshal.ReleaseComObject(ws);
+        //        Marshal.ReleaseComObject(wb);
+        //        Marshal.ReleaseComObject(xlApp);
+
+        //        //wb.Close();
+        //        //xlApp.Quit();
+        //        //Filex.MoveTo("C:\\tmp\\tmp\\" + Filex.Name);
+        //        //cmd.Connection.Close();
+
+        //        //xlApp = null;
+        //        //ws = null;
+        //        //wb = null;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        throw ex;
+        //    }
+        //        return RedirectToAction("Index");
+        //}
+
+        //private string[] ConvertToStringArray(System.Array values)
+        //{
+        //    // create a new string array
+        //    string[] theArray = new string[values.Length];
+
+        //    // loop through the 2-D System.Array and populate the 1-D String Array
+        //    for (int i = 1; i <= values.Length; i++)
+        //    {
+        //        if (values.GetValue(1, i) == null) theArray[i - 1] = "";
+        //        else theArray[i - 1] = (string)values.GetValue(1, i).ToString();
+        //    }
+        //    return theArray;
+        //}
     }
 }

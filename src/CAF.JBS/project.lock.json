@@ -27,7 +27,7 @@
           "lib/netstandard1.3/CoreCompat.System.Drawing.dll": {}
         }
       },
-      "EPPlus.Core/1.3.1": {
+      "EPPlus.Core/1.3.2": {
         "type": "package",
         "dependencies": {
           "CoreCompat.System.Drawing": "1.0.0-beta006",
@@ -776,6 +776,16 @@
         },
         "runtime": {
           "lib/netcoreapp1.0/Microsoft.AspNetCore.Razor.Design.dll": {}
+        },
+        "runtimeTargets": {
+          "runtimes/win7-x64/lib/net451/Microsoft.AspNetCore.Razor.Design.exe": {
+            "assetType": "runtime",
+            "rid": "win7-x64"
+          },
+          "runtimes/win7-x86/lib/net451/Microsoft.AspNetCore.Razor.Design.exe": {
+            "assetType": "runtime",
+            "rid": "win7-x86"
+          }
         }
       },
       "Microsoft.AspNetCore.Razor.Runtime/1.1.0": {
@@ -1896,6 +1906,15 @@
       "Microsoft.NETCore.Windows.ApiSets/1.0.1": {
         "type": "package"
       },
+      "Microsoft.Office.Interop.Excel/15.0.4795.1000": {
+        "type": "package",
+        "compile": {
+          "lib/net20/Microsoft.Office.Interop.Excel.dll": {}
+        },
+        "runtime": {
+          "lib/net20/Microsoft.Office.Interop.Excel.dll": {}
+        }
+      },
       "Microsoft.VisualBasic/10.0.1": {
         "type": "package",
         "dependencies": {
@@ -2021,6 +2040,16 @@
         },
         "runtime": {
           "lib/netcoreapp1.0/dotnet-aspnet-codegenerator.dll": {}
+        },
+        "runtimeTargets": {
+          "runtimes/win7-x64/lib/net451/dotnet-aspnet-codegenerator.exe": {
+            "assetType": "runtime",
+            "rid": "win7-x64"
+          },
+          "runtimes/win7-x86/lib/net451/dotnet-aspnet-codegenerator.exe": {
+            "assetType": "runtime",
+            "rid": "win7-x86"
+          }
         }
       },
       "Microsoft.VisualStudio.Web.CodeGeneration.Utils/1.1.0-preview4-final": {
@@ -2181,6 +2210,15 @@
         },
         "runtime": {
           "lib/netstandard1.0/Newtonsoft.Json.dll": {}
+        }
+      },
+      "NLog/4.4.5": {
+        "type": "package",
+        "compile": {
+          "lib/net45/NLog.dll": {}
+        },
+        "runtime": {
+          "lib/net45/NLog.dll": {}
         }
       },
       "NonFactors.Grid.Core.Mvc6/1.4.0": {
@@ -2814,7 +2852,7 @@
           "ref/netstandard1.3/System.Collections.dll": {}
         },
         "runtime": {
-          "lib/portable-net45+win8+wp8+wpa81/_._": {}
+          "lib/net45/_._": {}
         }
       },
       "System.Collections.Concurrent/4.3.0": {
@@ -3042,6 +3080,9 @@
         "compile": {
           "ref/netstandard1.3/System.Data.SqlClient.dll": {}
         },
+        "runtime": {
+          "lib/net451/System.Data.SqlClient.dll": {}
+        },
         "runtimeTargets": {
           "runtimes/unix/lib/netstandard1.3/System.Data.SqlClient.dll": {
             "assetType": "runtime",
@@ -3076,7 +3117,7 @@
           "ref/netstandard1.3/System.Diagnostics.Debug.dll": {}
         },
         "runtime": {
-          "lib/portable-net45+win8+wp8+wpa81/_._": {}
+          "lib/net45/_._": {}
         }
       },
       "System.Diagnostics.DiagnosticSource/4.3.0": {
@@ -3191,7 +3232,7 @@
           "ref/netstandard1.0/System.Diagnostics.Tools.dll": {}
         },
         "runtime": {
-          "lib/portable-net45+win8+wp8+wpa81/_._": {}
+          "lib/net45/_._": {}
         }
       },
       "System.Diagnostics.TraceSource/4.0.0": {
@@ -3232,7 +3273,7 @@
           "ref/netstandard1.5/System.Diagnostics.Tracing.dll": {}
         },
         "runtime": {
-          "lib/portable-net45+win8+wpa81/_._": {}
+          "lib/net45/_._": {}
         }
       },
       "System.Drawing.Primitives/4.0.0": {
@@ -3284,7 +3325,7 @@
           "ref/netstandard1.3/System.Globalization.dll": {}
         },
         "runtime": {
-          "lib/portable-net45+win8+wp8+wpa81/_._": {}
+          "lib/net45/_._": {}
         }
       },
       "System.Globalization.Calendars/4.3.0": {
@@ -3355,7 +3396,7 @@
           "ref/netstandard1.5/System.IO.dll": {}
         },
         "runtime": {
-          "lib/portable-net45+win8+wp8+wpa81/_._": {}
+          "lib/net45/_._": {}
         }
       },
       "System.IO.Compression/4.3.0": {
@@ -3381,7 +3422,7 @@
           "ref/netstandard1.3/System.IO.Compression.dll": {}
         },
         "runtime": {
-          "lib/portable-net45+win8+wpa81/_._": {}
+          "lib/net45/_._": {}
         },
         "runtimeTargets": {
           "runtimes/unix/lib/netstandard1.3/System.IO.Compression.dll": {
@@ -3684,7 +3725,7 @@
           "ref/netstandard1.3/System.Net.Http.dll": {}
         },
         "runtime": {
-          "lib/portable-net45+win8+wpa81/_._": {}
+          "lib/net45/_._": {}
         },
         "runtimeTargets": {
           "runtimes/unix/lib/netstandard1.6/System.Net.Http.dll": {
@@ -3741,7 +3782,7 @@
           "ref/netstandard1.3/System.Net.Primitives.dll": {}
         },
         "runtime": {
-          "lib/portable-net45+win8+wp8+wpa81/_._": {}
+          "lib/net45/_._": {}
         }
       },
       "System.Net.Requests/4.0.11": {
@@ -3765,7 +3806,7 @@
           "ref/netstandard1.3/System.Net.Requests.dll": {}
         },
         "runtime": {
-          "lib/portable-net45+win8+wp8+wpa81/_._": {}
+          "lib/net45/_._": {}
         },
         "runtimeTargets": {
           "runtimes/unix/lib/netstandard1.3/System.Net.Requests.dll": {
@@ -3912,7 +3953,7 @@
           "ref/netstandard1.5/System.Reflection.dll": {}
         },
         "runtime": {
-          "lib/portable-net45+win8+wp8+wpa81/_._": {}
+          "lib/net45/_._": {}
         }
       },
       "System.Reflection.DispatchProxy/4.0.1": {
@@ -3993,7 +4034,7 @@
           "ref/netstandard1.0/System.Reflection.Extensions.dll": {}
         },
         "runtime": {
-          "lib/portable-net45+win8+wp8+wpa81/_._": {}
+          "lib/net45/_._": {}
         }
       },
       "System.Reflection.Metadata/1.4.1": {
@@ -4034,7 +4075,7 @@
           "ref/netstandard1.0/System.Reflection.Primitives.dll": {}
         },
         "runtime": {
-          "lib/portable-net45+win8+wp8+wpa81/_._": {}
+          "lib/net45/_._": {}
         }
       },
       "System.Reflection.TypeExtensions/4.3.0": {
@@ -4079,7 +4120,7 @@
           "ref/netstandard1.0/System.Resources.ResourceManager.dll": {}
         },
         "runtime": {
-          "lib/portable-net45+win8+wp8+wpa81/_._": {}
+          "lib/net45/_._": {}
         }
       },
       "System.Resources.Writer/4.0.0": {
@@ -4109,7 +4150,7 @@
           "ref/netstandard1.5/System.Runtime.dll": {}
         },
         "runtime": {
-          "lib/portable-net45+win8+wp80+wpa81/_._": {}
+          "lib/net45/_._": {}
         }
       },
       "System.Runtime.CompilerServices.Unsafe/4.3.0": {
@@ -4135,7 +4176,7 @@
           "ref/netstandard1.5/System.Runtime.Extensions.dll": {}
         },
         "runtime": {
-          "lib/portable-net45+win8+wp8+wpa81/_._": {}
+          "lib/net45/_._": {}
         }
       },
       "System.Runtime.Handles/4.3.0": {
@@ -4163,7 +4204,7 @@
           "ref/netstandard1.5/System.Runtime.InteropServices.dll": {}
         },
         "runtime": {
-          "lib/portable-net45+win8+wpa81/_._": {}
+          "lib/net45/_._": {}
         }
       },
       "System.Runtime.InteropServices.RuntimeInformation/4.3.0": {
@@ -4555,7 +4596,7 @@
           "ref/netstandard1.3/System.Text.Encoding.dll": {}
         },
         "runtime": {
-          "lib/portable-net45+win8+wp8+wpa81/_._": {}
+          "lib/net45/_._": {}
         }
       },
       "System.Text.Encoding.CodePages/4.3.0": {
@@ -4600,7 +4641,7 @@
           "ref/netstandard1.3/System.Text.Encoding.Extensions.dll": {}
         },
         "runtime": {
-          "lib/portable-net45+win8+wp8+wpa81/_._": {}
+          "lib/net45/_._": {}
         }
       },
       "System.Text.Encodings.Web/4.3.0": {
@@ -4684,7 +4725,7 @@
           "ref/netstandard1.3/System.Threading.Tasks.dll": {}
         },
         "runtime": {
-          "lib/portable-net45+win8+wp8+wpa81/_._": {}
+          "lib/net45/_._": {}
         }
       },
       "System.Threading.Tasks.Dataflow/4.6.0": {
@@ -4776,6 +4817,9 @@
         },
         "compile": {
           "ref/netstandard1.2/System.Threading.Timer.dll": {}
+        },
+        "runtime": {
+          "lib/net451/_._": {}
         }
       },
       "System.Xml.ReaderWriter/4.3.0": {
@@ -4968,12 +5012,12 @@
         "lib/netstandard1.3/CoreCompat.System.Drawing.dll"
       ]
     },
-    "EPPlus.Core/1.3.1": {
-      "sha512": "dAPwCRIBnMZ2lsCQ3yW15QnVJ8xci14Z+4JWozdFHyL/Gugf9DTF+AQ0Ngl0H8eFDHneq/4wEd9a2i96Z85Oig==",
+    "EPPlus.Core/1.3.2": {
+      "sha512": "4GAe6rlzOTPz9eaZuqd2+33Pidzh6TUtCm1SNF2DqbhWJHtN+nB4ONpm6ezYWtqYVlEf/Dh1zDU/meg0ti0Y5A==",
       "type": "package",
-      "path": "EPPlus.Core/1.3.1",
+      "path": "EPPlus.Core/1.3.2",
       "files": [
-        "EPPlus.Core.1.3.1.nupkg.sha512",
+        "EPPlus.Core.1.3.2.nupkg.sha512",
         "EPPlus.Core.nuspec",
         "lib/net40/EPPlus.Core.dll",
         "lib/net40/EPPlus.Core.xml",
@@ -6598,6 +6642,16 @@
         "runtime.json"
       ]
     },
+    "Microsoft.Office.Interop.Excel/15.0.4795.1000": {
+      "sha512": "DfceS96ustwfL8EOJNNRtpk6b0RylhjNpgeeemuvi9X4GYks2UTeAimjSrdFEfuqRo5ibZ4Sd0gJIeDr9gMa6Q==",
+      "type": "package",
+      "path": "Microsoft.Office.Interop.Excel/15.0.4795.1000",
+      "files": [
+        "Microsoft.Office.Interop.Excel.15.0.4795.1000.nupkg.sha512",
+        "Microsoft.Office.Interop.Excel.nuspec",
+        "lib/net20/Microsoft.Office.Interop.Excel.dll"
+      ]
+    },
     "Microsoft.VisualBasic/10.0.1": {
       "sha512": "HpNyOf/4Tp2lh4FyywB55VITk0SqVxEjDzsVDDyF1yafDN6Bq18xcHowzCPINyYHUTgGcEtmpYiRsFdSo0KKdQ==",
       "type": "package",
@@ -6893,6 +6947,31 @@
         "lib/portable-net45+wp80+win8+wpa81/Newtonsoft.Json.dll",
         "lib/portable-net45+wp80+win8+wpa81/Newtonsoft.Json.xml",
         "tools/install.ps1"
+      ]
+    },
+    "NLog/4.4.5": {
+      "sha512": "nxIEAEeYYxMm61VYefONRJxa6QYDbaz8QA8vQGMjjjKUl0yQoWtWv7D9j9XUX+PiF/IztiPXeqTSh4exw1k8VA==",
+      "type": "package",
+      "path": "NLog/4.4.5",
+      "files": [
+        "NLog.4.4.5.nupkg.sha512",
+        "NLog.nuspec",
+        "lib/MonoAndroid10/NLog.dll",
+        "lib/MonoAndroid10/NLog.xml",
+        "lib/Xamarin.iOS10/NLog.dll",
+        "lib/Xamarin.iOS10/NLog.xml",
+        "lib/net35/NLog.dll",
+        "lib/net35/NLog.xml",
+        "lib/net40/NLog.dll",
+        "lib/net40/NLog.xml",
+        "lib/net45/NLog.dll",
+        "lib/net45/NLog.xml",
+        "lib/sl4/NLog.dll",
+        "lib/sl4/NLog.xml",
+        "lib/sl5/NLog.dll",
+        "lib/sl5/NLog.xml",
+        "lib/wp8/NLog.dll",
+        "lib/wp8/NLog.xml"
       ]
     },
     "NonFactors.Grid.Core.Mvc6/1.4.0": {
@@ -12344,7 +12423,7 @@
   },
   "projectFileDependencyGroups": {
     "": [
-      "EPPlus.Core >= 1.3.1",
+      "EPPlus.Core >= 1.3.2",
       "Microsoft.ApplicationInsights.AspNetCore >= 2.0.0",
       "Microsoft.AspNetCore.Authentication.Cookies >= 1.1.1",
       "Microsoft.AspNetCore.Diagnostics >= 1.0.0",
@@ -12370,12 +12449,14 @@
       "Microsoft.Extensions.Logging.Debug >= 1.1.1",
       "Microsoft.Extensions.Options.ConfigurationExtensions >= 1.1.1",
       "Microsoft.NETCore.App >= 1.1.1",
+      "Microsoft.Office.Interop.Excel >= 15.0.4795.1000",
       "Microsoft.VisualStudio.Web.BrowserLink.Loader >= 14.1.0",
       "Microsoft.VisualStudio.Web.CodeGeneration.Tools >= 1.1.0-preview4-final",
       "Microsoft.VisualStudio.Web.CodeGenerators.Mvc >= 1.1.0-preview4-final",
       "MimeTypes >= 1.0.6",
+      "NLog >= 4.4.*",
       "NonFactors.Grid.Mvc6 >= 1.4.0",
-      "SapientGuardian.EntityFrameworkCore.MySql >= 7.1.*",
+      "SapientGuardian.EntityFrameworkCore.MySql >= 7.1.23",
       "Savorboard.NPOI.Core.Ooxml >= 1.1.3"
     ],
     ".NETCoreApp,Version=v1.0": []

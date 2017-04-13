@@ -1,7 +1,7 @@
 {
   "runtimeTarget": {
     "name": ".NETCoreApp,Version=v1.0",
-    "signature": "2845c62128a1c22997a23fb18cab6a2340e7eeaf"
+    "signature": "d05907b7815297496d3d06f7030ff22ca6f7b212"
   },
   "compilationOptions": {
     "defines": [
@@ -16,6 +16,7 @@
     ".NETCoreApp,Version=v1.0": {
       "CAF.JBS/1.0.0": {
         "dependencies": {
+          "NLog": "4.4.5",
           "Microsoft.NETCore.App": "1.1.1",
           "Microsoft.Extensions.Configuration.Abstractions": "1.1.1",
           "Microsoft.ApplicationInsights.AspNetCore": "2.0.0",
@@ -43,8 +44,9 @@
           "NonFactors.Grid.Mvc6": "1.4.0",
           "Microsoft.AspNetCore.Session": "1.1.1",
           "MimeTypes": "1.0.6",
-          "EPPlus.Core": "1.3.1",
-          "Savorboard.NPOI.Core.Ooxml": "1.1.3"
+          "EPPlus.Core": "1.3.2",
+          "Savorboard.NPOI.Core.Ooxml": "1.1.3",
+          "Microsoft.Office.Interop.Excel": "15.0.4795.1000"
         },
         "runtime": {
           "CAF.JBS.dll": {}
@@ -76,7 +78,7 @@
           "lib/netstandard1.3/CoreCompat.System.Drawing.dll": {}
         }
       },
-      "EPPlus.Core/1.3.1": {
+      "EPPlus.Core/1.3.2": {
         "dependencies": {
           "CoreCompat.System.Drawing": "1.0.0-beta006",
           "NETStandard.Library": "1.6.1",
@@ -740,6 +742,16 @@
         },
         "runtime": {
           "lib/netcoreapp1.0/Microsoft.AspNetCore.Razor.Design.dll": {}
+        },
+        "runtimeTargets": {
+          "runtimes/win7-x64/lib/net451/Microsoft.AspNetCore.Razor.Design.exe": {
+            "rid": "win7-x64",
+            "assetType": "runtime"
+          },
+          "runtimes/win7-x86/lib/net451/Microsoft.AspNetCore.Razor.Design.exe": {
+            "rid": "win7-x86",
+            "assetType": "runtime"
+          }
         },
         "compile": {
           "lib/netcoreapp1.0/Microsoft.AspNetCore.Razor.Design.dll": {}
@@ -1621,6 +1633,14 @@
         }
       },
       "Microsoft.NETCore.Targets/1.1.0": {},
+      "Microsoft.Office.Interop.Excel/15.0.4795.1000": {
+        "runtime": {
+          "lib/net20/Microsoft.Office.Interop.Excel.dll": {}
+        },
+        "compile": {
+          "lib/net20/Microsoft.Office.Interop.Excel.dll": {}
+        }
+      },
       "Microsoft.VisualStudio.Web.BrowserLink.Loader/14.1.0": {
         "dependencies": {
           "Microsoft.AspNetCore.Http.Abstractions": "1.1.1",
@@ -1710,6 +1730,16 @@
         },
         "runtime": {
           "lib/netcoreapp1.0/dotnet-aspnet-codegenerator.dll": {}
+        },
+        "runtimeTargets": {
+          "runtimes/win7-x64/lib/net451/dotnet-aspnet-codegenerator.exe": {
+            "rid": "win7-x64",
+            "assetType": "runtime"
+          },
+          "runtimes/win7-x86/lib/net451/dotnet-aspnet-codegenerator.exe": {
+            "rid": "win7-x86",
+            "assetType": "runtime"
+          }
         },
         "compile": {
           "lib/netcoreapp1.0/dotnet-aspnet-codegenerator.dll": {}
@@ -1857,6 +1887,14 @@
         },
         "compile": {
           "lib/netstandard1.0/Newtonsoft.Json.dll": {}
+        }
+      },
+      "NLog/4.4.5": {
+        "runtime": {
+          "lib/net45/NLog.dll": {}
+        },
+        "compile": {
+          "lib/net45/NLog.dll": {}
         }
       },
       "NonFactors.Grid.Core.Mvc6/1.4.0": {
@@ -2617,6 +2655,9 @@
           "System.Threading.Timer": "4.3.0",
           "System.Xml.ReaderWriter": "4.3.0",
           "runtime.native.System.Data.SqlClient.sni": "4.3.0"
+        },
+        "runtime": {
+          "lib/net451/System.Data.SqlClient.dll": {}
         },
         "runtimeTargets": {
           "runtimes/unix/lib/netstandard1.3/System.Data.SqlClient.dll": {
@@ -4511,10 +4552,10 @@
       "serviceable": true,
       "sha512": "sha512-KOBeVy8FHx9zkXrIZAM8OdXPrimROmvfB02fOegrYIelNN/zWhsOwzONgD7gw7wOTJgAFfdwpme5CiMraJj47Q=="
     },
-    "EPPlus.Core/1.3.1": {
+    "EPPlus.Core/1.3.2": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-dAPwCRIBnMZ2lsCQ3yW15QnVJ8xci14Z+4JWozdFHyL/Gugf9DTF+AQ0Ngl0H8eFDHneq/4wEd9a2i96Z85Oig=="
+      "sha512": "sha512-4GAe6rlzOTPz9eaZuqd2+33Pidzh6TUtCm1SNF2DqbhWJHtN+nB4ONpm6ezYWtqYVlEf/Dh1zDU/meg0ti0Y5A=="
     },
     "Microsoft.ApplicationInsights/2.2.0": {
       "type": "package",
@@ -5036,6 +5077,11 @@
       "serviceable": true,
       "sha512": "sha512-aOZA3BWfz9RXjpzt0sRJJMjAscAUm3Hoa4UWAfceV9UTYxgwZ1lZt5nO2myFf+/jetYQo4uTP7zS8sJY67BBxg=="
     },
+    "Microsoft.Office.Interop.Excel/15.0.4795.1000": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-DfceS96ustwfL8EOJNNRtpk6b0RylhjNpgeeemuvi9X4GYks2UTeAimjSrdFEfuqRo5ibZ4Sd0gJIeDr9gMa6Q=="
+    },
     "Microsoft.VisualStudio.Web.BrowserLink.Loader/14.1.0": {
       "type": "package",
       "serviceable": true,
@@ -5100,6 +5146,11 @@
       "type": "package",
       "serviceable": true,
       "sha512": "sha512-U82mHQSKaIk+lpSVCbWYKNavmNH1i5xrExDEquU1i6I5pV6UMOqRnJRSlKO3cMPfcpp0RgDY+8jUXHdQ4IfXvw=="
+    },
+    "NLog/4.4.5": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-nxIEAEeYYxMm61VYefONRJxa6QYDbaz8QA8vQGMjjjKUl0yQoWtWv7D9j9XUX+PiF/IztiPXeqTSh4exw1k8VA=="
     },
     "NonFactors.Grid.Core.Mvc6/1.4.0": {
       "type": "package",
