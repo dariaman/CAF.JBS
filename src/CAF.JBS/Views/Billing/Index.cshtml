@@ -8,15 +8,10 @@
 <script language="javascript" type="text/javascript">
 
     function UploadFileNow() {
-
         var value = $("#FileUpload2").val();
-
         if (value != '') {
-
             $("#form1").submit();
-
         }
-
     };
 </script>
 
@@ -29,13 +24,17 @@
                 <table class="table table-bordered table-striped">
                     <thead>
                         <tr>
-                            <th style="width:200px;">Bank Collector</thstyle="width:175px;">
+                            <th style="width:200px;">Bank Collector</th>
                             <th>File Billing</th>
                             <th style="width:125px;">Upload Result</th>
                         </tr>
                     </thead>
                     <tr>
-                        <td><input type="checkbox" asp-for="BcaCC" /> BCA CC</td>
+                        <td>@{ if (ViewBag.BCACC == null)
+                            {
+                                <input type="checkbox" asp-for="BcaCC" />
+                            } }
+                             BCA CC</td>
                         <td> <b>  @{ if (ViewBag.BCACC != null)
                                     {
                                         @Html.ActionLink((string)ViewBag.BCACC, "DownloadFile", new { fileName = ViewBag.BCACC });
@@ -48,7 +47,10 @@
                     </tr>
 
                     <tr>
-                        <td><input type="checkbox" asp-for="MandiriCC" /> Mandiri CC </td>
+                        <td>@{ if (ViewBag.MandiriCC == null)
+                            {
+                                <input type="checkbox" asp-for="MandiriCC" />
+                            } } Mandiri CC </td>
                         <td> <b> @{ if (ViewBag.MandiriCC != null)
                                     {
                                         @Html.ActionLink((string)ViewBag.MandiriCC, "DownloadFile", new { fileName = ViewBag.MandiriCC });
@@ -61,7 +63,11 @@
                     </tr>
 
                     <tr>
-                        <td><input type="checkbox" asp-for="MegaCC" /> Mega CC </td>
+                        <td>@{ if (ViewBag.MegaOnUs == null || ViewBag.MegaOfUs == null)
+                            {
+                                <input type="checkbox" asp-for="MegaCC" />
+                            }
+                        } Mega CC </td>
                         <td>
                             <b> @{ if (ViewBag.MegaOnUs != null)
                                     {
@@ -84,7 +90,11 @@
                     </tr>
 
                     <tr>
-                        <td><input type="checkbox" asp-for="BniCC" /> BNI CC </td>
+                        <td>@{ if (ViewBag.BNICC == null)
+                            {
+                                <input type="checkbox" asp-for="BniCC" />
+                            }
+                        } BNI CC </td>
                         <td>
                             <b>
                                 @{ if (ViewBag.BNICC != null)
