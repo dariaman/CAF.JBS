@@ -1,19 +1,18 @@
 @model CAF.JBS.Models.cctypeModel
 
 @{
-    ViewData["Title"] = "Create";
+    ViewData["Title"] = "Create Card Type";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<h2>Create</h2>
+<h2>Create Card Type</h2>
 
 <form asp-action="Create">
     <div class="form-horizontal">
-        <h4>cctypeModel</h4>
         <hr />
         <div asp-validation-summary="ModelOnly" class="text-danger"></div>
         <div class="form-group">
-            <label asp-for="TypeCard" class="col-md-2 control-label"></label>
+            <label asp-for="TypeCard" class="col-md-2 control-label">Jenis Kartu Kredit</label>
             <div class="col-md-10">
                 <input asp-for="TypeCard" class="form-control" />
                 <span asp-validation-for="TypeCard" class="text-danger"></span>
@@ -21,7 +20,7 @@
         </div>
         <div class="form-group">
             <div class="col-md-offset-2 col-md-10">
-                <input type="submit" value="Create" class="btn btn-default" />
+                <input type="submit" value="save" class="btn btn-primary" />
             </div>
         </div>
     </div>

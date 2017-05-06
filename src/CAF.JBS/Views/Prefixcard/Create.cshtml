@@ -30,22 +30,6 @@
             </div>
         </div>
 
-        <div class="form-group">
-            <label asp-for="acquirer_bank_id" class="col-md-2 control-label">Acquirer Bank</label>
-            <div class="col-md-10">
-                @*<input asp-for="acquirer_bank_id" class="form-control" />*@
-                @*<select asp-for="acquirer_bank_id"
-                        asp-items="@(new SelectList(ViewBag.banks,"bank_id","bank_code"))">
-                    <option>Please select one</option>
-                </select>
-                @Html.ValidationMessageFor(Model=>Model.acquirer_bank_id);*@
-                @*<span asp-validation-for="acquirer_bank_id" class="text-danger"></span>*@
-                @*<select asp-for="acquirer_bank_id"
-                        asp-items="@(new SelectList(Model.,"Id","TypeCard"))">
-                    <option>Please select one</option>
-                </select>*@
-            </div>
-        </div>
 
         <div class="form-group">
             <label asp-for="Description" class="col-md-2 control-label">Description</label>

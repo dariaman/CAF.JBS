@@ -25,6 +25,24 @@ namespace CAF.JBS.Controllers
             return View(await _context.BankModel.ToListAsync());
         }
 
+        public IActionResult Create()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Create([Bind("bank_id,bank_code")] BankModel BankModel)
+        {
+            if (ModelState.IsValid)
+            {
+                _context.Add(BankModel);
+                await _context.SaveChangesAsync();
+                return RedirectToAction("Index");
+            }
+            return View(BankModel);
+        }
+
         private bool BankModelExists(int id)
         {
             return _context.BankModel.Any(e => e.bank_id == id);

@@ -29,7 +29,7 @@
                         <a class="dropdown-toggle" data-toggle="dropdown" href="#">Master<span class="caret"></span></a>
                         <ul class="dropdown-menu">
                             <li><a asp-area="" asp-controller="Prefixcard" asp-action="index">Card Issuer Bank</a></li>
-                            <li><a asp-area="" asp-controller="cctype" asp-action="index">Categories of cards</a></li>
+                            <li><a asp-area="" asp-controller="cctype" asp-action="index">Card Type</a></li>
                             <li><a asp-area="" asp-controller="Bank" asp-action="index">Bank</a></li>
                             
                         </ul>
@@ -64,10 +64,12 @@
         <script src="https://ajax.aspnetcdn.com/ajax/bootstrap/3.3.6/bootstrap.min.js" asp-fallback-src="~/lib/bootstrap/dist/js/bootstrap.min.js" asp-fallback-test="window.jQuery && window.jQuery.fn && window.jQuery.fn.modal"></script>
         <script src="~/js/site.min.js" asp-append-version="true"></script>
     </environment>
+
     <script src="~/Scripts/MvcGrid/mvc-grid.js"></script>
     <script>$('.mvc-grid').mvcgrid();</script>
 
     @RenderSection("scripts", required: false)
     
+
 </body>
 </html>
