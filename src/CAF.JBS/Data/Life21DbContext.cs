@@ -16,11 +16,7 @@ namespace CAF.JBS.Data
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
-            builder.Entity<CardIssuerBankModel>().ToTable("card_issuer_bank");
-            builder.Entity<BankModel>().ToTable("bank");
         }
 
-        public DbSet<CardIssuerBankModel> CardIssuerBankModel { get; set; }
-        public DbSet<BankModel> BankModel { get; set; }
     }
 }

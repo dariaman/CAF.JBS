@@ -11,7 +11,8 @@ namespace CAF.JBS.Models
         [Required]
         [Key]
         public int bank_id { get; set; }
+
+        [Required]
         public string bank_code { get; set; }
-        public int bank_acquiring_flag { get; set; }
     }
 }

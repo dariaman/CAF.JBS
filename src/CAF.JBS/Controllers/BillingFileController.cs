@@ -35,7 +35,7 @@ using OfficeOpenXml;
 
 namespace CAF.JBS.Controllers
 {
-    public class BillingController : Controller
+    public class BillingFileController : Controller
     {
         private readonly JbsDbContext _jbsDB;
         private readonly  string DirBilling;      //folder Billing yang standby hari ini
@@ -54,7 +54,7 @@ namespace CAF.JBS.Controllers
         private readonly string TempBniFile;
         private readonly string TempMandiriFile;
         private readonly string TempBCAacFile;
-        public BillingController(JbsDbContext context1)
+        public BillingFileController(JbsDbContext context1)
         {
             _jbsDB = context1;
             DirBilling = "./FileBilling/";
@@ -174,23 +174,26 @@ namespace CAF.JBS.Controllers
                 }
                 else if (dw.BcaCC && dw.MegaCC && !(dw.MandiriCC || dw.BniCC))
                 {   // jika dipilih BCA dan Mega
-                    // BCA data sendiri, dan Selebihnya BNI
                     GenBcaCCFile(1); // BCA 1
                     GenMegaOnUsCCFile(); // MegaOn 3
-                    GenMegaOffUsCCFile(0); // MegaOff 4
+                    GenMegaOffUsCCFile(1); // MegaOff 4
                 }
                 else if (dw.BcaCC && dw.BniCC && !(dw.MandiriCC || dw.MegaCC))
                 {   // jika dipilih BCA dan BNI
-                    // BCA data sendiri, dan Selebihnya BNI
                     GenBcaCCFile(1); // BCA 1
-                    GenBniCCFile(0); // BNI 3 4
+                    GenBniCCFile(1); // BNI 3 4
+                }
+                else if (dw.BniCC && !(dw.BcaCC || dw.MandiriCC || dw.MegaCC))
+                {   // jika dipilih Mandiri dan BNI
+                    GenMandiriCCFile(); // Mandiri 2
+                    GenBniCCFile(0); // BNI 1 3 4
                 }
                 else if (dw.BcaCC && dw.MandiriCC && dw.MegaCC && !dw.BniCC)
                 {   // jika dipilih BCA,Mandiri dan Mega
                     GenBcaCCFile(1); // BCA 1
                     GenMandiriCCFile(); // Mandiri 2
                     GenMegaOnUsCCFile(); // MegaOn 3
-                    GenMegaOffUsCCFile(0); // MegaOff 4
+                    GenMegaOffUsCCFile(1); // MegaOff 4
                 }
                 else if (dw.BcaCC && dw.MandiriCC && dw.BniCC && !dw.MegaCC)
                 {   // jika dipilih BCA,Mandiri dan BNI
@@ -281,79 +284,6 @@ namespace CAF.JBS.Controllers
                 Process.Start(processStartInfo);
             }
             catch (Exception ex) { throw ex; }
-            //string constring = "server=192.168.1.18;database=jbs;user id=dariaman;password=P@ssw0rd;default command timeout=0;";
-            //MySqlConnection con = new MySqlConnection(constring);
-            //HSSFWorkbook hssfwb;
-            //MySqlCommand cmd;
-            //FileInfo FileName;
-
-            //try
-            //{
-            //    FileName = new FileInfo(TempMandiriFile);
-            //    if (FileName.Exists)
-            //    {
-            //        FileName.CopyTo(DirBilling + MandiriccFile);
-            //        FileName = new FileInfo(DirBilling + MandiriccFile);
-            //    }
-            //    else
-            //    {
-            //        Exception ex = new Exception("File template tidak ditemukan");
-            //        throw ex;
-            //    }
-            //    cmd = new MySqlCommand("BillingMandiriCC_sp", con);
-            //    cmd.CommandType = System.Data.CommandType.StoredProcedure;
-
-            //}
-            //catch (Exception ex)
-            //{
-            //    throw ex;
-            //}
-
-            //using (FileStream file = new FileStream(TempMandiriFile, FileMode.Open, FileAccess.Read))
-            //{
-            //    hssfwb = new HSSFWorkbook(file);
-            //}
-
-            //using (FileStream file = new FileStream(FileName.FullName.ToString(), FileMode.Create, FileAccess.ReadWrite))
-            //{
-            //    con.Open();
-            //    using (MySqlDataReader reader = cmd.ExecuteReader())
-            //    {
-            //        try
-            //        {
-            //            ISheet sheet = hssfwb.GetSheet("sheet1");
-            //            int j = 1;
-            //            int i = 15;
-            //            while (reader.Read())
-            //            {
-            //                IRow row = sheet.GetRow(i);
-            //                row.GetCell(0).SetCellValue(j);
-            //                row.GetCell(2).SetCellValue(reader["a"].ToString());
-            //                row.GetCell(4).SetCellValue(reader["b"].ToString());
-            //                row.GetCell(6).SetCellValue(reader["c"].ToString());
-            //                row.GetCell(8).SetCellValue(reader["d"].ToString());
-            //                row.GetCell(10).SetCellValue(reader["e"].ToString());
-            //                row.GetCell(12).SetCellValue(reader["f"].ToString());
-
-            //                i++;
-            //                j++;
-            //            }
-
-            //        }
-            //        catch (Exception ex)
-            //        {
-            //            throw ex;
-            //        }
-            //        finally
-            //        {
-            //            hssfwb.Write(file);
-            //            file.Close();
-            //            con.Dispose();
-            //            con.Close();
-            //        }
-            //    }
-
-            //}
 
             try
             {
@@ -513,7 +443,7 @@ namespace CAF.JBS.Controllers
                     }
                     finally
                     {
-                        cmd.Connection.Close();
+                        if(cmd.Connection.State == ConnectionState.Closed) cmd.Connection.Close();
                     }
                     package.Save();
                 }

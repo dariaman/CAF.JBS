@@ -7,11 +7,9 @@ using System.Threading.Tasks;
 
 namespace CAF.JBS.ViewModels
 {
-    public class CardIssuerBankViewModel
+    public class PrefixcardViewModel
     {
-        public int card_issuer_bank_id { get; set; }
-
-        public string Prefix { get; set; }
+        public int Prefix { get; set; }
         public string TypeCard { get; set; }
         public string BankName { get; set; }
         public string Description { get; set; }

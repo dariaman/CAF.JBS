@@ -10,10 +10,7 @@ namespace CAF.JBS.Data
 {
     public class JbsDbContext : IdentityDbContext<ApplicationUser>
     {
-        public JbsDbContext(DbContextOptions<JbsDbContext> options)
-            : base(options)
-        {
-        }
+        public JbsDbContext(DbContextOptions<JbsDbContext> options) : base(options) { }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -21,12 +18,12 @@ namespace CAF.JBS.Data
             builder.Entity<cctypeModel>().ToTable("cctype");
             builder.Entity<BankModel>().ToTable("bank");
             builder.Entity<BillingModel>().ToTable("billing");
-            builder.Entity<CardIssuerBankModel>().ToTable("card_issuer_bank");
+            builder.Entity<prefixcardModel>().ToTable("prefixcard");
         }
 
         public DbSet<cctypeModel> cctypeModel { get; set; }
         public DbSet<BankModel> BankModel { get; set; }
         public DbSet<BillingModel> BillingModel { get; set; }
-        public DbSet<CardIssuerBankModel> CardIssuerBankModel { get; set; }
+        public DbSet<prefixcardModel> prefixcardModel { get; set; }
     }
 }
