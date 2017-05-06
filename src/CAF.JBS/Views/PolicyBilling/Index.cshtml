@@ -1,0 +1,144 @@
+@model IEnumerable<CAF.JBS.Models.BillingModel>
+
+@{
+    ViewData["Title"] = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>Index</h2>
+
+<p>
+    <a asp-action="Create">Create New</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+                <th>
+                    @Html.DisplayNameFor(model => model.policy_id)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.recurring_seq)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.BillingDate)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.due_date_pre)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.PeriodeBilling)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.BillingType)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.policy_regular_premium)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.DISC_REGULAR_PREMIUM)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.DISC_REGULAR_PREMIUM_PCT_Amount)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.TotalAmount)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.statusBilling)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.IsDownload)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.DownloadDate)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.ReceiptID)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.PaymentTransactionID)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.UserCrt)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.DateCrt)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.UserUpdate)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.DateUpdate)
+                </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.policy_id)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.recurring_seq)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.BillingDate)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.due_date_pre)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.PeriodeBilling)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.BillingType)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.policy_regular_premium)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.DISC_REGULAR_PREMIUM)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.DISC_REGULAR_PREMIUM_PCT_Amount)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.TotalAmount)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.statusBilling)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.IsDownload)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.DownloadDate)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.ReceiptID)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.PaymentTransactionID)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.UserCrt)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.DateCrt)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.UserUpdate)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.DateUpdate)
+            </td>
+            <td>
+                <a asp-action="Edit" asp-route-id="@item.BillingID">Edit</a> |
+                <a asp-action="Details" asp-route-id="@item.BillingID">Details</a> |
+                <a asp-action="Delete" asp-route-id="@item.BillingID">Delete</a>
+            </td>
+        </tr>
+}
+    </tbody>
+</table>

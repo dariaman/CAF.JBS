@@ -1,0 +1,34 @@
+@using NonFactors.Mvc.Grid;
+@model IEnumerable<CAF.JBS.Models.BankModel>
+
+@{
+    ViewData["Title"] = "Bank";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style>
+    .colNumber{
+        width:150px;
+    }
+</style>
+
+<h2>Bank</h2>
+<p style="text-align:right;">
+    <a class="btn btn-primary" asp-action="Create">ADD</a>
+</p>
+@(Html
+    .Grid(Model)
+    .Build(columns =>
+    {
+        columns.Add(model => model.bank_id).Titled("BankID").Css("colNumber");
+        columns.Add(model => model.bank_code).Titled("Bank Name");
+    })
+    .Pageable(pager =>
+    {
+        pager.PagesToDisplay = 10;
+        pager.RowsPerPage = 10;
+    })
+    .Sortable()
+    .Filterable()
+    .Css("table-hover")
+)

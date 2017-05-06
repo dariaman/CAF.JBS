@@ -1,0 +1,137 @@
+@model CAF.JBS.Models.BillingModel
+
+@{
+    ViewData["Title"] = "Delete";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>Delete</h2>
+
+<h3>Are you sure you want to delete this?</h3>
+<div>
+    <h4>BillingModel</h4>
+    <hr />
+    <dl class="dl-horizontal">
+        <dt>
+            @Html.DisplayNameFor(model => model.policy_id)
+        </dt>
+        <dd>
+            @Html.DisplayFor(model => model.policy_id)
+        </dd>
+        <dt>
+            @Html.DisplayNameFor(model => model.recurring_seq)
+        </dt>
+        <dd>
+            @Html.DisplayFor(model => model.recurring_seq)
+        </dd>
+        <dt>
+            @Html.DisplayNameFor(model => model.BillingDate)
+        </dt>
+        <dd>
+            @Html.DisplayFor(model => model.BillingDate)
+        </dd>
+        <dt>
+            @Html.DisplayNameFor(model => model.due_date_pre)
+        </dt>
+        <dd>
+            @Html.DisplayFor(model => model.due_date_pre)
+        </dd>
+        <dt>
+            @Html.DisplayNameFor(model => model.PeriodeBilling)
+        </dt>
+        <dd>
+            @Html.DisplayFor(model => model.PeriodeBilling)
+        </dd>
+        <dt>
+            @Html.DisplayNameFor(model => model.BillingType)
+        </dt>
+        <dd>
+            @Html.DisplayFor(model => model.BillingType)
+        </dd>
+        <dt>
+            @Html.DisplayNameFor(model => model.policy_regular_premium)
+        </dt>
+        <dd>
+            @Html.DisplayFor(model => model.policy_regular_premium)
+        </dd>
+        <dt>
+            @Html.DisplayNameFor(model => model.DISC_REGULAR_PREMIUM)
+        </dt>
+        <dd>
+            @Html.DisplayFor(model => model.DISC_REGULAR_PREMIUM)
+        </dd>
+        <dt>
+            @Html.DisplayNameFor(model => model.DISC_REGULAR_PREMIUM_PCT_Amount)
+        </dt>
+        <dd>
+            @Html.DisplayFor(model => model.DISC_REGULAR_PREMIUM_PCT_Amount)
+        </dd>
+        <dt>
+            @Html.DisplayNameFor(model => model.TotalAmount)
+        </dt>
+        <dd>
+            @Html.DisplayFor(model => model.TotalAmount)
+        </dd>
+        <dt>
+            @Html.DisplayNameFor(model => model.statusBilling)
+        </dt>
+        <dd>
+            @Html.DisplayFor(model => model.statusBilling)
+        </dd>
+        <dt>
+            @Html.DisplayNameFor(model => model.IsDownload)
+        </dt>
+        <dd>
+            @Html.DisplayFor(model => model.IsDownload)
+        </dd>
+        <dt>
+            @Html.DisplayNameFor(model => model.DownloadDate)
+        </dt>
+        <dd>
+            @Html.DisplayFor(model => model.DownloadDate)
+        </dd>
+        <dt>
+            @Html.DisplayNameFor(model => model.ReceiptID)
+        </dt>
+        <dd>
+            @Html.DisplayFor(model => model.ReceiptID)
+        </dd>
+        <dt>
+            @Html.DisplayNameFor(model => model.PaymentTransactionID)
+        </dt>
+        <dd>
+            @Html.DisplayFor(model => model.PaymentTransactionID)
+        </dd>
+        <dt>
+            @Html.DisplayNameFor(model => model.UserCrt)
+        </dt>
+        <dd>
+            @Html.DisplayFor(model => model.UserCrt)
+        </dd>
+        <dt>
+            @Html.DisplayNameFor(model => model.DateCrt)
+        </dt>
+        <dd>
+            @Html.DisplayFor(model => model.DateCrt)
+        </dd>
+        <dt>
+            @Html.DisplayNameFor(model => model.UserUpdate)
+        </dt>
+        <dd>
+            @Html.DisplayFor(model => model.UserUpdate)
+        </dd>
+        <dt>
+            @Html.DisplayNameFor(model => model.DateUpdate)
+        </dt>
+        <dd>
+            @Html.DisplayFor(model => model.DateUpdate)
+        </dd>
+    </dl>
+    
+    <form asp-action="Delete">
+        <div class="form-actions no-color">
+            <input type="submit" value="Delete" class="btn btn-default" /> |
+            <a asp-action="Index">Back to List</a>
+        </div>
+    </form>
+</div>

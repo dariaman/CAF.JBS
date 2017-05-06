@@ -1,0 +1,35 @@
+@model CAF.JBS.Models.BankModel
+
+@{
+    ViewData["Title"] = "Create Bank";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>Create Bank</h2>
+
+<form asp-action="Create">
+    <div class="form-horizontal">
+        <hr />
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+        <div class="form-group">
+            <label asp-for="bank_code" class="col-md-2 control-label">Bank Name</label>
+            <div class="col-md-10">
+                <input asp-for="bank_code" class="form-control" />
+                <span asp-validation-for="bank_code" class="text-danger"></span>
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="col-md-offset-2 col-md-10">
+                <input type="submit" value="save" class="btn btn-primary" />
+            </div>
+        </div>
+    </div>
+</form>
+
+<div>
+    <a asp-action="Index">Back to List</a>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

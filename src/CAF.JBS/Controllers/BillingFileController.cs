@@ -137,10 +137,10 @@ namespace CAF.JBS.Controllers
         
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Download(ViewModels.DownloadBillingVM dw)
+        public IActionResult Download(ViewModels.DownloadBillingVM dw)
         {
             /*
-             * kode bank utk sbg info di keterangan
+             * kode bank sbg info di keterangan
              * 1. BCA
              * 2. Mandiri
              * 3. Mega
