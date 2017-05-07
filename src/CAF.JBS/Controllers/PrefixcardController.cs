@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using CAF.JBS.Data;
 using CAF.JBS.Models;
 using CAF.JBS.ViewModels;
+using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace CAF.JBS.Controllers
 {    
@@ -23,6 +24,7 @@ namespace CAF.JBS.Controllers
         }
 
         [HttpGet]
+
         public ActionResult Index()
         {
             IEnumerable<PrefixcardViewModel> cards;
@@ -42,8 +44,14 @@ namespace CAF.JBS.Controllers
         [HttpGet]
         public IActionResult Create()
         {
-            //IEnumerable<PrefixcardViewModel> cards;
-            return View();
+            PrefixcardViewModel cards = new PrefixcardViewModel();
+            IEnumerable<SelectListItem> bankList;
+            IEnumerable<SelectListItem> JenisKartuList;
+            bankList = _jbsDB.BankModel.Select(x=> new SelectListItem { Value = x.bank_id.ToString(),Text=x.bank_code}).Where(r=> r.Value != "0");
+            JenisKartuList = _jbsDB.cctypeModel.Select(x => new SelectListItem { Value = x.Id.ToString(), Text = x.TypeCard });
+            cards.banks = bankList;
+            cards.CCtypes = JenisKartuList;
+            return View(cards);
         }
 
         [HttpPost]
@@ -59,24 +67,36 @@ namespace CAF.JBS.Controllers
             return View(card);
         }
 
-        public async Task<IActionResult> Edit(int? id)
+        [HttpGet]
+        public async Task<IActionResult> Edit(int id)
         {
-            if (id == null) {
-                return NotFound();
-            }
-
             var cardIssuerBankModel = await _jbsDB.prefixcardModel.SingleOrDefaultAsync(m => m.Prefix == id);
             if (cardIssuerBankModel == null) {
                 return NotFound();
             }
-            return View(cardIssuerBankModel);
+
+            PrefixcardViewModel cards = new PrefixcardViewModel();
+            IEnumerable<SelectListItem> bankList;
+            IEnumerable<SelectListItem> JenisKartuList;
+            bankList = _jbsDB.BankModel.Select(x => new SelectListItem { Value = x.bank_id.ToString(), Text = x.bank_code }).Where(r => r.Value != "0");
+            JenisKartuList = _jbsDB.cctypeModel.Select(x => new SelectListItem { Value = x.Id.ToString(), Text = x.TypeCard });
+            cards.banks = bankList;
+            cards.CCtypes = JenisKartuList;
+
+            cards.Prefix = cardIssuerBankModel.Prefix;
+            cards.Type = cardIssuerBankModel.Type;
+            cards.bank_id = cardIssuerBankModel.bank_id;
+            cards.Description = cardIssuerBankModel.Description;
+
+            return View(cards);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("card_issuer_bank_id,Type,Prefix,Description,acquirer_bank_id")] prefixcardModel prefixcardModel)
+        public async Task<IActionResult> Edit(int id, [Bind("Prefix,bank_id,Description,Type")] prefixcardModel prefixcardModel)
         {
-            if (id != prefixcardModel.Prefix) {
+            if (id != prefixcardModel.Prefix)
+            {
                 return NotFound();
             }
 
@@ -101,6 +121,33 @@ namespace CAF.JBS.Controllers
                 return RedirectToAction("Index");
             }
             return View(prefixcardModel);
+        }
+
+        public async Task<IActionResult> Delete(int? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var prefixcardModel = await _jbsDB.prefixcardModel
+                .SingleOrDefaultAsync(m => m.Prefix == id);
+            if (prefixcardModel == null)
+            {
+                return NotFound();
+            }
+
+            return View(prefixcardModel);
+        }
+
+        [HttpPost, ActionName("Delete")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteConfirmed(int id)
+        {
+            var prefixcardModel = await _jbsDB.prefixcardModel.SingleOrDefaultAsync(m => m.Prefix == id);
+            _jbsDB.prefixcardModel.Remove(prefixcardModel);
+            await _jbsDB.SaveChangesAsync();
+            return RedirectToAction("Index");
         }
 
         private bool prefixcardModelExists(int id)

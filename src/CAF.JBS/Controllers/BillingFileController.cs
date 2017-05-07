@@ -14,24 +14,8 @@ using System.Data;
 using MySql.Data.MySqlClient;
 using System.Net.Http;
 using System.Text;
-
-//using NPOI.SS.UserModel;
-//using NPOI.HSSF.UserModel;
-//using NPOI.XSSF.UserModel;
-//using OfficeOpenXml;
-//using System.Runtime.InteropServices;
 using System.Diagnostics;
 using OfficeOpenXml;
-
-
-
-//using Npoi.Core.SS.UserModel;
-//using Npoi.Core.SS.Util;
-//using Npoi.Core.HSSF.UserModel;
-//using Npoi.Core.HSSF.Util;
-//using Excel = Microsoft.Office.Interop.Excel;
-//using System.Runtime.InteropServices;
-
 
 namespace CAF.JBS.Controllers
 {

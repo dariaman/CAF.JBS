@@ -1,0 +1,38 @@
+@using NonFactors.Mvc.Grid;
+@model IEnumerable<CAF.JBS.Models.BillingHoldModel>
+
+@{
+    ViewData["Title"] = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<script type="text/javascript">
+
+}</script>
+
+
+<h2>Billing Hold</h2>
+
+
+<p style="text-align:right;">
+    <a class="btn btn-primary" asp-action="Create">ADD</a>
+</p>
+@(Html
+    .Grid(Model)
+    .Build(columns =>
+    {
+        columns.Add(model => model.policy_Id).Titled("PolicyId");
+        columns.Add(model => model.ReleaseDate).Titled("Unhold Date");
+        columns.Add(model => "<a class='glyphicon glyphicon-pencil' href='./BillingHold/Edit/" + model.policy_Id + "'>"+
+                            "</a>  <a class='glyphicon glyphicon-trash' href='./BillingHold/Delete/" + model.policy_Id + "'></a>")
+        .Encoded(false).Filterable(false);
+    })
+    .Pageable(pager =>
+    {
+        pager.PagesToDisplay = 10;
+        pager.RowsPerPage = 10;
+    })
+    .Sortable()
+    .Filterable()
+    .Css("table-hover")
+)

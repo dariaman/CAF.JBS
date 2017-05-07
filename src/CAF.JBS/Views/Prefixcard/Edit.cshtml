@@ -1,46 +1,47 @@
-@model CAF.JBS.Models.prefixcardModel
+@model CAF.JBS.ViewModels.PrefixcardViewModel
 
 @{
-    ViewData["Title"] = "Edit";
+    ViewData["Title"] = "Edit Card Issuer Bank";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<h2>Edit</h2>
+<h2>Edit Card Issuer Bank</h2>
 
 <form asp-action="Edit">
     <div class="form-horizontal">
-        <h4>CardIssuerBankModel</h4>
         <hr />
         <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-    <input type="hidden" asp-for="card_issuer_bank_id" />
-        <div class="form-group">
-            <label asp-for="Type" class="col-md-2 control-label"></label>
-            <div class="col-md-10">
-                <input asp-for="Type" class="form-control" />
-                <span asp-validation-for="Type" class="text-danger"></span>
-            </div>
-        </div>
         <div class="form-group">
             <label asp-for="Prefix" class="col-md-2 control-label"></label>
             <div class="col-md-10">
-                <input asp-for="Prefix" class="form-control" />
-                <span asp-validation-for="Prefix" class="text-danger"></span>
+                <input asp-for="Prefix" class="form-control" disabled/>
             </div>
         </div>
         <div class="form-group">
-            <label asp-for="Description" class="col-md-2 control-label"></label>
+            <label asp-for="Type" class="col-md-2 control-label">Jenis Kartu </label>
             <div class="col-md-10">
-                <input asp-for="Description" class="form-control" />
+                @Html.DropDownListFor(m => m.Type, Model.CCtypes,"--Jenis Kartu--", new { @class = "form-control" })
+                <span asp-validation-for="Type" class="text-danger"></span>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="Type" class="col-md-2 control-label">Bank </label>
+            <div class="col-md-10">
+                @Html.DropDownListFor(m => m.bank_id, Model.banks, "--Bank--", new { @class = "form-control" })
+                <span asp-validation-for="bank_id" class="text-danger"></span>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="Description" class="col-md-2 control-label">Description</label>
+            <div class="col-md-10">
+                <textarea data-val-maxlength-max="255" asp-for="Description" class="form-control"
+                          data-val-maxlength="The field Description must be a string with a maximum length of '255'." data-val="true"></textarea>
                 <span asp-validation-for="Description" class="text-danger"></span>
             </div>
         </div>
-        <div class="form-group">
-            <label asp-for="acquirer_bank_id" class="col-md-2 control-label"></label>
-            <div class="col-md-10">
-                <input asp-for="acquirer_bank_id" class="form-control" />
-                <span asp-validation-for="acquirer_bank_id" class="text-danger"></span>
-            </div>
-        </div>
+
         <div class="form-group">
             <div class="col-md-offset-2 col-md-10">
                 <input type="submit" value="Save" class="btn btn-default" />

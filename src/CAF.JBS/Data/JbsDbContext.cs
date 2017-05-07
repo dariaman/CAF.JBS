@@ -19,11 +19,15 @@ namespace CAF.JBS.Data
             builder.Entity<BankModel>().ToTable("bank");
             builder.Entity<BillingModel>().ToTable("billing");
             builder.Entity<prefixcardModel>().ToTable("prefixcard");
+            builder.Entity<BillingHoldModel>().ToTable("billinghold");
+            builder.Entity<PolicyBillingModel>().ToTable("policy_billing");
         }
 
         public DbSet<cctypeModel> cctypeModel { get; set; }
         public DbSet<BankModel> BankModel { get; set; }
         public DbSet<BillingModel> BillingModel { get; set; }
         public DbSet<prefixcardModel> prefixcardModel { get; set; }
+        public DbSet<BillingHoldModel> BillingHoldModel { get; set; }
+        public DbSet<PolicyBillingModel> PolicyBillingModel { get; set; }
     }
 }

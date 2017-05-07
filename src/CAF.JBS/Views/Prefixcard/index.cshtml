@@ -23,7 +23,8 @@
         columns.Add(model => model.TypeCard).Titled("Type");
         columns.Add(model => model.BankName).Titled("Acquirer Bank");
         columns.Add(model => model.Description).Titled("Description").Filterable(false);
-        columns.Add(model => "<a href='./CardIssuerBank/Edit/" + model.Prefix + "'>Edit</a>").Encoded(false).Filterable(false);
+        columns.Add(model => "</a>  <a class='glyphicon glyphicon-pencil' href='./Prefixcard/Edit/" + model.Prefix + "'></a>"  +
+                            "</a>  <a class='glyphicon glyphicon-trash' href='./Prefixcard/Delete/" + model.Prefix + "'></a>").Encoded(false).Filterable(false);
 
     })
     .Pageable(pager =>
