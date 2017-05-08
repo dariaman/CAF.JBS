@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using CAF.JBS.Data;
 using CAF.JBS.Models;
+using CAF.JBS.ViewModels;
 
 namespace CAF.JBS.Controllers
 {
@@ -22,7 +23,27 @@ namespace CAF.JBS.Controllers
         // GET: Billing
         public async Task<IActionResult> Index()
         {
-            return View(await _context.BillingModel.ToListAsync());
+            IEnumerable<BillingViewModel> BillingView;
+            BillingView = (from cd in _context.BillingModel
+                           join bk in _context.PolicyBillingModel on cd.policy_id equals bk.policy_Id
+                    select new BillingViewModel()
+                     {
+                         BillingID=cd.BillingID,
+                         policy_id=cd.policy_id,
+                         PolicyNo=bk.policy_no,
+                         recurring_seq=cd.recurring_seq,
+                         BillingDate=cd.BillingDate,
+                         due_date_pre=cd.due_date_pre,
+                         PeriodeBilling=cd.PeriodeBilling,
+                         BillingType=cd.BillingType,
+                         policy_regular_premium=cd.policy_regular_premium,
+                         TotalAmount=cd.TotalAmount,
+                         status_billing=cd.status_billing,
+                         IsDownload=cd.IsDownload,
+                         BankIdDownload=cd.BankIdDownload,
+                         ReceiptID=cd.ReceiptID
+                     });
+            return View(BillingView);
         }
 
         // GET: Billing/Details/5

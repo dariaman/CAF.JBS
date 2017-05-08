@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using CAF.JBS.Data;
 using CAF.JBS.Models;
 using CAF.JBS.ViewModels;
+using System.Collections.Generic;
 
 namespace CAF.JBS.Controllers
 {
@@ -18,9 +19,18 @@ namespace CAF.JBS.Controllers
         }
 
         // GET: BillingHold
-        public async Task<IActionResult> Index()
+        public IActionResult Index()
         {
-            return View(await _context.BillingHoldModel.ToListAsync());
+            IEnumerable<BillingHoldViewModel> BillingHoldView;
+            BillingHoldView = (from cd in _context.BillingHoldModel
+                               join bk in _context.PolicyBillingModel on cd.policy_Id equals bk.policy_Id
+                               select new BillingHoldViewModel()
+                           {
+                               policy_Id=cd.policy_Id,
+                               policy_No=bk.policy_no,
+                               ReleaseDate=cd.ReleaseDate
+                           });
+            return View(BillingHoldView);
         }
 
         // GET: BillingHold/Create
@@ -54,7 +64,7 @@ namespace CAF.JBS.Controllers
         {
             var HoldModel = await _context.BillingHoldModel.SingleOrDefaultAsync(m => m.policy_Id == id);
             BillingHoldViewModel HoldViewModel = new BillingHoldViewModel();
-            HoldViewModel.OldpolicyID = id;
+            HoldViewModel.policy_Id = id;
             HoldViewModel.policy_No= this.FindPolicyNo(HoldModel.policy_Id);
 
             if (HoldModel == null) { return NotFound(); }
@@ -68,19 +78,20 @@ namespace CAF.JBS.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(BillingHoldViewModel HoldViewModel)
         {
+            HoldViewModel.policy_No = this.FindPolicyNo(HoldViewModel.policy_Id);
             if (ModelState.IsValid)
             {
                 try
                 {
                     BillingHoldModel HoldModel = new BillingHoldModel();
-                    HoldModel.policy_Id = HoldViewModel.OldpolicyID;
+                    HoldModel.policy_Id = HoldViewModel.policy_Id;
                     HoldModel.ReleaseDate = HoldViewModel.ReleaseDate.AddDays(1);
                     _context.Update(HoldModel);
                     await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!BillingHoldModelExists(HoldViewModel.OldpolicyID))
+                    if (!BillingHoldModelExists(HoldViewModel.policy_Id))
                     {
                         return NotFound();
                     }

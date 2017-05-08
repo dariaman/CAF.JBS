@@ -1,5 +1,5 @@
 @using NonFactors.Mvc.Grid;
-@model IEnumerable<CAF.JBS.Models.BillingHoldModel>
+@model IEnumerable<CAF.JBS.ViewModels.BillingHoldViewModel>
 
 @{
     ViewData["Title"] = "Index";
@@ -22,6 +22,7 @@
     .Build(columns =>
     {
         columns.Add(model => model.policy_Id).Titled("PolicyId");
+        columns.Add(model => model.policy_No).Titled("PolicyNo");
         columns.Add(model => model.ReleaseDate).Titled("Unhold Date").Formatted("{0: dd MMM yyyy}");
         columns.Add(model => "<a class='glyphicon glyphicon-pencil' href='./BillingHold/Edit/" + model.policy_Id + "'>"+
                             "</a>  <a class='glyphicon glyphicon-trash' href='./BillingHold/Delete/" + model.policy_Id + "'></a>")
