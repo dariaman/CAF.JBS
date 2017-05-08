@@ -84,6 +84,7 @@ namespace CAF.JBS.Controllers
             cards.CCtypes = JenisKartuList;
 
             cards.Prefix = cardIssuerBankModel.Prefix;
+            cards.PrefixCopy = cardIssuerBankModel.Prefix;
             cards.Type = cardIssuerBankModel.Type;
             cards.bank_id = cardIssuerBankModel.bank_id;
             cards.Description = cardIssuerBankModel.Description;
