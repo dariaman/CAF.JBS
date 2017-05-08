@@ -1,144 +1,57 @@
-@model IEnumerable<CAF.JBS.Models.BillingModel>
+@model IEnumerable<CAF.JBS.ViewModels.PolicyBillingViewModel>
+@using NonFactors.Mvc.Grid;
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Policy";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<h2>Index</h2>
+<h2>Policy</h2>
 
-<p>
-    <a asp-action="Create">Create New</a>
-</p>
-<table class="table">
-    <thead>
-        <tr>
-                <th>
-                    @Html.DisplayNameFor(model => model.policy_id)
-                </th>
-                <th>
-                    @Html.DisplayNameFor(model => model.recurring_seq)
-                </th>
-                <th>
-                    @Html.DisplayNameFor(model => model.BillingDate)
-                </th>
-                <th>
-                    @Html.DisplayNameFor(model => model.due_date_pre)
-                </th>
-                <th>
-                    @Html.DisplayNameFor(model => model.PeriodeBilling)
-                </th>
-                <th>
-                    @Html.DisplayNameFor(model => model.BillingType)
-                </th>
-                <th>
-                    @Html.DisplayNameFor(model => model.policy_regular_premium)
-                </th>
-                <th>
-                    @Html.DisplayNameFor(model => model.DISC_REGULAR_PREMIUM)
-                </th>
-                <th>
-                    @Html.DisplayNameFor(model => model.DISC_REGULAR_PREMIUM_PCT_Amount)
-                </th>
-                <th>
-                    @Html.DisplayNameFor(model => model.TotalAmount)
-                </th>
-                <th>
-                    @Html.DisplayNameFor(model => model.statusBilling)
-                </th>
-                <th>
-                    @Html.DisplayNameFor(model => model.IsDownload)
-                </th>
-                <th>
-                    @Html.DisplayNameFor(model => model.DownloadDate)
-                </th>
-                <th>
-                    @Html.DisplayNameFor(model => model.ReceiptID)
-                </th>
-                <th>
-                    @Html.DisplayNameFor(model => model.PaymentTransactionID)
-                </th>
-                <th>
-                    @Html.DisplayNameFor(model => model.UserCrt)
-                </th>
-                <th>
-                    @Html.DisplayNameFor(model => model.DateCrt)
-                </th>
-                <th>
-                    @Html.DisplayNameFor(model => model.UserUpdate)
-                </th>
-                <th>
-                    @Html.DisplayNameFor(model => model.DateUpdate)
-                </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.policy_id)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.recurring_seq)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.BillingDate)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.due_date_pre)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.PeriodeBilling)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.BillingType)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.policy_regular_premium)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.DISC_REGULAR_PREMIUM)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.DISC_REGULAR_PREMIUM_PCT_Amount)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.TotalAmount)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.statusBilling)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.IsDownload)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.DownloadDate)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.ReceiptID)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.PaymentTransactionID)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.UserCrt)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.DateCrt)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.UserUpdate)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.DateUpdate)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.BillingID">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.BillingID">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.BillingID">Delete</a>
-            </td>
-        </tr>
-}
-    </tbody>
-</table>
+@(Html
+    .Grid(Model)
+    .Build(columns =>
+    {
+        columns.Add(model => model.policy_Id).Titled("PolicyId");
+        columns.Add(model => model.policy_no).Titled("PolicyNo");
+        columns.Add(model => model.payment_method).Titled("PeymentMethod");
+        columns.Add(model => model.commence_dt).Titled("Commence Date").Formatted("{0: dd-MM-yyyy}");
+        columns.Add(model => model.due_dt).Titled("Due Date").Formatted("{0: dd-MM-yyyy}");
+        columns.Add(model => model.premium_mode).Titled("PremiumMode");
+        columns.Add(model => model.due_dt_pre).Titled("DueDatePre").Formatted("{0: dd-MM-yyyy}");
+        columns.Add(model => model.product_code).Titled("ProductCode");
+        columns.Add(model => model.HolderName).Titled("HolderName");
+        columns.Add(model => model.EmailHolder).Titled("EmailHolder");
+        columns.Add(model => model.regular_premium).Titled("RegularPremium");
+        columns.Add(model => model.Policy_status).Titled("StatusPolis");
+        columns.Add(model => model.cc_no).Titled("CC No");
+        columns.Add(model => model.cc_acquirer_bank_id).Titled("CC BankId");
+        columns.Add(model => model.cc_expiry).Titled("cc_expiry");
+        columns.Add(model => model.cc_name).Titled("cc_name");
+        columns.Add(model => model.cc_address).Titled("cc_address");
+        columns.Add(model => model.cc_telephone).Titled("cc_telephone");
+        columns.Add(model => model.acc_no).Titled("acc_no");
+        columns.Add(model => model.acc_bank_id).Titled("ACC BankId");
+        columns.Add(model => model.acc_name).Titled("Acc Name");
+        columns.Add(model => model.acc_bank_branch).Titled("acc_bank_branch");
+        columns.Add(model => model.VANo).Titled("VA No");
+        columns.Add(model => model.VAName).Titled("VA Name");
+        columns.Add(model => model.last_recurring_seq).Titled("LastRecurringSeq");
+        columns.Add(model => model.last_payment_source).Titled("LastPaymentSource");
+        columns.Add(model => model.last_receipt_id).Titled("LastReceiptID");
+        columns.Add(model => model.last_receipt_date).Titled("LastReceiptDate").Formatted("{0: dd-MM-yyyy}");
+        columns.Add(model => model.last_acquirer_bank_id).Titled("LastAcquirerBankID");
+        columns.Add(model => model.IsHoldBilling).Titled("IsHoldBilling");
+        //columns.Add(model => "<a class='glyphicon glyphicon-pencil' href='./BillingHold/Edit/" + model.policy_Id + "'>" +
+        //                    "</a>  <a class='glyphicon glyphicon-trash' href='./BillingHold/Delete/" + model.policy_Id + "'></a>")
+        //.Encoded(false).Filterable(false);
+    })
+    .Pageable(pager =>
+    {
+        pager.PagesToDisplay = 10;
+        pager.RowsPerPage = 10;
+    })
+    .Sortable()
+    .Filterable()
+    .Css("table-hover")
+)

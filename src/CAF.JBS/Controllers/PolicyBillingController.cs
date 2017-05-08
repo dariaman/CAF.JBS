@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using CAF.JBS.Data;
 using CAF.JBS.Models;
+using CAF.JBS.ViewModels;
 
 namespace CAF.JBS.Controllers
 {
@@ -20,9 +21,44 @@ namespace CAF.JBS.Controllers
         }
 
         // GET: PolicyBilling
-        public async Task<IActionResult> Index()
+        public IActionResult Index()
         {
-            return View(await _context.BillingModel.ToListAsync());
+            IEnumerable<PolicyBillingViewModel> PolicyBillingView;
+            PolicyBillingView = (from cd in _context.PolicyBillingModel
+                                 select new PolicyBillingViewModel()
+                                 {
+                                     policy_Id = cd.policy_Id,
+                                     policy_no = cd.policy_no,
+                                     payment_method = cd.payment_method,
+                                     commence_dt = cd.commence_dt,
+                                     due_dt = cd.due_dt,
+                                     premium_mode = cd.premium_mode,
+                                     due_dt_pre = cd.due_dt_pre,
+                                     product_code = cd.product_code,
+                                     HolderName = cd.HolderName,
+                                     EmailHolder = cd.EmailHolder,
+                                     regular_premium = cd.regular_premium,
+                                     Policy_status = cd.Policy_status,
+                                     cc_no = cd.cc_no,
+                                     cc_acquirer_bank_id = cd.cc_acquirer_bank_id,
+                                     cc_expiry = cd.cc_expiry,
+                                     cc_name = cd.cc_name,
+                                     cc_address = cd.cc_address,
+                                     cc_telephone = cd.cc_telephone,
+                                     acc_no = cd.acc_no,
+                                     acc_bank_id = cd.acc_bank_id,
+                                     acc_name = cd.acc_name,
+                                     acc_bank_branch = cd.acc_bank_branch,
+                                     VANo = cd.VANo,
+                                     VAName = cd.VAName,
+                                     last_recurring_seq = cd.last_recurring_seq,
+                                     last_payment_source = cd.last_payment_source,
+                                     last_receipt_id = cd.last_receipt_id,
+                                     last_receipt_date = cd.last_receipt_date,
+                                     last_acquirer_bank_id = cd.last_acquirer_bank_id,
+                                     IsHoldBilling = cd.IsHoldBilling
+                                 });
+            return View(PolicyBillingView);
         }
 
         // GET: PolicyBilling/Details/5

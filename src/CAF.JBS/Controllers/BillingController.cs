@@ -21,7 +21,7 @@ namespace CAF.JBS.Controllers
         }
 
         // GET: Billing
-        public async Task<IActionResult> Index()
+        public IActionResult Index()
         {
             IEnumerable<BillingViewModel> BillingView;
             BillingView = (from cd in _context.BillingModel
@@ -61,28 +61,6 @@ namespace CAF.JBS.Controllers
                 return NotFound();
             }
 
-            return View(billingModel);
-        }
-
-        // GET: Billing/Create
-        public IActionResult Create()
-        {
-            return View();
-        }
-
-        // POST: Billing/Create
-        // To protect from overposting attacks, please enable the specific properties you want to bind to, for 
-        // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("BillingID,policy_id,recurring_seq,BillingDate,due_date_pre,PeriodeBilling,BillingType,policy_regular_premium,DISC_REGULAR_PREMIUM,DISC_REGULAR_PREMIUM_PCT_Amount,TotalAmount,statusBilling,IsDownload,DownloadDate,ReceiptID,PaymentTransactionID,UserCrt,DateCrt,UserUpdate,DateUpdate")] BillingModel billingModel)
-        {
-            if (ModelState.IsValid)
-            {
-                _context.Add(billingModel);
-                await _context.SaveChangesAsync();
-                return RedirectToAction("Index");
-            }
             return View(billingModel);
         }
 
