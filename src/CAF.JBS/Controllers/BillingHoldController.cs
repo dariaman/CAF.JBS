@@ -6,6 +6,7 @@ using CAF.JBS.Data;
 using CAF.JBS.Models;
 using CAF.JBS.ViewModels;
 using System.Collections.Generic;
+using System;
 
 namespace CAF.JBS.Controllers
 {
@@ -43,13 +44,22 @@ namespace CAF.JBS.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("policy_No,ReleaseDate")] BillingHoldViewModel BillingHoldViewModel)
         {
-            //var polisID = this.PolicyExists(billingHoldModel.policy_Id.ToString());
-            //billingHoldModel.policy_Id = polisID;
+            var polisID = this.FindPolicyID(BillingHoldViewModel.policy_No);
+            var tgl = DateTime.Now.Date;
+            if (BillingHoldViewModel.ReleaseDate < tgl)
+            {
+                ModelState.AddModelError("ReleaseDate", " HoldDate harus minimal tgl sekarang ");
+            }
+            if (polisID == 0)
+            {
+                ModelState.AddModelError("policy_No", "PolisNo Tidak Valid");
+            }
+
             if (ModelState.IsValid)
             {
                 var model = new BillingHoldModel
                 {
-                    policy_Id = this.FindPolicyID(BillingHoldViewModel.policy_No),
+                    policy_Id = Convert.ToInt32(FindPolicyID(BillingHoldViewModel.policy_No)),
                     ReleaseDate = BillingHoldViewModel.ReleaseDate.AddDays(1)
                 };
                 _context.BillingHoldModel.Add(model);

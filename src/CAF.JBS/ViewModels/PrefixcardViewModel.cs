@@ -9,8 +9,8 @@ namespace CAF.JBS.ViewModels
         [Key]
         [Display(Name = "Bin Number")]
         [Required(ErrorMessage = "Bin Number harus diisi")]
-        [MinLength(6,ErrorMessage ="Minimal 6 karakter")]
-        [StringLength(8,ErrorMessage ="Maksimal 8 karakter")]
+        [MinLength(6,ErrorMessage ="Harus 6 karakter")]
+        [StringLength(6,ErrorMessage = "Harus 6 karakter")]
         public int Prefix { get; set; }
         public int PrefixCopy { get; set; }
         [Required(ErrorMessage = "Bank Penerbit harus diisi")]
