@@ -34,6 +34,7 @@ namespace CAF.JBS.Controllers
 
         private readonly string BCAacFile;
         private readonly string MandiriAcFile;
+        private readonly string VaRegulerPremi;
 
         private readonly string TempBniFile;
         private readonly string TempMandiriFile;
@@ -51,8 +52,10 @@ namespace CAF.JBS.Controllers
             MegaOfUsccFile = "CAF" + DateTime.Now.ToString("yyyyMMdd") + "_MegaOffUs.bpmt";
             BNIccFile = "BNI_" + DateTime.Now.ToString("ddMMyyyy")  + ".xlsx";
 
-            BCAacFile = "BCAacFile" + DateTime.Now.ToString("yyyyMMdd") + ".xls";
-            MandiriAcFile = "MandiriAcFile" + DateTime.Now.ToString("yyyyMMdd") + ".csv";
+            BCAacFile = "BCAac" + DateTime.Now.ToString("yyyyMMdd") + ".xls";
+            MandiriAcFile = "MandiriAc" + DateTime.Now.ToString("yyyyMMdd") + ".csv";
+
+            VaRegulerPremi = "VARegulerPremi" + DateTime.Now.ToString("yyyyMMdd") + ".xls";
 
             TempBniFile = "./Template/BniCC.xlsx";
             TempMandiriFile = "./Template/MandiriCC.xls";
@@ -82,21 +85,21 @@ namespace CAF.JBS.Controllers
         public ActionResult Index()
         {
             // cek file BCA CC
-            string[] files = System.IO.Directory.GetFiles(DirBilling, "CAF*.prn", System.IO.SearchOption.TopDirectoryOnly);
+            string[] files = Directory.GetFiles(DirBilling, "CAF*.prn", SearchOption.TopDirectoryOnly);
             if (files.Length > 0)
             {
                 ViewBag.BCACC = new FileInfo(files[0]).Name.ToString();
             }
 
             // cek file Mandiri CC
-            files = System.IO.Directory.GetFiles(DirBilling, "Mandiri_*.xls", System.IO.SearchOption.TopDirectoryOnly);
+            files = Directory.GetFiles(DirBilling, "Mandiri_*.xls", SearchOption.TopDirectoryOnly);
             if (files.Length > 0)
             {
                 ViewBag.MandiriCC = new FileInfo(files[0]).Name.ToString();
             }
 
             // cek file MegaOnUs CC
-            files = System.IO.Directory.GetFiles(DirBilling, "CAF*_MegaOnUs.bpmt", System.IO.SearchOption.TopDirectoryOnly);
+            files = Directory.GetFiles(DirBilling, "CAF*_MegaOnUs.bpmt", SearchOption.TopDirectoryOnly);
             if (files.Length > 0)
             {
                 ViewBag.MegaOnUs = new FileInfo(files[0]).Name.ToString();
@@ -110,10 +113,31 @@ namespace CAF.JBS.Controllers
             }
 
             // cek file BNI CC
-            files = System.IO.Directory.GetFiles(DirBilling, "BNI_*.xlsx", System.IO.SearchOption.TopDirectoryOnly);
+            files = Directory.GetFiles(DirBilling, "BNI_*.xlsx", SearchOption.TopDirectoryOnly);
             if (files.Length > 0)
             {
                 ViewBag.BNICC = new FileInfo(files[0]).Name.ToString();
+            }
+
+            // cek file BCA AC
+            files = Directory.GetFiles(DirBilling, "BCAac*.xls", SearchOption.TopDirectoryOnly);
+            if (files.Length > 0)
+            {
+                ViewBag.BcaAC = new FileInfo(files[0]).Name.ToString();
+            }
+
+            // cek file Mandiri AC
+            files = Directory.GetFiles(DirBilling, "MandiriAc*.csv", SearchOption.TopDirectoryOnly);
+            if (files.Length > 0)
+            {
+                ViewBag.MandiriAC = new FileInfo(files[0]).Name.ToString();
+            }
+
+            // cek file VA Reguler Premi
+            files = Directory.GetFiles(DirBilling, "VARegulerPremi*.xls", SearchOption.TopDirectoryOnly);
+            if (files.Length > 0)
+            {
+                ViewBag.VA = new FileInfo(files[0]).Name.ToString();
             }
 
             return View();
@@ -186,7 +210,10 @@ namespace CAF.JBS.Controllers
                     GenBniCCFile(1); //BNI 3 4
                 }
             }
-            //GenBcaAcFile();
+            if (dw.MandiriAC) GenMandiriAcFile();
+            if (dw.BcaAC) GenBcaAcFile();
+            if (dw.BcaRegularPremium) GenVA();
+
             return RedirectToAction("Index");
         }
 
@@ -256,22 +283,10 @@ namespace CAF.JBS.Controllers
 
         protected void GenMandiriCCFile()
         {
-            try
-            {
-                ProcessStartInfo processStartInfo = new ProcessStartInfo("taskkill", "/F /T /IM conhost.exe")
-                {
-                    CreateNoWindow = true,
-                    UseShellExecute = false,
-                    RedirectStandardOutput = true,
-                    RedirectStandardError = true
-                };
-                Process.Start(processStartInfo);
-            }
-            catch (Exception ex) { throw ex; }
+            foreach (Process proc in Process.GetProcessesByName("JBSGenExcel")) { proc.Kill(); }
 
             try
             {
-                ProcessStartInfo p = new ProcessStartInfo(@"./GenFile/JBSGenExcel.exe", @"mandiricc /c");
                 var process = new Process();
                 process.StartInfo.FileName = @"./GenFile/JBSGenExcel.exe ";
                 process.StartInfo.Arguments = @" mandiricc /c";
@@ -436,8 +451,122 @@ namespace CAF.JBS.Controllers
 
         protected void GenBcaAcFile()
         {
+            try
+            {
+                foreach (Process proc in Process.GetProcessesByName("JBSGenExcel")){ proc.Kill(); }
+            }
+            catch (Exception ex) { throw ex; }
+
+            try
+            {
+                ProcessStartInfo startinfo = new ProcessStartInfo();
+                startinfo.FileName = @"./GenFile/JBSGenExcel.exe ";
+                startinfo.Arguments = "bcaac /c";
+                startinfo.CreateNoWindow = true;
+                startinfo.UseShellExecute = false;
+                Process myProcess = Process.Start(startinfo);
+
+            }
+            catch (Exception ex) { throw ex; }
+        }
+
+        protected void GenMandiriAcFile()
+        {
+            FileInfo FileName = new FileInfo(DirBilling + this.MandiriAcFile);
+            if (!FileName.Exists) //jika file belum ada akan di generate tp jika sudah ada maka akan pake file exist
+            {
+                var cmd = _jbsDB.Database.GetDbConnection().CreateCommand();
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.CommandText = "BillingMandiriAC_sp ";
+                cmd.Connection.Open();
+
+                try
+                {
+                    using (var result = cmd.ExecuteReader())
+                    {
+                        using (FileStream fs = new FileStream(FileName.ToString(), FileMode.OpenOrCreate, FileAccess.Write))
+                        {
+                            using (StreamWriter writer = new StreamWriter(fs))
+                            {
+                                while (result.Read())
+                                {
+                                    writer.Write(result["a"] + ",");
+                                    writer.Write(result["b"] + ",");
+                                    writer.Write(result["c"] + ",");
+                                    writer.Write(result["d"] + ",");
+                                    writer.Write(result["e"] + ",");
+                                    writer.Write(result["f"] + ",");
+                                    writer.Write(result["g"] + ",");
+                                    writer.Write(result["h"]);
+                                    writer.WriteLine();
+                                }
+                            }
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    throw ex;
+                }
+                finally
+                {
+                    cmd.Dispose();
+                    cmd.Connection.Close();
+                }
+            }
+        }
+
+        protected void GenVA()
+        {
+            try
+            {
+                foreach (Process proc in Process.GetProcessesByName("JBSGenExcel")) { proc.Kill(); }
+            }
+            catch (Exception ex) { throw ex; }
+
+            try
+            {
+                ProcessStartInfo startinfo = new ProcessStartInfo();
+                startinfo.FileName = @"./GenFile/JBSGenExcel.exe ";
+                startinfo.Arguments = "va /c";
+                startinfo.CreateNoWindow = true;
+                startinfo.UseShellExecute = false;
+                Process myProcess = Process.Start(startinfo);
+
+            }
+            catch (Exception ex) { throw ex; }
 
         }
 
+        public ActionResult reset()
+        {
+            var cmd = _jbsDB.Database.GetDbConnection().CreateCommand();
+            cmd.CommandType = CommandType.Text;
+            cmd.CommandText = "UPDATE `billing` SET `IsDownload`=0;";
+            
+            try
+            {
+                cmd.Connection.Open();
+                cmd.ExecuteNonQuery();
+
+                var files = Directory.GetFiles(DirBilling);
+                foreach (string file in files)
+                {
+                    FileInfo fileBill = new FileInfo(file);
+                    fileBill.Delete();
+                }
+            }
+            catch(Exception ex)
+            {
+                throw ex;
+            }
+            finally
+            {
+                cmd.Dispose();
+                cmd.Connection.Close();
+            }
+
+            return RedirectToAction("Index");
+        }
     }
 }

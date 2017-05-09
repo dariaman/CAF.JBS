@@ -42,11 +42,11 @@ namespace CAF.JBS.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("policy_No,ReleaseDate")] BillingHoldViewModel BillingHoldViewModel)
+        public async Task<IActionResult> Create([Bind("policy_No,ReleaseDate")] BillingHoldViewModel HoldViewModel)
         {
-            var polisID = this.FindPolicyID(BillingHoldViewModel.policy_No);
+            var polisID = this.FindPolicyID(HoldViewModel.policy_No);
             var tgl = DateTime.Now.Date;
-            if (BillingHoldViewModel.ReleaseDate < tgl)
+            if (HoldViewModel.ReleaseDate < tgl)
             {
                 ModelState.AddModelError("ReleaseDate", " HoldDate harus minimal tgl sekarang ");
             }
@@ -59,14 +59,14 @@ namespace CAF.JBS.Controllers
             {
                 var model = new BillingHoldModel
                 {
-                    policy_Id = Convert.ToInt32(FindPolicyID(BillingHoldViewModel.policy_No)),
-                    ReleaseDate = BillingHoldViewModel.ReleaseDate.AddDays(1)
+                    policy_Id = Convert.ToInt32(FindPolicyID(HoldViewModel.policy_No)),
+                    ReleaseDate = HoldViewModel.ReleaseDate.AddDays(1)
                 };
                 _context.BillingHoldModel.Add(model);
                 await _context.SaveChangesAsync();
                 return RedirectToAction("Index");
             }
-            return View(BillingHoldViewModel);
+            return View(HoldViewModel);
         }
 
         // GET: BillingHold/Edit/5
@@ -86,15 +86,18 @@ namespace CAF.JBS.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(BillingHoldViewModel HoldViewModel)
+        public async Task<IActionResult> Edit(int id, [Bind("policy_Id,policy_No,ReleaseDate")] BillingHoldViewModel HoldViewModel)
         {
-            HoldViewModel.policy_No = this.FindPolicyNo(HoldViewModel.policy_Id);
+            var tgl = DateTime.Now.Date;
+            if (HoldViewModel.ReleaseDate < tgl)
+                ModelState.AddModelError("ReleaseDate", " HoldDate harus minimal tgl sekarang ");
+
             if (ModelState.IsValid)
             {
                 try
                 {
                     BillingHoldModel HoldModel = new BillingHoldModel();
-                    HoldModel.policy_Id = HoldViewModel.policy_Id;
+                    HoldModel.policy_Id = id;
                     HoldModel.ReleaseDate = HoldViewModel.ReleaseDate.AddDays(1);
                     _context.Update(HoldModel);
                     await _context.SaveChangesAsync();

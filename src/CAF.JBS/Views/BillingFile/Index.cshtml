@@ -24,7 +24,7 @@
                 <table class="table table-bordered table-striped">
                     <thead>
                         <tr>
-                            <th style="width:200px;">Bank Collector</th>
+                            <th style="width:250px;">Bank Collector</th>
                             <th>File Billing</th>
                             <th style="width:125px;">Upload Result</th>
                         </tr>
@@ -117,32 +117,71 @@
                     <table class="table table-bordered table-striped">
                         <thead>
                             <tr>
-                                <th style="width:200px;">Bank Collector</thstyle="width:175px;">
+                                <th style="width:250px;">Bank Collector</th>
                                 <th>File Billing</th>
                                 <th style="width:125px;">Upload Result</th>
                             </tr>
                         </thead>
                         <tr>
-                            <td><input type="checkbox" asp-for="BcaAC" /> BCA Auto Collection</td>
                             <td>
+                                @{ if (ViewBag.BcaAC == null)
+                                    {
+                                        <input type="checkbox" asp-for="BcaAC" />
+                                    } } BCA Auto Collection
+                            </td>
+                            <td><b>@{ if (ViewBag.BcaAC != null)
+                                        {
+                                            @Html.ActionLink((string)ViewBag.BcaAC, "DownloadFile", new { fileName = ViewBag.BcaAC });
+                                        }
+                                    }
+                                </b>
                             </td>
                             <td>
-                            </td>
+                                @{ if (ViewBag.BcaAC != null)
+                                {
+                                    @Html.ActionLink("Upload", "UploadResult", new { fileName = "masih Kosong" });
+                                } }
+                        </td>
                         </tr>
                         <tr>
-                            <td><input type="checkbox" asp-for="MandiriAC" /> Mandiri Auto Collection</td>
-                            <td></td>
-                            <td></td>
+                            <td>
+                                @{ if (ViewBag.MandiriAC == null)
+                                    {
+                                        <input type="checkbox" asp-for="MandiriAC" />
+                                    } } Mandiri Auto Collection
+                            </td>
+                            <td><b>
+                                    @{ if (ViewBag.MandiriAC != null)
+                                        {
+                                            @Html.ActionLink((string)ViewBag.MandiriAC, "DownloadFile", new { fileName = ViewBag.MandiriAC });
+                                        }
+                                    }</b>
+                            </td>
+                            <td>@{ if (ViewBag.MandiriAC != null)
+                                {
+                                    @Html.ActionLink("Upload", "UploadResult", new { fileName = "masih Kosong" });
+                                } }
+                            </td>
                         </tr>
                     </table>
-                <div class="panel-body">
-                    <input type="checkbox" asp-for="BcaRegularPremium" /> BCA Reguler Premium (VA)
-                    <br />
-                    <input type="checkbox" asp-for="BCAOther" /> BCA Other Payment
-                </div>
-            </div>
+
+                <h4>Virtual Account</h4>
+                <table class="table table-bordered table-striped">
+                        <tr>
+                            <td style="width:250px;"> <input type="checkbox" asp-for="BcaRegularPremium" /> BCA Reguler Premium (VA) </td>
+                            <td><b>
+                                @{ if (ViewBag.VA != null)
+                                    {
+                                        @Html.ActionLink((string)ViewBag.VA, "DownloadFile", new { fileName = ViewBag.VA });
+                                    }
+                                }
+                            </b></td>
+                        </tr>
+                        </table>
+</div>
             <div class="panel-footer" style="margin: auto; text-align:center; padding: 10px;">
                 <input type="submit" value="Create File" class="btn btn-success" />
+                <input type="button" value="Reset Data Billing" class="btn btn-danger" onclick="location.href='@Url.Action("reset", "BillingFile")'" />
             </div>
         </div>            
     </div>

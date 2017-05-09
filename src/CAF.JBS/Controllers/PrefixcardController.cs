@@ -24,7 +24,6 @@ namespace CAF.JBS.Controllers
         }
 
         [HttpGet]
-
         public ActionResult Index()
         {
             IEnumerable<PrefixcardViewModel> cards;
