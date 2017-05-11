@@ -14,5 +14,6 @@ namespace CAF.JBS.Models
         [Required(ErrorMessage ="Batas Tgl Hold Billing harus diisi")]
         [DataType(DataType.Date)]
         public DateTime ReleaseDate { get; set; }
+        public string Description { get; set; }
     }
 }

@@ -22,7 +22,7 @@
     {
         columns.Add(model => model.bank_id).Titled("BankID").Css("colNumber");
         columns.Add(model => model.bank_code).Titled("Bank Name");
-    })
+    }).Empty("No data found")
     .Pageable(pager =>
     {
         pager.PagesToDisplay = 10;

@@ -29,7 +29,8 @@ namespace CAF.JBS.Controllers
                            {
                                policy_Id=cd.policy_Id,
                                policy_No=bk.policy_no,
-                               ReleaseDate=cd.ReleaseDate
+                               ReleaseDate=cd.ReleaseDate,
+                               Description=cd.Description
                            });
             return View(BillingHoldView);
         }
@@ -42,7 +43,7 @@ namespace CAF.JBS.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("policy_No,ReleaseDate")] BillingHoldViewModel HoldViewModel)
+        public async Task<IActionResult> Create([Bind("policy_No,ReleaseDate,Description")] BillingHoldViewModel HoldViewModel)
         {
             var polisID = this.FindPolicyID(HoldViewModel.policy_No);
             var tgl = DateTime.Now.Date;
@@ -60,7 +61,8 @@ namespace CAF.JBS.Controllers
                 var model = new BillingHoldModel
                 {
                     policy_Id = Convert.ToInt32(FindPolicyID(HoldViewModel.policy_No)),
-                    ReleaseDate = HoldViewModel.ReleaseDate.AddDays(1)
+                    ReleaseDate = HoldViewModel.ReleaseDate.AddDays(1),
+                    Description = HoldViewModel.Description
                 };
                 _context.BillingHoldModel.Add(model);
                 await _context.SaveChangesAsync();
@@ -79,14 +81,17 @@ namespace CAF.JBS.Controllers
 
             if (HoldModel == null) { return NotFound(); }
             if (HoldViewModel.policy_No == null) { return NotFound(); }
-            else { HoldViewModel.ReleaseDate = HoldModel.ReleaseDate.AddDays(-1); }
+            else {
+                HoldViewModel.ReleaseDate = HoldModel.ReleaseDate.AddDays(-1);
+                HoldViewModel.Description = HoldModel.Description;
+            }
 
             return PartialView(HoldViewModel);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("policy_Id,policy_No,ReleaseDate")] BillingHoldViewModel HoldViewModel)
+        public async Task<IActionResult> Edit(int id, [Bind("policy_Id,policy_No,ReleaseDate,Description")] BillingHoldViewModel HoldViewModel)
         {
             var tgl = DateTime.Now.Date;
             if (HoldViewModel.ReleaseDate < tgl)
@@ -99,6 +104,7 @@ namespace CAF.JBS.Controllers
                     BillingHoldModel HoldModel = new BillingHoldModel();
                     HoldModel.policy_Id = id;
                     HoldModel.ReleaseDate = HoldViewModel.ReleaseDate.AddDays(1);
+                    HoldModel.Description = HoldViewModel.Description;
                     _context.Update(HoldModel);
                     await _context.SaveChangesAsync();
                 }
