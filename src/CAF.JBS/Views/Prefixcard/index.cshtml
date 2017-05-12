@@ -25,8 +25,7 @@
         columns.Add(model => model.Description).Titled("Description").Filterable(false);
         columns.Add(model => "</a>  <a class='glyphicon glyphicon-pencil' href='./Prefixcard/Edit/" + model.Prefix + "'></a>"  +
                             "</a>  <a class='glyphicon glyphicon-trash' href='./Prefixcard/Delete/" + model.Prefix + "'></a>").Encoded(false).Filterable(false);
-
-    })
+    }).Empty("No data found")
     .Pageable(pager =>
     {
         pager.PagesToDisplay = 10;

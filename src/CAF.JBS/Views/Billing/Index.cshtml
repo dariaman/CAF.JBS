@@ -31,7 +31,7 @@
         columns.Add(model => model.IsDownload).Titled("IsDownload");
         columns.Add(model => model.BankIdDownload).Titled("BankIdDownload");
         columns.Add(model => model.ReceiptID).Titled("ReceiptID");
-    })
+    }).Empty("No data found")
     .Pageable(pager =>
     {
         pager.PagesToDisplay = 10;

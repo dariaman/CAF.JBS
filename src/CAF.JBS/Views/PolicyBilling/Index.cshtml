@@ -45,7 +45,7 @@
         //columns.Add(model => "<a class='glyphicon glyphicon-pencil' href='./BillingHold/Edit/" + model.policy_Id + "'>" +
         //                    "</a>  <a class='glyphicon glyphicon-trash' href='./BillingHold/Delete/" + model.policy_Id + "'></a>")
         //.Encoded(false).Filterable(false);
-    })
+    }).Empty("No data found")
     .Pageable(pager =>
     {
         pager.PagesToDisplay = 10;
