@@ -15,18 +15,18 @@ namespace CAF.JBS.Models
         public int policy_id { get; set; }
         public int recurring_seq { get; set; }
         public DateTime BillingDate { get; set; }
-        public DateTime due_date_pre { get; set; }
+        public DateTime due_dt_pre { get; set; }
         public string PeriodeBilling { get; set; }
         public string BillingType { get; set; }
-        public decimal policy_regular_premium { get; set; }
-        public string DISC_REGULAR_PREMIUM { get; set; }
-        public string DISC_REGULAR_PREMIUM_PCT_Amount { get; set; }
-        public string TotalAmount { get; set; }
+        public Decimal policy_regular_premium { get; set; }
+        public Decimal TotalAmount { get; set; }
         public string status_billing { get; set; }
-        public string IsDownload { get; set; }
+        public DateTime status_billing_dateUpdate { get; set; }
+        public DateTime paid_date { get; set; }
+        public Boolean IsDownload { get; set; }
         public int BankIdDownload { get; set; }
-        public string ReceiptID { get; set; }
-        public string PaymentTransactionID { get; set; }
+        public int ReceiptID { get; set; }
+        public int PaymentTransactionID { get; set; }
         public string UserCrt { get; set; }
         public DateTime DateCrt { get; set; }
         public string UserUpdate { get; set; }

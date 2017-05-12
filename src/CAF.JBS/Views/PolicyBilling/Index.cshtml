@@ -12,36 +12,36 @@
     .Grid(Model)
     .Build(columns =>
     {
-        columns.Add(model => model.policy_Id).Titled("PolicyId");
+        //columns.Add(model => model.policy_Id).Titled("PolicyId");
         columns.Add(model => model.policy_no).Titled("PolicyNo");
         columns.Add(model => model.payment_method).Titled("PeymentMethod");
         columns.Add(model => model.commence_dt).Titled("Commence Date").Formatted("{0: dd-MM-yyyy}");
         columns.Add(model => model.due_dt).Titled("Due Date").Formatted("{0: dd-MM-yyyy}");
         columns.Add(model => model.premium_mode).Titled("PremiumMode");
-        columns.Add(model => model.due_dt_pre).Titled("DueDatePre").Formatted("{0: dd-MM-yyyy}");
-        columns.Add(model => model.product_code).Titled("ProductCode");
-        columns.Add(model => model.HolderName).Titled("HolderName");
-        columns.Add(model => model.EmailHolder).Titled("EmailHolder");
-        columns.Add(model => model.regular_premium).Titled("RegularPremium");
-        columns.Add(model => model.Policy_status).Titled("StatusPolis");
-        columns.Add(model => model.cc_no).Titled("CC No");
-        columns.Add(model => model.cc_acquirer_bank_id).Titled("CC BankId");
-        columns.Add(model => model.cc_expiry).Titled("cc_expiry");
-        columns.Add(model => model.cc_name).Titled("cc_name");
-        columns.Add(model => model.cc_address).Titled("cc_address");
-        columns.Add(model => model.cc_telephone).Titled("cc_telephone");
-        columns.Add(model => model.acc_no).Titled("acc_no");
-        columns.Add(model => model.acc_bank_id).Titled("ACC BankId");
-        columns.Add(model => model.acc_name).Titled("Acc Name");
-        columns.Add(model => model.acc_bank_branch).Titled("acc_bank_branch");
-        columns.Add(model => model.VANo).Titled("VA No");
-        columns.Add(model => model.VAName).Titled("VA Name");
-        columns.Add(model => model.last_recurring_seq).Titled("LastRecurringSeq");
-        columns.Add(model => model.last_payment_source).Titled("LastPaymentSource");
-        columns.Add(model => model.last_receipt_id).Titled("LastReceiptID");
-        columns.Add(model => model.last_receipt_date).Titled("LastReceiptDate").Formatted("{0: dd-MM-yyyy}");
-        columns.Add(model => model.last_acquirer_bank_id).Titled("LastAcquirerBankID");
-        columns.Add(model => model.IsHoldBilling).Titled("IsHoldBilling");
+        //columns.Add(model => model.due_dt_pre).Titled("DueDatePre").Formatted("{0: dd-MM-yyyy}");
+        //columns.Add(model => model.product_code).Titled("ProductCode");
+        //columns.Add(model => model.HolderName).Titled("HolderName");
+        //columns.Add(model => model.EmailHolder).Titled("EmailHolder");
+        //columns.Add(model => model.regular_premium).Titled("RegularPremium");
+        //columns.Add(model => model.Policy_status).Titled("StatusPolis");
+        //columns.Add(model => model.cc_no).Titled("CC No");
+        //columns.Add(model => model.cc_acquirer_bank_id).Titled("CC BankId");
+        //columns.Add(model => model.cc_expiry).Titled("cc_expiry");
+        //columns.Add(model => model.cc_name).Titled("cc_name");
+        //columns.Add(model => model.cc_address).Titled("cc_address");
+        //columns.Add(model => model.cc_telephone).Titled("cc_telephone");
+        //columns.Add(model => model.acc_no).Titled("acc_no");
+        //columns.Add(model => model.acc_bank_id).Titled("ACC BankId");
+        //columns.Add(model => model.acc_name).Titled("Acc Name");
+        //columns.Add(model => model.acc_bank_branch).Titled("acc_bank_branch");
+        //columns.Add(model => model.VANo).Titled("VA No");
+        //columns.Add(model => model.VAName).Titled("VA Name");
+        //columns.Add(model => model.last_recurring_seq).Titled("LastRecurringSeq");
+        //columns.Add(model => model.last_payment_source).Titled("LastPaymentSource");
+        //columns.Add(model => model.last_receipt_id).Titled("LastReceiptID");
+        //columns.Add(model => model.last_receipt_date).Titled("LastReceiptDate").Formatted("{0: dd-MM-yyyy}");
+        //columns.Add(model => model.last_acquirer_bank_id).Titled("LastAcquirerBankID");
+        columns.Add(model => model.IsHoldBilling).Titled("IsHold");
         //columns.Add(model => "<a class='glyphicon glyphicon-pencil' href='./BillingHold/Edit/" + model.policy_Id + "'>" +
         //                    "</a>  <a class='glyphicon glyphicon-trash' href='./BillingHold/Delete/" + model.policy_Id + "'></a>")
         //.Encoded(false).Filterable(false);

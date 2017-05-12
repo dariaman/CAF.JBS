@@ -38,10 +38,13 @@ namespace CAF.JBS.ViewModels
         public int? last_receipt_id { get; set; }
         public int? last_acquirer_bank_id { get; set; }
         public bool IsHoldBilling { get; set; }
-        public Nullable<DateTime> last_receipt_date { get; set; }
+        public int cycleDate { get; set; }
+        public Nullable<DateTime> Policy_status_dateupdate { get; set; }
         public string UserCrt { get; set; }
         public DateTime DateCrt { get; set; }
         public string UserUpdate { get; set; }
         public DateTime DateUpdate { get; set; }
+
+        
     }
 }

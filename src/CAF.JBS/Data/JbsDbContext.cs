@@ -21,6 +21,12 @@ namespace CAF.JBS.Data
             builder.Entity<prefixcardModel>().ToTable("prefixcard");
             builder.Entity<BillingHoldModel>().ToTable("billinghold");
             builder.Entity<PolicyBillingModel>().ToTable("policy_billing");
+
+            builder.Entity<CustomerInfo>().ToTable("customer_info");
+            builder.Entity<PolicyAc>().ToTable("policy_ac");
+            builder.Entity<PolicyCc>().ToTable("policy_cc");
+            builder.Entity<PolicyVa>().ToTable("policy_va");
+            builder.Entity<PolicyLastTrans>().ToTable("policy_last_trans");
         }
 
         public DbSet<cctypeModel> cctypeModel { get; set; }
@@ -29,5 +35,10 @@ namespace CAF.JBS.Data
         public DbSet<prefixcardModel> prefixcardModel { get; set; }
         public DbSet<BillingHoldModel> BillingHoldModel { get; set; }
         public DbSet<PolicyBillingModel> PolicyBillingModel { get; set; }
+        public DbSet<CustomerInfo> CustomerInfo { get; set; }
+        public DbSet<PolicyAc> PolicyAc { get; set; }
+        public DbSet<PolicyCc> PolicyCc { get; set; }
+        public DbSet<PolicyVa> PolicyVa { get; set; }
+        public DbSet<PolicyLastTrans> PolicyLastTrans { get; set; }
     }
 }
