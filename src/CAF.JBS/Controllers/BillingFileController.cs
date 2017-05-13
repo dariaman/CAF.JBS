@@ -24,7 +24,7 @@ namespace CAF.JBS.Controllers
     public class BillingFileController : Controller
     {
         private readonly JbsDbContext _jbsDB;
-        private readonly  string DirBilling;      //folder Billing yang standby hari ini
+        private readonly string DirBilling;      //folder Billing yang standby hari ini
         private readonly string BackupFile;     //folder Backup billing hari2 sebelumnya
         private readonly string Template;       //folder template billing
 
@@ -236,7 +236,7 @@ namespace CAF.JBS.Controllers
              * 0 = All data
              * 1 = bca only
              */
-            FileInfo FileName = new FileInfo(DirBilling + this.BCAccFile);
+            FileInfo FileName = new FileInfo(this.BCAccFile);
             //var files = Directory.GetFiles(TempFile).Where(s => s.EndsWith(".prn"));
 
             //foreach (string file in files) {
@@ -312,7 +312,7 @@ namespace CAF.JBS.Controllers
 
         protected void GenMegaOnUsCCFile()
         {
-            FileInfo FileName = new FileInfo(DirBilling + this.MegaOnUsccFile);
+            FileInfo FileName = new FileInfo(this.MegaOnUsccFile);
             if (!FileName.Exists) //jika file belum ada akan di generate tp jika sudah ada maka akan pake file exist
             {
                 var cmd = _jbsDB.Database.GetDbConnection().CreateCommand();
@@ -359,7 +359,7 @@ namespace CAF.JBS.Controllers
 
         protected void GenMegaOffUsCCFile(int id)
         {
-            FileInfo FileName = new FileInfo(DirBilling + this.MegaOfUsccFile);
+            FileInfo FileName = new FileInfo( this.MegaOfUsccFile);
             if (!FileName.Exists) //jika file belum ada akan di generate tp jika sudah ada maka akan pake file exist
             {
                 var cmd = _jbsDB.Database.GetDbConnection().CreateCommand();
@@ -406,14 +406,14 @@ namespace CAF.JBS.Controllers
 
         protected void GenBniCCFile(int id)
         {
-            FileInfo FileName = new FileInfo(DirBilling + this.BNIccFile);
+            FileInfo FileName = new FileInfo(this.BNIccFile);
             if (!FileName.Exists)
             {
                 FileName = new FileInfo(TempBniFile);
-                FileName.CopyTo(DirBilling + this.BNIccFile);
-                FileName = new FileInfo(DirBilling + this.BNIccFile);
+                FileName.CopyTo(this.BNIccFile);
+                FileName = new FileInfo(this.BNIccFile);
 
-                using (ExcelPackage package = new ExcelPackage(new FileInfo(DirBilling + this.BNIccFile)))
+                using (ExcelPackage package = new ExcelPackage(new FileInfo(this.BNIccFile)))
                 {
                     ExcelWorkbook workBook = package.Workbook;
                     ExcelWorksheet ws = workBook.Worksheets.SingleOrDefault(w => w.Name == "sheet1");
@@ -479,7 +479,7 @@ namespace CAF.JBS.Controllers
 
         protected void GenMandiriAcFile()
         {
-            FileInfo FileName = new FileInfo(DirBilling + this.MandiriAcFile);
+            FileInfo FileName = new FileInfo(this.MandiriAcFile);
             if (!FileName.Exists) //jika file belum ada akan di generate tp jika sudah ada maka akan pake file exist
             {
                 var cmd = _jbsDB.Database.GetDbConnection().CreateCommand();

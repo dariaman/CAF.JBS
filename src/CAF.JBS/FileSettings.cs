@@ -48,15 +48,15 @@ namespace CAF.JBS
             TempMandiriCC = Configuration.GetValue<string>("FileSetting:TemplateMandiriCC");
             TempBCAac = Configuration.GetValue<string>("FileSetting:TemplateBCAac");
 
-            BCAcc = "CAF" + DateTime.Now.ToString("ddMM") + ".prn";
-            MandiriCC = "Mandiri_" + DateTime.Now.ToString("ddMMyyyy") + ".xls";
-            MegaonUsCC = "CAF" + DateTime.Now.ToString("yyyyMMdd") + "_MegaOnUs.bpmt";
-            MegaOffUsCC = "CAF" + DateTime.Now.ToString("yyyyMMdd") + "_MegaOffUs.bpmt";
-            BNIcc = "BNI_" + DateTime.Now.ToString("ddMMyyyy") + ".xlsx";
+            BCAcc = FileBilling +  "CAF" + DateTime.Now.ToString("ddMM") + ".prn";
+            MandiriCC = FileBilling + "Mandiri_" + DateTime.Now.ToString("ddMMyyyy") + ".xls";
+            MegaonUsCC = FileBilling + "CAF" + DateTime.Now.ToString("yyyyMMdd") + "_MegaOnUs.bpmt";
+            MegaOffUsCC = FileBilling + "CAF" + DateTime.Now.ToString("yyyyMMdd") + "_MegaOffUs.bpmt";
+            BNIcc = FileBilling + "BNI_" + DateTime.Now.ToString("ddMMyyyy") + ".xlsx";
 
-            BCAac = Configuration.GetValue<string>("FileSetting:TemplateBNIcc");
-            MandiriAC = Configuration.GetValue<string>("FileSetting:TemplateMandiriCC");
-            BCAva = Configuration.GetValue<string>("FileSetting:TemplateBCAac");
+            BCAac = FileBilling + "BCAac" + DateTime.Now.ToString("yyyyMMdd") + ".xls";
+            MandiriAC = FileBilling + "MandiriAc" + DateTime.Now.ToString("yyyyMMdd") + ".csv";
+            BCAva = FileBilling + "VARegulerPremi" + DateTime.Now.ToString("yyyyMMdd") + ".xls";
         }
 
     }
