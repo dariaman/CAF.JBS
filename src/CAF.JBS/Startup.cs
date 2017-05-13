@@ -66,7 +66,7 @@ namespace CAF.JBS
                     // User settings
                     options.User.RequireUniqueEmail = true;
                 })
-                .AddEntityFrameworkStores<JbsDbContext>()
+                .AddEntityFrameworkStores<UserDbContext>()
                 .AddDefaultTokenProviders();
             
             services.AddMvcCore().AddViewLocalization();
