@@ -8,9 +8,9 @@ using CAF.JBS.Models;
 
 namespace CAF.JBS.Data
 {
-    public class Life21DbContext : IdentityDbContext<ApplicationUser>
+    public class UserDbContext : IdentityDbContext<ApplicationUser>
     {
-        public Life21DbContext(DbContextOptions<Life21DbContext> options) : base(options)
+        public UserDbContext(DbContextOptions<UserDbContext> options) : base(options)
         {        }
 
         protected override void OnModelCreating(ModelBuilder builder)

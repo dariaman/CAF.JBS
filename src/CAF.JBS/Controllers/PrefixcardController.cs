@@ -15,12 +15,10 @@ namespace CAF.JBS.Controllers
     public class PrefixcardController : Controller
     {
         private readonly JbsDbContext _jbsDB;
-        private readonly Life21DbContext _Life21DB;
 
-        public PrefixcardController(JbsDbContext context1, Life21DbContext contex2)
+        public PrefixcardController(JbsDbContext context1)
         {
             _jbsDB = context1;
-            _Life21DB = contex2;
         }
 
         [HttpGet]

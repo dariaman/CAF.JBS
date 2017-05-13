@@ -49,7 +49,7 @@ namespace CAF.JBS
 
             //////services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
             services.AddDbContext<JbsDbContext>(options => options.UseMySQL(Configuration.GetConnectionString("jbsDB")));
-            services.AddDbContext<Life21DbContext>(options => options.UseMySQL(Configuration.GetConnectionString("Life21")));
+            services.AddDbContext<UserDbContext>(options => options.UseMySQL(Configuration.GetConnectionString("jbsUser")));
 
             services.AddIdentity<ApplicationUser, IdentityRole>(
                 options => {
