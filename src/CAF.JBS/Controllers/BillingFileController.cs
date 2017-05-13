@@ -16,6 +16,8 @@ using System.Net.Http;
 using System.Text;
 using System.Diagnostics;
 using OfficeOpenXml;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
 
 namespace CAF.JBS.Controllers
 {
@@ -39,27 +41,32 @@ namespace CAF.JBS.Controllers
         private readonly string TempBniFile;
         private readonly string TempMandiriFile;
         private readonly string TempBCAacFile;
-        public BillingFileController(JbsDbContext context1)
+
+        private FileSettings filesettings { get; set; }
+        //private IConfigurationRoot Configuration { get; set; }
+
+        public BillingFileController(JbsDbContext context1 )
         {
+            filesettings = new FileSettings();
             _jbsDB = context1;
-            DirBilling = "./FileBilling/";
-            BackupFile = "./BillingBackup/";
-            Template = "./Template/";
+            DirBilling = filesettings.FileBilling;
+            BackupFile = filesettings.BackupBilling;
+            Template = filesettings.Template;
 
-            BCAccFile = "CAF" + DateTime.Now.ToString("ddMM") + ".prn";
-            MandiriccFile = "Mandiri_" + DateTime.Now.ToString("ddMMyyyy") + ".xls";
-            MegaOnUsccFile = "CAF"+DateTime.Now.ToString("yyyyMMdd")+"_MegaOnUs.bpmt";
-            MegaOfUsccFile = "CAF" + DateTime.Now.ToString("yyyyMMdd") + "_MegaOffUs.bpmt";
-            BNIccFile = "BNI_" + DateTime.Now.ToString("ddMMyyyy")  + ".xlsx";
+            BCAccFile = filesettings.BCAcc;
+            MandiriccFile = filesettings.MandiriCC;
+            MegaOnUsccFile = filesettings.MegaonUsCC;
+            MegaOfUsccFile = filesettings.MegaOffUsCC;
+            BNIccFile = filesettings.BNIcc;
 
-            BCAacFile = "BCAac" + DateTime.Now.ToString("yyyyMMdd") + ".xls";
-            MandiriAcFile = "MandiriAc" + DateTime.Now.ToString("yyyyMMdd") + ".csv";
+            BCAacFile = filesettings.BCAac;
+            MandiriAcFile = filesettings.MandiriAC;
 
-            VaRegulerPremi = "VARegulerPremi" + DateTime.Now.ToString("yyyyMMdd") + ".xls";
+            VaRegulerPremi = filesettings.BCAva;
 
-            TempBniFile = "./Template/BniCC.xlsx";
-            TempMandiriFile = "./Template/MandiriCC.xls";
-            TempBCAacFile = "./Template/BcaAc.xls";
+            TempBniFile = filesettings.TempBNIcc;
+            TempMandiriFile = filesettings.TempMandiriCC;
+            TempBCAacFile = filesettings.TempBCAac;
 
             // Move(backup) existing file BCA => dilakukan pada saat upload result
             // file tidak akan hilang jika data result tidak hilang

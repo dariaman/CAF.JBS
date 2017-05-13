@@ -17,7 +17,7 @@ namespace CAF.JBS.Controllers
 
         public BillingController(JbsDbContext context)
         {
-            _context = context;    
+            _context = context;
         }
 
         // GET: Billing
@@ -114,9 +114,9 @@ namespace CAF.JBS.Controllers
         //    return View(billingModel);
         //}
 
-        private bool BillingModelExists(string id)
-        {
-            return _context.BillingModel.Any(e => e.BillingID == id);
-        }
+        //private bool BillingModelExists(string id)
+        //{
+        //    return _context.BillingModel.Any(e => e.BillingID == id);
+        //}
     }
 }

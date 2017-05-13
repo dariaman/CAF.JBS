@@ -47,9 +47,13 @@ namespace CAF.JBS
             // Add framework services.
             services.AddApplicationInsightsTelemetry(Configuration);
 
-            //////services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
+            // Add functionality to inject IOptions<T>
+            services.AddOptions();
+
             services.AddDbContext<JbsDbContext>(options => options.UseMySQL(Configuration.GetConnectionString("jbsDB")));
             services.AddDbContext<UserDbContext>(options => options.UseMySQL(Configuration.GetConnectionString("jbsUser")));
+
+            services.Configure<FileSettings>(Configuration.GetSection("FileGenSetting"));
 
             services.AddIdentity<ApplicationUser, IdentityRole>(
                 options => {
