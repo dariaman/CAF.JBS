@@ -5,14 +5,33 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<script language="javascript" type="text/javascript">
+<script>
 
-    function UploadFileNow() {
-        var value = $("#FileUpload2").val();
-        if (value != '') {
-            $("#form1").submit();
-        }
-    };
+    $(document).ready(function () {
+        $('#BniCC').change(function () {
+            if (this.checked) {
+                $('#MegaCC').fadeOut('fast');
+                $('#MegaCC').checked = false;
+            }
+            else {
+                $('#MegaCC').fadeIn('fast');
+                $('#MegaCC').checked = false;
+            }
+
+        });
+
+        $('#MegaCC').change(function () {
+            if (this.checked) {
+                $('#BniCC').fadeOut('fast');
+                $('#BniCC').checked = false;
+            }
+            else {
+                $('#BniCC').fadeIn('fast');
+                $('#BniCC').checked = false;
+            }
+
+        });
+    });
 </script>
 
 <form asp-action="Download">

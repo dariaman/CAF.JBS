@@ -246,3 +246,10 @@ src/CAF.JBS/appsettings.json
 *.prn
 /src/CAF.JBS/FileBilling
 /src/CAF.JBS/BillingBackup
+/src/CAF.JBS/appsettings.json
+/src/CAF.JBS/project.json
+/src/CAF.JBS/project.lock.json
+.vs/config/applicationhost.config
+.vs/restore.dg
+.vs/CAF.JBS/v14/.suo
+src/CAF.JBS/CAF.JBS.csproj
