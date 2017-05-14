@@ -253,3 +253,11 @@ src/CAF.JBS/appsettings.json
 .vs/restore.dg
 .vs/CAF.JBS/v14/.suo
 src/CAF.JBS/CAF.JBS.csproj
+.vs/config/applicationhost.config
+.vs/restore.dg
+/src/CAF.JBS/project.lock.json
+/src/CAF.JBS/project.json
+/src/CAF.JBS/appsettings.json
+/src/CAF.JBS/CAF.JBS.csproj
+/.vs/config/applicationhost.config
+/.vs/restore.dg
