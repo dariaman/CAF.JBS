@@ -18,6 +18,8 @@ using System.Diagnostics;
 using OfficeOpenXml;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
+using System.Collections;
+using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace CAF.JBS.Controllers
 {
@@ -42,6 +44,8 @@ namespace CAF.JBS.Controllers
         private readonly string TempMandiriFile;
         private readonly string TempBCAacFile;
 
+        private readonly string GenerateXls;
+
         private FileSettings filesettings { get; set; }
         //private IConfigurationRoot Configuration { get; set; }
 
@@ -49,6 +53,9 @@ namespace CAF.JBS.Controllers
         {
             filesettings = new FileSettings();
             _jbsDB = context1;
+
+            GenerateXls = filesettings.GenFileXls;
+
             DirBilling = filesettings.FileBilling;
             BackupFile = filesettings.BackupBilling;
             Template = filesettings.Template;
@@ -91,6 +98,16 @@ namespace CAF.JBS.Controllers
         [HttpGet]
         public ActionResult Index()
         {
+            DownloadBillingVM DownloadBillVM = new DownloadBillingVM();
+            DownloadBillVM.BillingSummary =(from cd in _jbsDB.BillingSummary
+                                            select new BillingSummary()
+                                            {
+                                                id=cd.id,
+                                                Judul=cd.Judul,
+                                                rowCountDownload=cd.rowCountDownload,
+                                                AmountDownload=cd.AmountDownload
+                                            }).ToList();
+            
             // cek file BCA CC
             string[] files = Directory.GetFiles(DirBilling, "CAF*.prn", SearchOption.TopDirectoryOnly);
             if (files.Length > 0)
@@ -147,7 +164,7 @@ namespace CAF.JBS.Controllers
                 ViewBag.VA = new FileInfo(files[0]).Name.ToString();
             }
 
-            return View();
+            return View(DownloadBillVM);
         }
         
         [HttpPost]
@@ -167,7 +184,7 @@ namespace CAF.JBS.Controllers
             if (dw.BcaCC || dw.MandiriCC || dw.MegaCC || dw.BniCC) {
                 if (dw.BcaCC && !(dw.MandiriCC || dw.MegaCC || dw.BniCC))
                 {   // BCA saja
-                    GenBcaCCFile(0); // BCA 1 3 4
+                    GenBcaCCFile(0); // BCA 1 2 3 4
                 }
                 else if (dw.MandiriCC && !(dw.BcaCC || dw.MegaCC || dw.BniCC))
                 {   // Mandiri saja
@@ -176,50 +193,55 @@ namespace CAF.JBS.Controllers
                 else if (dw.MegaCC && !(dw.BcaCC || dw.MandiriCC || dw.BniCC))
                 {   // Mega saja
                     GenMegaOnUsCCFile(); // MegaOn 3
-                    GenMegaOffUsCCFile(0); // MegaOff 1 4
+                    GenMegaOffUsCCFile(0); // MegaOff 1 2 4 (ALL <>3)
                 }
                 else if (dw.BniCC && !(dw.BcaCC || dw.MandiriCC || dw.MegaCC))
                 {   // BNI aja
-                    GenBniCCFile(0); // BNI 1 3 4
+                    GenBniCCFile(0); // BNI 1 2 3 4
                 }
                 else if (dw.BcaCC && dw.MandiriCC && !(dw.MegaCC || dw.BniCC))
                 {   // jika dipilih BCA dan Mandiri
-                    GenBcaCCFile(0); // BCA 1 3 4
+                    GenBcaCCFile(2); // BCA 1 3 4 (<> 2)
                     GenMandiriCCFile(); // Mandiri 2
                 }
                 else if (dw.BcaCC && dw.MegaCC && !(dw.MandiriCC || dw.BniCC))
                 {   // jika dipilih BCA dan Mega
-                    GenBcaCCFile(1); // BCA 1
+                    GenBcaCCFile(1); // BCA 1 
                     GenMegaOnUsCCFile(); // MegaOn 3
-                    GenMegaOffUsCCFile(1); // MegaOff 4
+                    GenMegaOffUsCCFile(1); // MegaOff 2 4 (<> 1 3)
                 }
                 else if (dw.BcaCC && dw.BniCC && !(dw.MandiriCC || dw.MegaCC))
                 {   // jika dipilih BCA dan BNI
                     GenBcaCCFile(1); // BCA 1
-                    GenBniCCFile(1); // BNI 3 4
+                    GenBniCCFile(1); // BNI 2 3 4 (<> 1)
                 }
                 else if (dw.BniCC && !(dw.BcaCC || dw.MandiriCC || dw.MegaCC))
                 {   // jika dipilih Mandiri dan BNI
                     GenMandiriCCFile(); // Mandiri 2
-                    GenBniCCFile(0); // BNI 1 3 4
+                    GenBniCCFile(2); // BNI 1 3 4 (<> 2)
                 }
                 else if (dw.BcaCC && dw.MandiriCC && dw.MegaCC && !dw.BniCC)
                 {   // jika dipilih BCA,Mandiri dan Mega
                     GenBcaCCFile(1); // BCA 1
                     GenMandiriCCFile(); // Mandiri 2
                     GenMegaOnUsCCFile(); // MegaOn 3
-                    GenMegaOffUsCCFile(1); // MegaOff 4
+                    GenMegaOffUsCCFile(2); // MegaOff 4 (<> 1,2,3)
                 }
                 else if (dw.BcaCC && dw.MandiriCC && dw.BniCC && !dw.MegaCC)
                 {   // jika dipilih BCA,Mandiri dan BNI
                     GenBcaCCFile(1); // BCA 1
                     GenMandiriCCFile(); // Mandiri 2
-                    GenBniCCFile(1); //BNI 3 4
+                    GenBniCCFile(3); //BNI 3 4 (<> 1,2)
                 }
             }
             if (dw.MandiriAC) GenMandiriAcFile();
             if (dw.BcaAC) GenBcaAcFile();
             if (dw.BcaRegularPremium) GenVA();
+
+            if (dw.BcaCC || dw.MandiriCC || dw.MegaCC || dw.BniCC || dw.BcaAC || dw.MandiriAC)
+            { // Jika ada aktifitas generate file tuk siap di download
+                hitungUlang();
+            }
 
             return RedirectToAction("Index");
         }
@@ -232,21 +254,10 @@ namespace CAF.JBS.Controllers
 
         protected void GenBcaCCFile(int id)
         {
-            /* id
-             * 0 = All data
-             * 1 = bca only
-             */
             FileInfo FileName = new FileInfo(this.BCAccFile);
-            //var files = Directory.GetFiles(TempFile).Where(s => s.EndsWith(".prn"));
-
-            //foreach (string file in files) {
-            //    if (FileName.ToString() == file) { continue; }
-            //    System.IO.File.Delete(file);
-            //}
 
             if (!FileName.Exists) //jika file belum ada akan di generate tp jika sudah ada maka akan pake file exist
             {
-                //System.IO.File.Delete(FileName.ToString());                
                 try
                 {
                     var cmd = _jbsDB.Database.GetDbConnection().CreateCommand();
@@ -295,7 +306,7 @@ namespace CAF.JBS.Controllers
             try
             {
                 var process = new Process();
-                process.StartInfo.FileName = @"./GenFile/JBSGenExcel.exe ";
+                process.StartInfo.FileName = GenerateXls;
                 process.StartInfo.Arguments = @" mandiricc /c";
 
                 process.EnableRaisingEvents = true;
@@ -406,6 +417,29 @@ namespace CAF.JBS.Controllers
 
         protected void GenBniCCFile(int id)
         {
+            // Validasi data yang mau dikeluarkan ada
+            //try
+            //{
+            //    var cmd = _jbsDB.Database.GetDbConnection().CreateCommand();
+            //    cmd.CommandType = CommandType.StoredProcedure;
+            //    cmd.CommandText = "BillingBNIcc_sp ";
+            //    cmd.Parameters.Add(new MySqlParameter("@BankCode", MySqlDbType.Int16) { Value = id });
+            //    cmd.Connection.Open();
+            //    var rd = cmd.ExecuteReader();
+
+            //    cmd.Connection.Dispose();
+            //    cmd.Connection.Close();
+
+            //    if (!rd.HasRows)
+            //    {
+            //        ModelState.AddModelError("ReleaseDate", " HoldDate harus minimal tgl sekarang ");
+            //    }
+            //}
+            //catch (Exception ex)
+            //{
+            //    throw ex;
+            //}
+
             FileInfo FileName = new FileInfo(this.BNIccFile);
             if (!FileName.Exists)
             {
@@ -416,14 +450,16 @@ namespace CAF.JBS.Controllers
                 using (ExcelPackage package = new ExcelPackage(new FileInfo(this.BNIccFile)))
                 {
                     ExcelWorkbook workBook = package.Workbook;
-                    ExcelWorksheet ws = workBook.Worksheets.SingleOrDefault(w => w.Name == "sheet1");
-                    var cmd = _jbsDB.Database.GetDbConnection().CreateCommand();
-                    cmd.CommandType = CommandType.StoredProcedure;
-                    cmd.CommandText = "BillingBNIcc_sp ";
-                    cmd.Parameters.Add(new MySqlParameter("@BankCode", MySqlDbType.Int16) { Value = id });
-                    cmd.Connection.Open();
+                    
                     try
                     {
+                        ExcelWorksheet ws = workBook.Worksheets.SingleOrDefault(w => w.Name == "sheet1");
+                        var cmd = _jbsDB.Database.GetDbConnection().CreateCommand();
+                        cmd.CommandType = CommandType.StoredProcedure;
+                        cmd.CommandText = "BillingBNIcc_sp ";
+                        cmd.Parameters.Add(new MySqlParameter("@BankCode", MySqlDbType.Int16) { Value = id });
+                        cmd.Connection.Open();
+
                         using (var result = cmd.ExecuteReader())
                         {
                             var i = 2;
@@ -442,14 +478,12 @@ namespace CAF.JBS.Controllers
                                 i++;
                             }
                         }
+                        cmd.Dispose();
+                        cmd.Connection.Close();
                     }
                     catch (Exception ex)
                     {
                         throw ex;
-                    }
-                    finally
-                    {
-                        if(cmd.Connection.State == ConnectionState.Closed) cmd.Connection.Close();
                     }
                     package.Save();
                 }
@@ -549,11 +583,20 @@ namespace CAF.JBS.Controllers
         {
             var cmd = _jbsDB.Database.GetDbConnection().CreateCommand();
             cmd.CommandType = CommandType.Text;
-            cmd.CommandText = "UPDATE `billing` SET `IsDownload`=0;";
+            cmd.CommandText = @"UPDATE `billing` as b 
+                                        SET b.`IsDownload`=0,
+                                        b.`BankIdDownload`=null,
+                                        b.BankID_Source=null,
+                                        b.`BillingDate`= null,
+                                        b.Source_download=null; ";
             
             try
             {
                 cmd.Connection.Open();
+                cmd.ExecuteNonQuery();
+                cmd.CommandText = @"UPDATE `billing_summary` AS bs
+                                    SET bs.`AmountDownload`=0,
+                                    bs.`rowCountDownload`=0; ";
                 cmd.ExecuteNonQuery();
 
                 var files = Directory.GetFiles(DirBilling);
@@ -574,6 +617,117 @@ namespace CAF.JBS.Controllers
             }
 
             return RedirectToAction("Index");
+        }
+
+        public ActionResult Recalculate()
+        {
+            hitungUlang();
+            return RedirectToAction("Index");
+        }
+
+        public void hitungUlang()
+        {
+            var cmd = _jbsDB.Database.GetDbConnection().CreateCommand();
+            cmd.CommandType = CommandType.StoredProcedure;
+            cmd.CommandText = @"UpdateBillSum";
+            try
+            {
+                cmd.Connection.Open();
+                cmd.ExecuteNonQuery();
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+            finally
+            {
+                cmd.Dispose();
+                cmd.Connection.Close();
+            }
+        }
+
+        public ActionResult UploadResult( string TranCode)
+        {
+            string layout = "UploadResult";
+            UploadResultBillingVM UploadBill = new UploadResultBillingVM();
+            UploadBill.TranCode = TranCode;
+            switch(TranCode)
+            {
+                case "bcacc":
+                    UploadBill.Description = "BCA CC";
+                    layout = "UploadResultBcacc";
+                    break;
+                case "mandiricc": UploadBill.Description = "Mandiri CC"; break;
+                case "megaonus": UploadBill.Description = "MegaOnUs CC"; break;
+                case "megaoffus": UploadBill.Description = "MegaOffUs CC"; break;
+                case "bnicc": UploadBill.Description = "BNI CC"; break;
+                case "bcaac": UploadBill.Description = "BCA AC"; break;
+                case "mandiriac": UploadBill.Description = "Mandiri AC"; break;
+            }
+            return View(layout,UploadBill);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult UploadResult(string TranCode, [Bind("TranCode,FileBill")] UploadResultBillingVM UploadBill)
+        {
+            string layout= "UploadResult";
+            int errorKode;
+            if (UploadBill.FileBill != null)
+            { //validasi file manual
+                if (UploadBill.TranCode == "bcacc")
+                { //  Path.GetFileNameWithoutExtension(fullPath)
+                    layout = "UploadResultBcacc";
+                    if (Path.GetExtension( UploadBill.FileBill.FileName.ToString().ToLower()) != ".txt")
+                        ModelState.AddModelError("FileBill", "ResultFile BCA CC harus .txt");
+                }else
+                {
+                    if (Path.GetExtension(UploadBill.FileBill.FileName.ToString().ToLower()) != ".xls")
+                        ModelState.AddModelError("FileBill", "ResultFile BCA CC harus .xls");
+                }
+                if(UploadBill.FileBill.Length <1)
+                {
+                    ModelState.AddModelError("FileBill", "Data File kosong");
+                }
+            }
+            if (ModelState.IsValid)
+            {
+                errorKode = ResultBCACC(UploadBill.FileBill);
+                if (errorKode > 0)
+                {
+                    ModelState.AddModelError("FileBill","Baris ke-"+ errorKode.ToString() + " gak match dengan data download");
+                }
+                return RedirectToAction("Index");
+            }
+            switch (TranCode)
+            {
+                case "bcacc": UploadBill.Description = "BCA CC"; break;
+                case "mandiricc": UploadBill.Description = "Mandiri CC"; break;
+                case "megaonus": UploadBill.Description = "MegaOnUs CC"; break;
+                case "megaoffus": UploadBill.Description = "MegaOffUs CC"; break;
+                case "bnicc": UploadBill.Description = "BNI CC"; break;
+                case "bcaac": UploadBill.Description = "BCA AC"; break;
+                case "mandiriac": UploadBill.Description = "Mandiri AC"; break;
+            }
+            return View(layout,UploadBill);
+        }
+
+        private int ResultBCACC(IFormFile rfile)
+        {
+            int kode = 0;
+            string xfilename = "BCACC" + Path.GetRandomFileName().Replace(".", "").Substring(0, 8) + DateTime.Now.ToString("yyyyMMdd");
+            string trancode = "bcacc";
+            string tmp;
+
+            using (var reader = new StreamReader(rfile.OpenReadStream()))
+            {
+                while (reader.Peek() >= 0)
+                {
+                    tmp = reader.ReadLine();
+                }
+            }
+
+            return kode;
         }
     }
 }

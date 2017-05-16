@@ -27,6 +27,7 @@ namespace CAF.JBS.Data
             builder.Entity<PolicyCc>().ToTable("policy_cc");
             builder.Entity<PolicyVa>().ToTable("policy_va");
             builder.Entity<PolicyLastTrans>().ToTable("policy_last_trans");
+            builder.Entity<BillingSummary>().ToTable("billing_summary");
         }
 
         public DbSet<cctypeModel> cctypeModel { get; set; }
@@ -40,5 +41,6 @@ namespace CAF.JBS.Data
         public DbSet<PolicyCc> PolicyCc { get; set; }
         public DbSet<PolicyVa> PolicyVa { get; set; }
         public DbSet<PolicyLastTrans> PolicyLastTrans { get; set; }
+        public DbSet<BillingSummary> BillingSummary { get; set; }
     }
 }

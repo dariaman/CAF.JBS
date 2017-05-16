@@ -1,5 +1,7 @@
-﻿using System;
+﻿using CAF.JBS.Models;
+using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -19,5 +21,15 @@ namespace CAF.JBS.ViewModels
         public bool BcaRegularPremium { get; set; }
 
         public bool BCAOther { get; set; }
+
+        public Decimal? BCAccTotal { get; set; }
+        public Decimal? MandiriccTotal { get; set; }
+        public Decimal? MegaOnUSccTotal { get; set; }
+        public Decimal? MegaOfUsccTotal { get; set; }
+        public Decimal? BNIccTotal { get; set; }
+        public Decimal? BCAacTotal { get; set; }
+        public Decimal? MandiriACTotal { get; set; }
+
+        public List<BillingSummary> BillingSummary { get; set; }
     }
 }

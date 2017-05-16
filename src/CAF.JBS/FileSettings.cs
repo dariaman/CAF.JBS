@@ -29,6 +29,8 @@ namespace CAF.JBS
 
         public string BCAva { get; private set; }
 
+        public string GenFileXls { get; private set; }
+
         private IConfigurationRoot Configuration { get; set; }
 
         public FileSettings()
@@ -37,6 +39,8 @@ namespace CAF.JBS
                      .SetBasePath(Directory.GetCurrentDirectory())
                     .AddJsonFile("appsettings.json");
             Configuration = builder.Build();
+
+            GenFileXls = Configuration.GetValue<string>("FileSetting:FileGenExcel");
 
             FileBilling = Configuration.GetValue<string>("FileSetting:FileBilling");
             BackupBilling = Configuration.GetValue<string>("FileSetting:BackupBilling");
