@@ -10,8 +10,6 @@ namespace CAF.JBS.ViewModels
 {
     public class BillingHoldViewModel
     {
-        private readonly JbsDbContext _context;
-
         [Key]
         public int policy_Id { get; set; }
 

@@ -6,7 +6,6 @@
 }
 
 <script>
-
     $(document).ready(function () {
         $('#BniCC').change(function () {
             if (this.checked) {
@@ -17,7 +16,6 @@
                 $('#MegaCC').fadeIn('fast');
                 $('#MegaCC').checked = false;
             }
-
         });
 
         $('#MegaCC').change(function () {
@@ -29,10 +27,11 @@
                 $('#BniCC').fadeIn('fast');
                 $('#BniCC').checked = false;
             }
-
         });
     });
+
 </script>
+
 <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 <form asp-action="Download">
     <div class="container" style="margin: auto; padding: 20px;">

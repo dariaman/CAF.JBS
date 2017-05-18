@@ -500,13 +500,17 @@ namespace CAF.JBS.Controllers
 
             try
             {
-                ProcessStartInfo startinfo = new ProcessStartInfo();
-                startinfo.FileName = @"./GenFile/JBSGenExcel.exe ";
-                startinfo.Arguments = "bcaac /c";
-                startinfo.CreateNoWindow = true;
-                startinfo.UseShellExecute = false;
-                Process myProcess = Process.Start(startinfo);
+                var process = new Process();
+                process.StartInfo.FileName = GenerateXls;
+                process.StartInfo.Arguments = @" bcaac /c";
 
+                process.EnableRaisingEvents = true;
+
+                process.StartInfo.UseShellExecute = false;
+                process.StartInfo.RedirectStandardOutput = true;
+
+                process.Start();
+                process.WaitForExit();
             }
             catch (Exception ex) { throw ex; }
         }
