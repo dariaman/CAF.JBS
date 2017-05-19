@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace CAF.JBS.Models
 {
-    [Table("billing_summary")]
+    [Table("billing_download_summary")]
     public class BillingSummary
     {
         [Key]

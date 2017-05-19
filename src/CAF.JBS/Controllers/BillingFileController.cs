@@ -598,7 +598,7 @@ namespace CAF.JBS.Controllers
             {
                 cmd.Connection.Open();
                 cmd.ExecuteNonQuery();
-                cmd.CommandText = @"UPDATE `billing_summary` AS bs
+                cmd.CommandText = @"UPDATE `billing_download_summary` AS bs
                                     SET bs.`AmountDownload`=0,
                                     bs.`rowCountDownload`=0; ";
                 cmd.ExecuteNonQuery();
