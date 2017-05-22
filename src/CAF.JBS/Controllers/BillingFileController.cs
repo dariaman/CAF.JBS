@@ -715,6 +715,7 @@ namespace CAF.JBS.Controllers
                     var cmdx = _jbsDB;
                     cmdx.Database.OpenConnection();
                     var cmd = cmdx.Database.GetDbConnection().CreateCommand();
+                    var cmd2 = _life21.Database.GetDbConnection().CreateCommand();
                     using (var dbTrans= cmdx.Database.BeginTransaction())// pake userDB hanya utk koneksi aja biar gak sama dgn transaction
                     {
                         try
@@ -754,6 +755,16 @@ namespace CAF.JBS.Controllers
 
                             if (isApprove) // jika transaksi d approve bank, ada flag approve di file
                             {
+                                cmd2.Parameters.Clear();
+                                cmd2.CommandType = CommandType.StoredProcedure;
+                                cmd2.CommandText = @"ReceiptInsert";
+                                cmd2.Parameters.Add(new MySqlParameter("@BillingDate", MySqlDbType.Date) { Value = policyNo });
+                                cmd2.Parameters.Add(new MySqlParameter("@policy_id", MySqlDbType.Int32) { Value = policyNo });
+                                cmd2.Parameters.Add(new MySqlParameter("@receipt_amount", MySqlDbType.Decimal) { Value = policyNo });
+                                cmd2.Parameters.Add(new MySqlParameter("@Source_download", MySqlDbType.VarChar) { Value = policyNo });
+                                cmd2.Parameters.Add(new MySqlParameter("@recurring_seq", MySqlDbType.Int32) { Value = policyNo });
+                                cmd2.Parameters.Add(new MySqlParameter("@bank_acc_id", MySqlDbType.Int32) { Value = policyNo });
+                                cmd2.Parameters.Add(new MySqlParameter("@due_dt_pre", MySqlDbType.Date) { Value = policyNo });
 
                             }
                             else // jika transaksi d reject bank
