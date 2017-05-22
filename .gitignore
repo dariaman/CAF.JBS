@@ -273,3 +273,6 @@ src/CAF.JBS/wwwroot/js/site.min.js
 src/CAF.JBS/Properties/PublishProfiles/jbs.pubxml
 src/CAF.JBS/project.lock.json
 .vs/CAF.JBS/v14/.suo
+/src/CAF.JBS/appsettings.json
+/.vs/config/applicationhost.config
+/.vs/CAF.JBS/v14/*.suo

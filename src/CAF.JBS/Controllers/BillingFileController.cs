@@ -694,6 +694,8 @@ namespace CAF.JBS.Controllers
             string trancode = UploadBill.TranCode;
             string tmp, approvalCode, TranDesc,txfilename, policyNo;
             int? PolicyID=-1, BillingID=-1, recurring_seq=-1;
+            DateTime DueDatePre = new DateTime(2000, 1, 1), BillDate = new DateTime(2000,1,1);
+            decimal BillAmount=0;
             txfilename = Path.GetFileNameWithoutExtension(rfile.FileName);
             bool isApprove = (txfilename.Substring(txfilename.Length-1) =="A" ? true : false);
 
@@ -731,6 +733,9 @@ namespace CAF.JBS.Controllers
                                     PolicyID = Convert.ToInt32(rd["policy_id"]);
                                     BillingID = Convert.ToInt32(rd["BillingID"]);
                                     recurring_seq = Convert.ToInt32(rd["recurring_seq"]);
+                                    BillDate = Convert.ToDateTime(rd["BillingDate"]);
+                                    DueDatePre = Convert.ToDateTime(rd["due_dt_pre"]);
+                                    BillAmount = Convert.ToDecimal(rd["TotalAmount"]);
                                 }
 
                                 if ( PolicyID <1 || BillingID <1 || recurring_seq <1)
@@ -754,17 +759,18 @@ namespace CAF.JBS.Controllers
                             var uid = cmd.ExecuteScalar().ToString();
 
                             if (isApprove) // jika transaksi d approve bank, ada flag approve di file
-                            {
+                            {// Proses Update Received ===========================
                                 cmd2.Parameters.Clear();
                                 cmd2.CommandType = CommandType.StoredProcedure;
                                 cmd2.CommandText = @"ReceiptInsert";
-                                cmd2.Parameters.Add(new MySqlParameter("@BillingDate", MySqlDbType.Date) { Value = policyNo });
-                                cmd2.Parameters.Add(new MySqlParameter("@policy_id", MySqlDbType.Int32) { Value = policyNo });
-                                cmd2.Parameters.Add(new MySqlParameter("@receipt_amount", MySqlDbType.Decimal) { Value = policyNo });
-                                cmd2.Parameters.Add(new MySqlParameter("@Source_download", MySqlDbType.VarChar) { Value = policyNo });
-                                cmd2.Parameters.Add(new MySqlParameter("@recurring_seq", MySqlDbType.Int32) { Value = policyNo });
-                                cmd2.Parameters.Add(new MySqlParameter("@bank_acc_id", MySqlDbType.Int32) { Value = policyNo });
-                                cmd2.Parameters.Add(new MySqlParameter("@due_dt_pre", MySqlDbType.Date) { Value = policyNo });
+                                cmd2.Parameters.Add(new MySqlParameter("@BillingDate", MySqlDbType.Date) { Value = BillDate });
+                                cmd2.Parameters.Add(new MySqlParameter("@policy_id", MySqlDbType.Int32) { Value = PolicyID });
+                                cmd2.Parameters.Add(new MySqlParameter("@receipt_amount", MySqlDbType.Decimal) { Value = BillAmount });
+                                cmd2.Parameters.Add(new MySqlParameter("@Source_download", MySqlDbType.VarChar) { Value = "CC" });
+                                cmd2.Parameters.Add(new MySqlParameter("@recurring_seq", MySqlDbType.Int32) { Value = recurring_seq });
+                                cmd2.Parameters.Add(new MySqlParameter("@bank_acc_id", MySqlDbType.Int32) { Value = 1 });
+                                cmd2.Parameters.Add(new MySqlParameter("@due_dt_pre", MySqlDbType.Date) { Value = DueDatePre });
+                                var receiptID = cmd2.ExecuteScalar().ToString();
 
                             }
                             else // jika transaksi d reject bank
@@ -776,7 +782,7 @@ namespace CAF.JBS.Controllers
                                 cmd.ExecuteNonQuery();
                             }
 
-                            dbTrans.Commit();
+                            dbTrans.Rollback();
                         }
                         catch (Exception ex)
                         {
@@ -798,7 +804,7 @@ namespace CAF.JBS.Controllers
                             cmdx.Database.CloseConnection();
                         }
                     }
-
+                    BillAmount = 0;
                     policyNo = null;
                     PolicyID = -1;
                     BillingID =-1;
