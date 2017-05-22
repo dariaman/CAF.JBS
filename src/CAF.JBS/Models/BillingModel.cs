@@ -11,7 +11,7 @@ namespace CAF.JBS.Models
     public class BillingModel
     {
         [Key]
-        public string BillingID { get; set; }
+        public int BillingID { get; set; }
         public int policy_id { get; set; }
         public int recurring_seq { get; set; }
         public DateTime BillingDate { get; set; }

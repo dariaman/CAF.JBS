@@ -10,7 +10,7 @@ namespace CAF.JBS.ViewModels
     public class BillingViewModel
     {
         [Key]
-        public string BillingID { get; set; }
+        public int BillingID { get; set; }
         public int policy_id { get; set; }
         public string PolicyNo { get; set; }
         public int recurring_seq { get; set; }

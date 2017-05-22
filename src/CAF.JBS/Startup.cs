@@ -48,6 +48,7 @@ namespace CAF.JBS
             //services.AddApplicationInsightsTelemetry(Configuration);
 
             services.AddDbContext<JbsDbContext>(options => options.UseMySQL(Configuration.GetConnectionString("jbsDB")));
+            services.AddDbContext<Life21DbContext>(options => options.UseMySQL(Configuration.GetConnectionString("life21")));
             services.AddDbContext<UserDbContext>(options => options.UseMySQL(Configuration.GetConnectionString("jbsUser")));
 
             services.AddIdentity<ApplicationUser, IdentityRole>(

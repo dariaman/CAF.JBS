@@ -62,12 +62,12 @@ namespace CAF.JBS.Controllers
         }
 
         // GET: PolicyBilling/Details/5
-        public async Task<IActionResult> Details(string id)
+        public async Task<IActionResult> Details(int id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
+            //if (id == null)
+            //{
+            //    return NotFound();
+            //}
 
             var billingModel = await _context.BillingModel
                 .SingleOrDefaultAsync(m => m.BillingID == id);
@@ -99,12 +99,12 @@ namespace CAF.JBS.Controllers
         }
 
         // GET: PolicyBilling/Edit/5
-        public async Task<IActionResult> Edit(string id)
+        public async Task<IActionResult> Edit(int id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
+            //if (id == null)
+            //{
+            //    return NotFound();
+            //}
 
             var billingModel = await _context.BillingModel.SingleOrDefaultAsync(m => m.BillingID == id);
             if (billingModel == null)
@@ -119,7 +119,7 @@ namespace CAF.JBS.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(string id, [Bind("BillingID,policy_id,recurring_seq,BillingDate,due_date_pre,PeriodeBilling,BillingType,policy_regular_premium,DISC_REGULAR_PREMIUM,DISC_REGULAR_PREMIUM_PCT_Amount,TotalAmount,statusBilling,IsDownload,DownloadDate,ReceiptID,PaymentTransactionID,UserCrt,DateCrt,UserUpdate,DateUpdate")] BillingModel billingModel)
+        public async Task<IActionResult> Edit(int id, [Bind("BillingID,policy_id,recurring_seq,BillingDate,due_date_pre,PeriodeBilling,BillingType,policy_regular_premium,DISC_REGULAR_PREMIUM,DISC_REGULAR_PREMIUM_PCT_Amount,TotalAmount,statusBilling,IsDownload,DownloadDate,ReceiptID,PaymentTransactionID,UserCrt,DateCrt,UserUpdate,DateUpdate")] BillingModel billingModel)
         {
             if (id != billingModel.BillingID)
             {
@@ -149,7 +149,7 @@ namespace CAF.JBS.Controllers
             return View(billingModel);
         }
 
-        private bool BillingModelExists(string id)
+        private bool BillingModelExists(int id)
         {
             return _context.BillingModel.Any(e => e.BillingID == id);
         }
