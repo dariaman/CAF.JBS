@@ -276,3 +276,7 @@ src/CAF.JBS/project.lock.json
 /src/CAF.JBS/appsettings.json
 /.vs/config/applicationhost.config
 /.vs/CAF.JBS/v14/*.suo
+.vs/config/applicationhost.config
+src/CAF.JBS/appsettings.json
+src/CAF.JBS/Properties/launchSettings.json
+.vs/CAF.JBS/v14/.suo
