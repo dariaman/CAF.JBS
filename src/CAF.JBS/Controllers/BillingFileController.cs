@@ -206,6 +206,12 @@ namespace CAF.JBS.Controllers
                     GenMegaOnUsCCFile(); // MegaOn 3
                     GenMegaOffUsCCFile(1); // MegaOff 2 4 (<> 1 3)
                 }
+                else if (dw.BcaCC && dw.MegaCC && !(dw.MandiriCC || dw.BniCC))
+                {   // jika dipilih Mandiri dan Mega
+                    GenMandiriCCFile(); // Mandiri 2
+                    GenMegaOnUsCCFile(); // MegaOn 3
+                    GenMegaOffUsCCFile(3); // MegaOff 1 4 (<> 2 3)
+                }
                 else if (dw.BcaCC && dw.BniCC && !(dw.MandiriCC || dw.MegaCC))
                 {   // jika dipilih BCA dan BNI
                     GenBcaCCFile(1); // BCA 1
@@ -536,6 +542,7 @@ namespace CAF.JBS.Controllers
 
         protected void GenVA()
         {
+
             try
             {
                 foreach (Process proc in Process.GetProcessesByName("JBSGenExcel")) { proc.Kill(); }
@@ -544,15 +551,37 @@ namespace CAF.JBS.Controllers
 
             try
             {
-                ProcessStartInfo startinfo = new ProcessStartInfo();
-                startinfo.FileName = @"./GenFile/JBSGenExcel.exe ";
-                startinfo.Arguments = "va /c";
-                startinfo.CreateNoWindow = true;
-                startinfo.UseShellExecute = false;
-                Process myProcess = Process.Start(startinfo);
+                var process = new Process();
+                process.StartInfo.FileName = GenerateXls;
+                process.StartInfo.Arguments = @" va /c";
 
+                process.EnableRaisingEvents = true;
+
+                process.StartInfo.UseShellExecute = false;
+                process.StartInfo.RedirectStandardOutput = true;
+
+                process.Start();
+                process.WaitForExit();
             }
             catch (Exception ex) { throw ex; }
+
+            //try
+            //{
+            //    foreach (Process proc in Process.GetProcessesByName("JBSGenExcel")) { proc.Kill(); }
+            //}
+            //catch (Exception ex) { throw ex; }
+
+            //try
+            //{
+            //    ProcessStartInfo startinfo = new ProcessStartInfo();
+            //    startinfo.FileName = @"./GenFile/JBSGenExcel.exe ";
+            //    startinfo.Arguments = "va /c";
+            //    startinfo.CreateNoWindow = true;
+            //    startinfo.UseShellExecute = false;
+            //    Process myProcess = Process.Start(startinfo);
+
+            //}
+            //catch (Exception ex) { throw ex; }
 
         }
 
@@ -865,6 +894,7 @@ namespace CAF.JBS.Controllers
                             catch (Exception ex)
                             {
                                 dbTrans.Rollback();
+                                dbTrans2.Rollback();
                                 // gagal file transaction, masukkan ke log table setelah semua rollback
                                 cmd.CommandType = CommandType.Text;
                                 cmd.Parameters.Clear();
@@ -915,7 +945,7 @@ namespace CAF.JBS.Controllers
                     string[] files = Directory.GetFiles(DirBilling, "CAF*.prn", SearchOption.TopDirectoryOnly);
                     if (files.Length > 0)
                     {
-                        var FileBil = new FileInfo( files[0]);
+                        var FileBil = new FileInfo(files[0]);
                         FileBil.MoveTo(BackupFile + FileBil.Name.ToString());
                     }
                 }
