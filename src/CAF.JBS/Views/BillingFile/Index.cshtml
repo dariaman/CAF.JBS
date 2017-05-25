@@ -3,6 +3,8 @@
 @{
     ViewData["Title"] = "Index";
     Layout = "~/Views/Shared/_Layout.cshtml";
+
+
 }
 
 <script>
@@ -29,206 +31,249 @@
             }
         });
     });
+</script><br />
+<b>
+    <i>
+        <p class="text-danger">
+            @{
+                if (TempData["ModelState"] != null)
+                {
+                    var pesan = (string[])TempData["ModelState"];
+                    foreach (var lst in pesan)
+                    {
+                        @lst <br />
+                    }
+                }
+            }
+        </p>
+    </i>
+</b>
 
-</script>
-
-<div asp-validation-summary="ModelOnly" class="text-danger"></div>
 <form asp-action="Download">
     <div class="container" style="margin: auto; padding: 20px;">
         <div class="panel panel-primary" style="margin: auto;width:900px;">
             <div class="panel-heading">Download Billing</div>
             <div class="panel-body">
                 <h4>Billing CC</h4>
-                <table class="table table-bordered table-striped">
-                    <thead>
-                        <tr>
-                            <th style="width:250px;">Bank Collector</th>
-                            <th>File Billing</th>
-                            <th style="width:125px;">Result</th>
-                            <th>Jlh Data</th>
-                            <th>Total Amount</th>
-                        </tr>
-                    </thead>
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <table class="table table-bordered table-striped">
+                <thead>
                     <tr>
-                        <td>@{ if (ViewBag.BCACC == null)
+                        <th style="width:250px;">Bank Collector</th>
+                        <th>File Billing</th>
+                        <th style="width:125px;">Result</th>
+                        <th>Jlh Data</th>
+                        <th>Total Amount</th>
+                    </tr>
+                </thead>
+                <tr>
+                    <td>
+                        @{ if (ViewBag.BCACC == null)
+                        {
+                            <input type="checkbox" asp-for="BcaCC" />
+                        } }
+                    BCA
+                </td>
+                <td>
+                    <b>
+                        @{ if (ViewBag.BCACC != null)
                             {
-                                <input type="checkbox" asp-for="BcaCC" />
+                                @Html.ActionLink((string)ViewBag.BCACC, "DownloadFile", new { fileName = ViewBag.BCACC });
                             } }
-                             BCA</td>
-                        <td> <b>  @{ if (ViewBag.BCACC != null)
-                                    {
-                                        @Html.ActionLink((string)ViewBag.BCACC, "DownloadFile", new { fileName = ViewBag.BCACC });
-                                    } } </b>
-                        </td>
-                        <td>@{ if (ViewBag.BCACC != null)
-                            {
-                                @Html.ActionLink("Upload", "UploadResult", new { TranCode = "bcacc" });
-                            } }</td>
-                        <td style="text-align:right">@Model.BillingSummary[0].rowCountDownload.ToString("#,###")</td>
-                        <td style="text-align:right">@Model.BillingSummary[0].AmountDownload.ToString("#,###")</td>
-                    </tr>
+                    </b>
+                </td>
+                <td>
+                    @{ if (ViewBag.BCACC != null)
+                    {
+                        @Html.ActionLink("Upload", "UploadResult", new { TranCode = "bcacc" });
+                    } }
+            </td>
+            <td style="text-align:right">@Model.BillingSummary[0].rowCountDownload.ToString("#,###")</td>
+            <td style="text-align:right">@Model.BillingSummary[0].AmountDownload.ToString("#,###")</td>
+        </tr>
 
-                    <tr>
-                        <td>@{ if (ViewBag.MandiriCC == null)
-                            {
-                                <input type="checkbox" asp-for="MandiriCC" />
-                            } } Mandiri</td>
-                        <td> <b> @{ if (ViewBag.MandiriCC != null)
-                                    {
-                                        @Html.ActionLink((string)ViewBag.MandiriCC, "DownloadFile", new { fileName = ViewBag.MandiriCC });
-                                    } } </b>
-                        </td>
-                        <td>@{ if (ViewBag.MandiriCC != null)
-                            {
-                                @Html.ActionLink("Upload", "UploadResult", new { TranCode = "mandiricc" });
-                            } }</td>
-                        <td style="text-align:right">@Model.BillingSummary[1].rowCountDownload.ToString("#,###")</td>
-                        <td style="text-align:right">@Model.BillingSummary[1].AmountDownload.ToString("#,###")</td>
-                    </tr>
+        <tr>
+            <td>
+                @{ if (ViewBag.MandiriCC == null)
+                {
+                    <input type="checkbox" asp-for="MandiriCC" />
+                } } Mandiri
+        </td>
+        <td>
+            <b>
+                @{ if (ViewBag.MandiriCC != null)
+                    {
+                        @Html.ActionLink((string)ViewBag.MandiriCC, "DownloadFile", new { fileName = ViewBag.MandiriCC });
+                    } }
+            </b>
+        </td>
+        <td>
+            @{ if (ViewBag.MandiriCC != null)
+            {
+                @Html.ActionLink("Upload", "UploadResult", new { TranCode = "mandiricc" });
+            } }
+        </td>
+        <td style="text-align:right">@Model.BillingSummary[1].rowCountDownload.ToString("#,###")</td>
+        <td style="text-align:right">@Model.BillingSummary[1].AmountDownload.ToString("#,###")</td>
+        </tr>
 
-                    <tr>
-                        <td rowspan="2">@{ if (ViewBag.MegaOnUs == null || ViewBag.MegaOfUs == null)
+        <tr>
+            <td rowspan="2">
+                @{ if (ViewBag.MegaOnUs == null || ViewBag.MegaOfUs == null)
+                {
+                    <input type="checkbox" asp-for="MegaCC" />
+                } } Mega
+        </td>
+        <td>
+            <b>
+                @{ if (ViewBag.MegaOnUs != null)
+                    {
+                        @Html.ActionLink((string)ViewBag.MegaOnUs, "DownloadFile", new { fileName = ViewBag.MegaOnUs });
+                    }
+                }
+            </b>
+        </td>
+        <td>
+            @{ if (ViewBag.MegaOnUs != null)
+                {
+                    @Html.ActionLink("Upload", "UploadResult", new { TranCode = "megaonus" });
+                }
+            }
+        </td>
+        <td style="text-align:right">@Model.BillingSummary[2].rowCountDownload.ToString("#,###")</td>
+        <td style="text-align:right">@Model.BillingSummary[2].AmountDownload.ToString("#,###")</td>
+        </tr>
+        <tr>
+            <td>
+                <b>
+                    @{
+                        if (ViewBag.MegaOfUs != null)
+                        {
+                            @Html.ActionLink((string)ViewBag.MegaOfUs, "DownloadFile", new { fileName = ViewBag.MegaOfUs });
+                        }
+
+                    }
+                </b>
+            </td>
+            <td>
+                @{ if (ViewBag.MegaOfUs != null)
+                    {
+                        @Html.ActionLink("Upload", "UploadResult", new { TranCode = "megaoffus" });
+                    }
+                }
+            </td>
+            <td style="text-align:right">@Model.BillingSummary[3].rowCountDownload.ToString("#,###")</td>
+            <td style="text-align:right">@Model.BillingSummary[3].AmountDownload.ToString("#,###")</td>
+        </tr>
+
+        <tr>
+            <td>
+                @{ if (ViewBag.BNICC == null)
+                {
+                    <input type="checkbox" asp-for="BniCC" />
+                }
+            } BNI
+        </td>
+        <td>
+            <b>
+                @{ if (ViewBag.BNICC != null)
+                    {
+                        @Html.ActionLink((string)ViewBag.BNICC, "DownloadFile", new { fileName = ViewBag.BNICC });
+                    }
+                }
+            </b>
+        </td>
+        <td>
+            @{ if (ViewBag.BNICC != null)
+                {
+                    @Html.ActionLink("Upload", "UploadResult", new { TranCode = "bnicc" });
+                } }
+        </td>
+        <td style="text-align:right">@Model.BillingSummary[4].rowCountDownload.ToString("#,###")</td>
+        <td style="text-align:right">@Model.BillingSummary[4].AmountDownload.ToString("#,###")</td>
+        </tr>
+        </table>
+
+        <h4>Billing AC</h4>
+        <table class="table table-bordered table-striped">
+            <thead>
+                <tr>
+                    <th style="width:250px;">Bank Collector</th>
+                    <th>File Billing</th>
+                    <th style="width:125px;">Upload Result</th>
+                    <th>Jlh Data</th>
+                    <th>Total Amount</th>
+                </tr>
+            </thead>
+            <tr>
+                <td>
+                    @{ if (ViewBag.BcaAC == null)
+                        {
+                            <input type="checkbox" asp-for="BcaAC" />
+                        } } BCA Auto Collection
+                </td>
+                <td>
+                    <b>
+                        @{ if (ViewBag.BcaAC != null)
+                        {
+                            @Html.ActionLink((string)ViewBag.BcaAC, "DownloadFile", new { fileName = ViewBag.BcaAC });
+                        }
+                    }
+                </b>
+            </td>
+            <td>
+                @{ if (ViewBag.BcaAC != null)
+                    {
+                        @Html.ActionLink("Upload", "UploadResult", new { TranCode = "bcaac" });
+                    } }
+            </td>
+            <td style="text-align:right">@Model.BillingSummary[5].rowCountDownload.ToString("#,###")</td>
+            <td style="text-align:right">@Model.BillingSummary[5].AmountDownload.ToString("#,###")</td>
+        </tr>
+        <tr>
+            <td>
+                @{ if (ViewBag.MandiriAC == null)
+                    {
+                        <input type="checkbox" asp-for="MandiriAC" />
+                    } } Mandiri Auto Collection
+            </td>
+            <td>
+                <b>
+                    @{ if (ViewBag.MandiriAC != null)
+                        {
+                            @Html.ActionLink((string)ViewBag.MandiriAC, "DownloadFile", new { fileName = ViewBag.MandiriAC });
+                        }
+                    }
+                </b>
+            </td>
+            <td>
+                @{ if (ViewBag.MandiriAC != null)
+                {
+                    @Html.ActionLink("Upload", "UploadResult", new { TranCode = "mandiriac" });
+                } }
+        </td>
+        <td style="text-align:right">@Model.BillingSummary[6].rowCountDownload.ToString("#,###")</td>
+        <td style="text-align:right">@Model.BillingSummary[6].AmountDownload.ToString("#,###")</td>
+        </tr>
+        </table>
+
+        <h4>Virtual Account</h4>
+        <table class="table table-bordered table-striped">
+            <tr>
+                <td style="width:250px;"> <input type="checkbox" asp-for="BcaRegularPremium" /> BCA Reguler Premium (VA) </td>
+                <td>
+                    <b>
+                        @{ if (ViewBag.VA != null)
                             {
-                                <input type="checkbox" asp-for="MegaCC" />
-                            } } Mega</td>
-                        <td>
-                            <b> @{ if (ViewBag.MegaOnUs != null)
-                                    {
-                                        @Html.ActionLink((string)ViewBag.MegaOnUs, "DownloadFile", new { fileName = ViewBag.MegaOnUs });
-                                    }
-                                } </b>
-                        </td>
-                        <td>
-                            @{ if (ViewBag.MegaOnUs != null)
-                            {
-                                @Html.ActionLink("Upload", "UploadResult", new { TranCode = "megaonus" });
+                                @Html.ActionLink((string)ViewBag.VA, "DownloadFile", new { fileName = ViewBag.VA });
                             }
                         }
-                    </td>
-                        <td style="text-align:right">@Model.BillingSummary[2].rowCountDownload.ToString("#,###")</td>
-                        <td style="text-align:right">@Model.BillingSummary[2].AmountDownload.ToString("#,###")</td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <b>
-                                @{
-                                if (ViewBag.MegaOfUs != null)
-                                {
-                                    @Html.ActionLink((string)ViewBag.MegaOfUs, "DownloadFile", new { fileName = ViewBag.MegaOfUs });
-                                }
+                    </b>
+                </td>
+            </tr>
+        </table>
+        </div>
 
-                            }
-                        </b>
-                    </td>
-                        <td>
-                            @{ if (ViewBag.MegaOfUs != null)
-                                {
-                                    @Html.ActionLink("Upload", "UploadResult", new { TranCode = "megaoffus" });
-                                }
-                            }
-                        </td>
-                        <td style="text-align:right">@Model.BillingSummary[3].rowCountDownload.ToString("#,###")</td>
-                        <td style="text-align:right">@Model.BillingSummary[3].AmountDownload.ToString("#,###")</td>
-                    </tr>
-
-                    <tr>
-                        <td>@{ if (ViewBag.BNICC == null)
-                            {
-                                <input type="checkbox" asp-for="BniCC" />
-                            }
-                        } BNI</td>
-                        <td>
-                            <b>
-                                @{ if (ViewBag.BNICC != null)
-                                    {
-                                        @Html.ActionLink((string)ViewBag.BNICC, "DownloadFile", new { fileName = ViewBag.BNICC });
-                                    }
-                                }
-                            </b>
-                        </td>
-                        <td>
-                            @{ if (ViewBag.BNICC != null)
-                                {
-                                    @Html.ActionLink("Upload", "UploadResult", new { TranCode = "bnicc" });
-                                } }
-                        </td>
-                        <td style="text-align:right">@Model.BillingSummary[4].rowCountDownload.ToString("#,###")</td>
-                        <td style="text-align:right">@Model.BillingSummary[4].AmountDownload.ToString("#,###")</td>
-                    </tr>
-                </table>
-                
-                    <h4>Billing AC</h4>
-                    <table class="table table-bordered table-striped">
-                        <thead>
-                            <tr>
-                                <th style="width:250px;">Bank Collector</th>
-                                <th>File Billing</th>
-                                <th style="width:125px;">Upload Result</th>
-                                <th>Jlh Data</th>
-                                <th>Total Amount</th>
-                            </tr>
-                        </thead>
-                        <tr>
-                            <td>
-                                @{ if (ViewBag.BcaAC == null)
-                                    {
-                                        <input type="checkbox" asp-for="BcaAC" />
-                                    } } BCA Auto Collection
-                            </td>
-                            <td><b>@{ if (ViewBag.BcaAC != null)
-                                        {
-                                            @Html.ActionLink((string)ViewBag.BcaAC, "DownloadFile", new { fileName = ViewBag.BcaAC });
-                                        }
-                                    }
-                                </b>
-                            </td>
-                            <td>
-                                @{ if (ViewBag.BcaAC != null)
-                                {
-                                    @Html.ActionLink("Upload", "UploadResult", new { TranCode = "bcaac" });
-                                } }
-                        </td>
-                            <td style="text-align:right">@Model.BillingSummary[5].rowCountDownload.ToString("#,###")</td>
-                            <td style="text-align:right">@Model.BillingSummary[5].AmountDownload.ToString("#,###")</td>
-                        </tr>
-                        <tr>
-                            <td>
-                                @{ if (ViewBag.MandiriAC == null)
-                                    {
-                                        <input type="checkbox" asp-for="MandiriAC" />
-                                    } } Mandiri Auto Collection
-                            </td>
-                            <td><b>
-                                    @{ if (ViewBag.MandiriAC != null)
-                                        {
-                                            @Html.ActionLink((string)ViewBag.MandiriAC, "DownloadFile", new { fileName = ViewBag.MandiriAC });
-                                        }
-                                    }</b>
-                            </td>
-                            <td>@{ if (ViewBag.MandiriAC != null)
-                                {
-                                    @Html.ActionLink("Upload", "UploadResult", new { TranCode = "mandiriac" });
-                                } }
-                            </td>
-                            <td style="text-align:right">@Model.BillingSummary[6].rowCountDownload.ToString("#,###")</td>
-                            <td style="text-align:right">@Model.BillingSummary[6].AmountDownload.ToString("#,###")</td>
-                        </tr>
-                    </table>
-
-                <h4>Virtual Account</h4>
-                <table class="table table-bordered table-striped">
-                        <tr>
-                            <td style="width:250px;"> <input type="checkbox" asp-for="BcaRegularPremium" /> BCA Reguler Premium (VA) </td>
-                            <td><b>
-                                @{ if (ViewBag.VA != null)
-                                    {
-                                        @Html.ActionLink((string)ViewBag.VA, "DownloadFile", new { fileName = ViewBag.VA });
-                                    }
-                                }
-                            </b></td>
-                        </tr>
-                        </table>
-</div>
             <div class="panel-footer" style="margin: auto; text-align:center; padding: 10px;">
                 <input type="submit" value="Create File" class="btn btn-success" />
                 <input type="button" value="Recalculate" class="btn btn-primary" onclick="location.href='@Url.Action("Recalculate", "BillingFile")'" />
