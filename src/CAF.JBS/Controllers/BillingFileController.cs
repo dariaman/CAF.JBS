@@ -19,10 +19,11 @@ namespace CAF.JBS.Controllers
         private readonly JbsDbContext _jbsDB;
         private readonly Life21DbContext _life21;
         private readonly UserDbContext _user;
-        private readonly string DirBilling;      //folder Billing yang standby hari ini
+        private readonly string DirBilling;     //folder Billing yang standby hari ini
         private readonly string BackupFile;     //folder Backup billing hari2 sebelumnya
         private readonly string BackupResult;   //folder Backup File Result dari Bank
         private readonly string Template;       //folder template billing
+        private readonly string DirResult;      //Folder Result tmp
 
         private readonly string BCAccFile;
         private readonly string MandiriccFile;
@@ -52,6 +53,7 @@ namespace CAF.JBS.Controllers
 
             GenerateXls = filesettings.GenFileXls;
             BackupResult = filesettings.BackupResult;
+            DirResult = filesettings.Result;
 
             DirBilling = filesettings.FileBilling;
             BackupFile = filesettings.BackupBilling;
@@ -606,17 +608,35 @@ namespace CAF.JBS.Controllers
                         {
                             using (StreamWriter writer = new StreamWriter(fs))
                             {
+                                int i = 1;
                                 while (result.Read())
                                 {
-                                    writer.Write(result["a"] + ",");
-                                    writer.Write(result["b"] + ",");
-                                    writer.Write(result["c"] + ",");
-                                    writer.Write(result["d"] + ",");
-                                    writer.Write(result["e"] + ",");
-                                    writer.Write(result["f"] + ",");
-                                    writer.Write(result["g"] + ",");
-                                    writer.Write(result["h"]);
+                                    if (i == 1)
+                                    {
+                                        writer.Write(result["a"]);
+                                        writer.Write("," + result["b"]);
+                                    }
+                                    else if (i == 2)
+                                    {
+                                        writer.Write(result["a"]);
+                                        writer.Write("," + result["b"]);
+                                        writer.Write("," + result["c"]);
+                                        writer.Write("," + result["d"]);
+                                        writer.Write("," + result["e"]);
+                                    }
+                                    else
+                                    {
+                                        writer.Write(result["a"]);
+                                        writer.Write("," + result["b"]);
+                                        writer.Write("," + result["c"]);
+                                        writer.Write("," + result["d"]);
+                                        writer.Write("," + result["e"]);
+                                        writer.Write("," + result["f"]);
+                                        writer.Write("," + result["g"]);
+                                        writer.Write("," + result["h"]);
+                                    }                                    
                                     writer.WriteLine();
+                                    i++;
                                 }
                             }
                         }
@@ -821,10 +841,7 @@ namespace CAF.JBS.Controllers
             UploadBill.TranCode = TranCode;
             switch(TranCode)
             {
-                case "bcacc":
-                    UploadBill.Description = "BCA CC";
-                    layout = "UploadResultBcacc";
-                    break;
+                case "bcacc": UploadBill.Description = "BCA CC"; break;
                 case "mandiricc": UploadBill.Description = "Mandiri CC"; break;
                 case "megaonus": UploadBill.Description = "MegaOnUs CC"; break;
                 case "megaoffus": UploadBill.Description = "MegaOffUs CC"; break;
@@ -861,7 +878,9 @@ namespace CAF.JBS.Controllers
             {
                 // Proses baca result BCA CC
                 if(UploadBill.TranCode=="bcacc") ResultBCACC(UploadBill);
-                
+                // Proses baca result BNI CC
+                if (UploadBill.TranCode == "bnicc") ResultBNICC(UploadBill);
+
 
                 //ModelState.AddModelError("FileBill","Baris ke-"+ errorKode.ToString() + " gak match dengan data download");
                 return RedirectToAction("Index");
@@ -881,27 +900,27 @@ namespace CAF.JBS.Controllers
 
         private void ResultBCACC(UploadResultBillingVM UploadBill)
         {
-            var rfile = UploadBill.FileBill;
+            //var rfile = UploadBill.FileBill;
             //string xfilename = "BCACC" + Path.GetRandomFileName().Replace(".", "").Substring(0, 8) + DateTime.Now.ToString("yyyyMMdd");
-            string trancode = UploadBill.TranCode;
+            //string trancode = UploadBill.TranCode;
             string tmp, approvalCode, TranDesc,txfilename, policyNo,Period = "", CCno = "", CCexp = "", ccName = "", addr="",telp="";
             int? PolicyID=-1, BillingID=-1, recurring_seq=-1;
             int CycleDate=0;
             DateTime DueDatePre = new DateTime(2000, 1, 1), BillDate = new DateTime(2000,1,1);
             decimal BillAmount=0;
-            txfilename = Path.GetFileNameWithoutExtension(rfile.FileName);
+            txfilename = Path.GetFileNameWithoutExtension(UploadBill.FileBill.FileName);
             bool isApprove = (txfilename.Substring(txfilename.Length-1) =="A" ? true : false);
 
-            string xFileName= Path.GetFileNameWithoutExtension(rfile.FileName).ToLower() + 
+            string xFileName= Path.GetFileNameWithoutExtension(UploadBill.FileBill.FileName).ToLower() + 
                 Path.GetRandomFileName().Replace(".", "").Substring(0, 8).ToLower() + ".txt";
 
             // Simpan File yang diUpload ke File Backup
             using (var fileStream = new FileStream(BackupResult + xFileName, FileMode.Create))
             {
-                rfile.CopyToAsync(fileStream);
+                UploadBill.FileBill.CopyToAsync(fileStream);
             }
 
-            using (var reader = new StreamReader(rfile.OpenReadStream()))
+            using (var reader = new StreamReader(UploadBill.FileBill.OpenReadStream()))
             {
                 int i = 1;
                 while (reader.Peek() >= 0)
@@ -1059,11 +1078,20 @@ namespace CAF.JBS.Controllers
                                 dbTrans.Rollback();
                                 dbTrans2.Rollback();
                                 // gagal file transaction, masukkan ke log table setelah semua rollback
+                                //var LogResult = new LogErrorUploadResult
+                                //{
+                                //    TranCode = UploadBill.TranCode,
+                                //    line=i,
+                                //    FileName=xFileName,
+                                //    exceptionApp= ex.Message.Substring(0, ex.Message.Length < 255 ? ex.Message.Length : 253)
+                                //};
+                                //_jbsDB.Add(LogResult);
+                                //_jbsDB.SaveChangesAsync();
                                 cmd.CommandType = CommandType.Text;
                                 cmd.Parameters.Clear();
                                 cmd.CommandText = @"INSERT INTO `log_error_upload_result`(TranCode,line,FileName,exceptionApp)
                                             SELECT @TranCode,@line,@FileName,@exceptionApp";
-                                cmd.Parameters.Add(new MySqlParameter("@TranCode", MySqlDbType.VarChar) { Value = trancode });
+                                cmd.Parameters.Add(new MySqlParameter("@TranCode", MySqlDbType.VarChar) { Value = UploadBill.TranCode });
                                 cmd.Parameters.Add(new MySqlParameter("@line", MySqlDbType.Int32) { Value = i });
                                 cmd.Parameters.Add(new MySqlParameter("@FileName", MySqlDbType.VarChar) { Value = xFileName });
                                 cmd.Parameters.Add(new MySqlParameter("@exceptionApp", MySqlDbType.VarChar) { Value = ex.Message.Substring(0, ex.Message.Length < 255 ? ex.Message.Length : 253) });
@@ -1116,6 +1144,14 @@ namespace CAF.JBS.Controllers
             {
                 _jbsDB.Database.CloseConnection();
             }
+        }
+
+        private void ResultBNICC(UploadResultBillingVM UploadBill)
+        {
+            string xFileName = Path.GetFileNameWithoutExtension(UploadBill.FileBill.FileName).ToLower() +
+               Path.GetRandomFileName().Replace(".", "").Substring(0, 8).ToLower() + ".txt";
+
+            FileStream stream = System.IO.File.Open(DirResult + xFileName, FileMode.Open, FileAccess.Read);
         }
     }
 }

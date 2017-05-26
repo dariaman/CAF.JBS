@@ -28,6 +28,7 @@ namespace CAF.JBS.Data
             builder.Entity<PolicyVa>().ToTable("policy_va");
             builder.Entity<PolicyLastTrans>().ToTable("policy_last_trans");
             builder.Entity<BillingSummary>().ToTable("billing_download_summary");
+            //builder.Entity<LogErrorUploadResult>().ToTable("log_error_upload_result");
         }
 
         public DbSet<cctypeModel> cctypeModel { get; set; }
@@ -42,5 +43,6 @@ namespace CAF.JBS.Data
         public DbSet<PolicyVa> PolicyVa { get; set; }
         public DbSet<PolicyLastTrans> PolicyLastTrans { get; set; }
         public DbSet<BillingSummary> BillingSummary { get; set; }
+        //public DbSet<LogErrorUploadResult> LogErrorUploadResult { get; set; }
     }
 }
