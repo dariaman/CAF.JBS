@@ -578,12 +578,9 @@ namespace CAF.JBS.Controllers
                 var process = new Process();
                 process.StartInfo.FileName = GenerateXls;
                 process.StartInfo.Arguments = @" bcaac /c";
-
                 process.EnableRaisingEvents = true;
-
                 process.StartInfo.UseShellExecute = false;
                 process.StartInfo.RedirectStandardOutput = true;
-
                 process.Start();
                 process.WaitForExit();
             }
@@ -1149,16 +1146,28 @@ namespace CAF.JBS.Controllers
             string xFileName = Path.GetFileNameWithoutExtension(UploadBill.FileBill.FileName).ToLower() +
                Path.GetRandomFileName().Replace(".", "").Substring(0, 8).ToLower() + ".txt";
 
-            if (System.IO.File.Exists(DirResult + xFileName))
-            {
-                System.IO.File.Delete(DirResult + xFileName);
-                using (var fileStream = new FileStream(DirResult + xFileName, FileMode.Create))
-                {
-                    UploadBill.FileBill.CopyToAsync(fileStream);
-                }
-            }
+            if (System.IO.File.Exists(DirResult + xFileName)) System.IO.File.Delete(DirResult + xFileName);
+            using (var fileStream = new FileStream(DirResult + xFileName, FileMode.Create)) UploadBill.FileBill.CopyTo(fileStream);
 
-            //FileStream stream = System.IO.File.Open(DirResult + xFileName, FileMode.Open, FileAccess.Read);
+            try
+            {
+                foreach (Process proc in Process.GetProcessesByName("JBSGenExcel")) { proc.Kill(); }
+            }
+            catch (Exception ex) { throw ex; }
+
+            try
+            {
+                var process = new Process();
+                process.StartInfo.FileName = GenerateXls;
+                process.StartInfo.Arguments = @" resultbnicc "+DirResult + xFileName + " /c";
+                process.EnableRaisingEvents = true;
+                process.StartInfo.UseShellExecute = false;
+                process.StartInfo.RedirectStandardOutput = true;
+                process.Start();
+                process.WaitForExit();
+            }
+            catch (Exception ex) { throw ex; }
+
         }
     }
 }

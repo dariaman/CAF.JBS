@@ -291,3 +291,4 @@ src/CAF.JBS/appsettings.json
 .vs/CAF.JBS/v14/.suo
 src/CAF.JBS/GenFile/JBSGenExcel.exe
 /src/CAF.JBS/ResultBackup
+/.vs/CAF.JBS/v14/*.suo
