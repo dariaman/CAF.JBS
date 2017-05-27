@@ -900,9 +900,6 @@ namespace CAF.JBS.Controllers
 
         private void ResultBCACC(UploadResultBillingVM UploadBill)
         {
-            //var rfile = UploadBill.FileBill;
-            //string xfilename = "BCACC" + Path.GetRandomFileName().Replace(".", "").Substring(0, 8) + DateTime.Now.ToString("yyyyMMdd");
-            //string trancode = UploadBill.TranCode;
             string tmp, approvalCode, TranDesc,txfilename, policyNo,Period = "", CCno = "", CCexp = "", ccName = "", addr="",telp="";
             int? PolicyID=-1, BillingID=-1, recurring_seq=-1;
             int CycleDate=0;
@@ -985,13 +982,13 @@ namespace CAF.JBS.Controllers
                                 cmd.Parameters.Add(new MySqlParameter("@policyID", MySqlDbType.VarChar) { Value = PolicyID });
                                 cmd.Parameters.Add(new MySqlParameter("@Seq", MySqlDbType.VarChar) { Value = recurring_seq });
                                 cmd.Parameters.Add(new MySqlParameter("@IDBill", MySqlDbType.VarChar) { Value = BillingID });
-                                cmd.Parameters.Add(new MySqlParameter("@approvalCode", MySqlDbType.VarChar) { Value = approvalCode });
+                                cmd.Parameters.Add(new MySqlParameter("@approvalCode", MySqlDbType.VarChar) { Value = (isApprove) ? approvalCode : TranDesc });
                                 cmd.Parameters.Add(new MySqlParameter("@BankID", MySqlDbType.Int32) { Value = 1 }); // hardCode BCA
                                 cmd.Parameters.Add(new MySqlParameter("@ErrCode", MySqlDbType.VarChar) { Value = TranDesc });
                                 var uid = cmd.ExecuteScalar().ToString();
 
                                 if (isApprove) // jika transaksi d approve bank, ada flag approve di file
-                                {// Proses Insert Received ===========================
+                                {// ============================ Proses Insert Received ===========================
                                     cmd2.Parameters.Clear();
                                     cmd2.CommandType = CommandType.StoredProcedure;
                                     cmd2.CommandText = @"ReceiptInsert";
@@ -1004,6 +1001,7 @@ namespace CAF.JBS.Controllers
                                     cmd2.Parameters.Add(new MySqlParameter("@due_dt_pre", MySqlDbType.Date) { Value = DueDatePre });
                                     var receiptID = cmd2.ExecuteScalar().ToString();
 
+                                    // ============================ Proses Insert Pilis CC Transaction Life21 ===========================
                                     cmd2.Parameters.Clear();
                                     cmd2.CommandType = CommandType.StoredProcedure;
                                     cmd2.CommandText = @"InsertPolistrans";
@@ -1151,7 +1149,16 @@ namespace CAF.JBS.Controllers
             string xFileName = Path.GetFileNameWithoutExtension(UploadBill.FileBill.FileName).ToLower() +
                Path.GetRandomFileName().Replace(".", "").Substring(0, 8).ToLower() + ".txt";
 
-            FileStream stream = System.IO.File.Open(DirResult + xFileName, FileMode.Open, FileAccess.Read);
+            if (System.IO.File.Exists(DirResult + xFileName))
+            {
+                System.IO.File.Delete(DirResult + xFileName);
+                using (var fileStream = new FileStream(DirResult + xFileName, FileMode.Create))
+                {
+                    UploadBill.FileBill.CopyToAsync(fileStream);
+                }
+            }
+
+            //FileStream stream = System.IO.File.Open(DirResult + xFileName, FileMode.Open, FileAccess.Read);
         }
     }
 }
