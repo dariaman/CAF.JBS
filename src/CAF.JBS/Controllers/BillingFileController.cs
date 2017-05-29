@@ -413,6 +413,12 @@ namespace CAF.JBS.Controllers
 
             }
             catch (Exception ex) { throw ex; }
+
+            try
+            {
+                foreach (Process proc in Process.GetProcessesByName("JBSGenExcel")) { proc.Kill(); }
+            }
+            catch (Exception ex) { throw ex; }
         }
 
         protected void GenMegaOnUsCCFile()
@@ -583,6 +589,12 @@ namespace CAF.JBS.Controllers
                 process.StartInfo.RedirectStandardOutput = true;
                 process.Start();
                 process.WaitForExit();
+            }
+            catch (Exception ex) { throw ex; }
+
+            try
+            {
+                foreach (Process proc in Process.GetProcessesByName("JBSGenExcel")) { proc.Kill(); }
             }
             catch (Exception ex) { throw ex; }
         }
@@ -853,18 +865,27 @@ namespace CAF.JBS.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult UploadResult(string TranCode, [Bind("TranCode,FileBill")] UploadResultBillingVM UploadBill)
         {
-            string layout= "UploadResult";
             if (UploadBill.FileBill != null)
             { //validasi file manual
                 if (UploadBill.TranCode == "bcacc")
                 { //  Path.GetFileNameWithoutExtension(fullPath)
-                    layout = "UploadResultBcacc";
                     if (Path.GetExtension( UploadBill.FileBill.FileName.ToString().ToLower()) != ".txt")
-                        ModelState.AddModelError("FileBill", "ResultFile BCA CC harus .txt");
-                }else
+                        ModelState.AddModelError("FileBill", "ResultFile BCA CC harus File .txt");
+                }
+                else if (UploadBill.TranCode == "megaonus")
+                { //  Path.GetFileNameWithoutExtension(fullPath)
+                    if (UploadBill.FileBill.FileName.ToString().ToLower().Substring(UploadBill.FileBill.FileName.Length-11) != "s1.bret.xls")
+                        ModelState.AddModelError("FileBill", "ResultFile harus File *s1.bret.xls");
+                }
+                else if (UploadBill.TranCode == "megaoffus")
+                { //  Path.GetFileNameWithoutExtension(fullPath)
+                    if (UploadBill.FileBill.FileName.ToString().ToLower().Substring(UploadBill.FileBill.FileName.Length - 11) != "s2.bret.xls")
+                        ModelState.AddModelError("FileBill", "ResultFile harus File *s2.bret.xls");
+                }
+                else
                 {
                     if (Path.GetExtension(UploadBill.FileBill.FileName.ToString().ToLower()) != ".xls")
-                        ModelState.AddModelError("FileBill", "ResultFile BCA CC harus .xls");
+                        ModelState.AddModelError("FileBill", "ResultFile harus File .xls");
                 }
                 if(UploadBill.FileBill.Length <1)
                 {
@@ -875,9 +896,18 @@ namespace CAF.JBS.Controllers
             {
                 // Proses baca result BCA CC
                 if(UploadBill.TranCode=="bcacc") ResultBCACC(UploadBill);
+
+                // Proses baca result Mandiri CC
+                if (UploadBill.TranCode == "mandiricc") ResultMandiriCC(UploadBill);
+                
+                // Proses baca result MegaOnUs CC
+                if (UploadBill.TranCode == "megaonus") ResultMegaOnUsCC(UploadBill);
+
+                // Proses baca result MegaOffUs CC
+                if (UploadBill.TranCode == "megaoffus") ResultMegaOffUsCC(UploadBill);
+
                 // Proses baca result BNI CC
                 if (UploadBill.TranCode == "bnicc") ResultBNICC(UploadBill);
-
 
                 //ModelState.AddModelError("FileBill","Baris ke-"+ errorKode.ToString() + " gak match dengan data download");
                 return RedirectToAction("Index");
@@ -892,7 +922,7 @@ namespace CAF.JBS.Controllers
                 case "bcaac": UploadBill.Description = "BCA AC"; break;
                 case "mandiriac": UploadBill.Description = "Mandiri AC"; break;
             }
-            return View(layout,UploadBill);
+            return View(UploadBill);
         }
 
         private void ResultBCACC(UploadResultBillingVM UploadBill)
@@ -1141,10 +1171,10 @@ namespace CAF.JBS.Controllers
             }
         }
 
-        private void ResultBNICC(UploadResultBillingVM UploadBill)
+        private void ResultMandiriCC(UploadResultBillingVM UploadBill)
         {
             string xFileName = Path.GetFileNameWithoutExtension(UploadBill.FileBill.FileName).ToLower() +
-               Path.GetRandomFileName().Replace(".", "").Substring(0, 8).ToLower() + ".txt";
+               Path.GetRandomFileName().Replace(".", "").Substring(0, 8).ToLower() + ".xls";
 
             if (System.IO.File.Exists(DirResult + xFileName)) System.IO.File.Delete(DirResult + xFileName);
             using (var fileStream = new FileStream(DirResult + xFileName, FileMode.Create)) UploadBill.FileBill.CopyTo(fileStream);
@@ -1159,7 +1189,7 @@ namespace CAF.JBS.Controllers
             {
                 var process = new Process();
                 process.StartInfo.FileName = GenerateXls;
-                process.StartInfo.Arguments = @" resultbnicc "+DirResult + xFileName + " /c";
+                process.StartInfo.Arguments = @" resultmandiricc " + xFileName + " /c";
                 process.EnableRaisingEvents = true;
                 process.StartInfo.UseShellExecute = false;
                 process.StartInfo.RedirectStandardOutput = true;
@@ -1167,6 +1197,255 @@ namespace CAF.JBS.Controllers
                 process.WaitForExit();
             }
             catch (Exception ex) { throw ex; }
+
+            try
+            {
+                foreach (Process proc in Process.GetProcessesByName("JBSGenExcel")) { proc.Kill(); }
+            }
+            catch (Exception ex) { throw ex; }
+
+            //Backup alias pindah File Result
+            var FileBilResult = new FileInfo(DirResult + xFileName);
+            try
+            {
+                FileBilResult.MoveTo(BackupResult + FileBilResult.Name.ToString());
+            }
+            catch (Exception ex) { throw ex; }
+
+            // cek data downlod, jika sudah nol maka data billingDownload pindahkan ke Backup Billing
+            try
+            {
+                hitungUlang();
+                _jbsDB.Database.OpenConnection();
+                var cmd = _jbsDB.Database.GetDbConnection().CreateCommand();
+                cmd.CommandType = CommandType.Text;
+                cmd.CommandText = @"SELECT `rowCountDownload` FROM `billing_download_summary` WHERE id=2;";
+                var sumdata = Convert.ToInt32(cmd.ExecuteScalar().ToString());
+                if (sumdata <= 0)
+                {
+                    string[] files = Directory.GetFiles(DirBilling, "Mandiri_*.xls", SearchOption.TopDirectoryOnly);
+                    if (files.Length > 0)
+                    {
+                        var FileBil = new FileInfo(files[0]);
+                        FileBil.MoveTo(BackupFile + FileBil.Name.ToString());
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+            finally
+            {
+                _jbsDB.Database.CloseConnection();
+            }
+        }
+        private void ResultMegaOnUsCC(UploadResultBillingVM UploadBill)
+        {
+            string xFileName = Path.GetFileNameWithoutExtension(UploadBill.FileBill.FileName).ToLower() +
+               Path.GetRandomFileName().Replace(".", "").Substring(0, 8).ToLower() + ".xls";
+
+            if (System.IO.File.Exists(DirResult + xFileName)) System.IO.File.Delete(DirResult + xFileName);
+            using (var fileStream = new FileStream(DirResult + xFileName, FileMode.Create)) UploadBill.FileBill.CopyTo(fileStream);
+
+            try
+            {
+                foreach (Process proc in Process.GetProcessesByName("JBSGenExcel")) { proc.Kill(); }
+            }
+            catch (Exception ex) { throw ex; }
+
+            try
+            {
+                var process = new Process();
+                process.StartInfo.FileName = GenerateXls;
+                process.StartInfo.Arguments = @" resultmegaonuscc " + xFileName + " /c";
+                process.EnableRaisingEvents = true;
+                process.StartInfo.UseShellExecute = false;
+                process.StartInfo.RedirectStandardOutput = true;
+                process.Start();
+                process.WaitForExit();
+            }
+            catch (Exception ex) { throw ex; }
+
+            try
+            {
+                foreach (Process proc in Process.GetProcessesByName("JBSGenExcel")) { proc.Kill(); }
+            }
+            catch (Exception ex) { throw ex; }
+
+            //Backup alias pindah File Result
+            var FileBilResult = new FileInfo(DirResult + xFileName);
+            try
+            {
+                FileBilResult.MoveTo(BackupResult + FileBilResult.Name.ToString());
+            }
+            catch (Exception ex) { throw ex; }
+
+            // cek data downlod, jika sudah nol maka data billingDownload pindahkan ke Backup Billing
+            try
+            {
+                hitungUlang();
+                _jbsDB.Database.OpenConnection();
+                var cmd = _jbsDB.Database.GetDbConnection().CreateCommand();
+                cmd.CommandType = CommandType.Text;
+                cmd.CommandText = @"SELECT `rowCountDownload` FROM `billing_download_summary` WHERE id=3;";
+                var sumdata = Convert.ToInt32(cmd.ExecuteScalar().ToString());
+                if (sumdata <= 0)
+                {
+                    string[] files = Directory.GetFiles(DirBilling, "CAF*_MegaOnUs.bpmt", SearchOption.TopDirectoryOnly);
+                    if (files.Length > 0)
+                    {
+                        var FileBil = new FileInfo(files[0]);
+                        FileBil.MoveTo(BackupFile + FileBil.Name.ToString());
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+            finally
+            {
+                _jbsDB.Database.CloseConnection();
+            }
+        }
+        private void ResultMegaOffUsCC(UploadResultBillingVM UploadBill)
+        {
+            string xFileName = Path.GetFileNameWithoutExtension(UploadBill.FileBill.FileName).ToLower() +
+               Path.GetRandomFileName().Replace(".", "").Substring(0, 8).ToLower() + ".xls";
+
+            if (System.IO.File.Exists(DirResult + xFileName)) System.IO.File.Delete(DirResult + xFileName);
+            using (var fileStream = new FileStream(DirResult + xFileName, FileMode.Create)) UploadBill.FileBill.CopyTo(fileStream);
+
+            try
+            {
+                foreach (Process proc in Process.GetProcessesByName("JBSGenExcel")) { proc.Kill(); }
+            }
+            catch (Exception ex) { throw ex; }
+
+            try
+            {
+                var process = new Process();
+                process.StartInfo.FileName = GenerateXls;
+                process.StartInfo.Arguments = @" resultmegaonuscc " + xFileName + " /c";
+                process.EnableRaisingEvents = true;
+                process.StartInfo.UseShellExecute = false;
+                process.StartInfo.RedirectStandardOutput = true;
+                process.Start();
+                process.WaitForExit();
+            }
+            catch (Exception ex) { throw ex; }
+
+            try
+            {
+                foreach (Process proc in Process.GetProcessesByName("JBSGenExcel")) { proc.Kill(); }
+            }
+            catch (Exception ex) { throw ex; }
+
+            //Backup alias pindah File Result
+            var FileBilResult = new FileInfo(DirResult + xFileName);
+            try
+            {
+                FileBilResult.MoveTo(BackupResult + FileBilResult.Name.ToString());
+            }
+            catch (Exception ex) { throw ex; }
+
+            // cek data downlod, jika sudah nol maka data billingDownload pindahkan ke Backup Billing
+            try
+            {
+                hitungUlang();
+                _jbsDB.Database.OpenConnection();
+                var cmd = _jbsDB.Database.GetDbConnection().CreateCommand();
+                cmd.CommandType = CommandType.Text;
+                cmd.CommandText = @"SELECT `rowCountDownload` FROM `billing_download_summary` WHERE id=4;";
+                var sumdata = Convert.ToInt32(cmd.ExecuteScalar().ToString());
+                if (sumdata <= 0)
+                {
+                    string[] files = Directory.GetFiles(DirBilling, "CAF*_MegaOffUs.bpmt", SearchOption.TopDirectoryOnly);
+                    if (files.Length > 0)
+                    {
+                        var FileBil = new FileInfo(files[0]);
+                        FileBil.MoveTo(BackupFile + FileBil.Name.ToString());
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+            finally
+            {
+                _jbsDB.Database.CloseConnection();
+            }
+        }
+        private void ResultBNICC(UploadResultBillingVM UploadBill)
+        {
+            string xFileName = Path.GetFileNameWithoutExtension(UploadBill.FileBill.FileName).ToLower() +
+               Path.GetRandomFileName().Replace(".", "").Substring(0, 8).ToLower() + ".xls";
+
+            if (System.IO.File.Exists(DirResult + xFileName)) System.IO.File.Delete(DirResult + xFileName);
+            using (var fileStream = new FileStream(DirResult + xFileName, FileMode.Create)) UploadBill.FileBill.CopyTo(fileStream);
+
+            try
+            {
+                foreach (Process proc in Process.GetProcessesByName("JBSGenExcel")) { proc.Kill(); }
+            }
+            catch (Exception ex) { throw ex; }
+
+            try
+            {
+                var process = new Process();
+                process.StartInfo.FileName = GenerateXls;
+                process.StartInfo.Arguments = @" resultbnicc " + xFileName + " /c";
+                process.EnableRaisingEvents = true;
+                process.StartInfo.UseShellExecute = false;
+                process.StartInfo.RedirectStandardOutput = true;
+                process.Start();
+                process.WaitForExit();
+            }
+            catch (Exception ex) { throw ex; }
+
+            try
+            {
+                foreach (Process proc in Process.GetProcessesByName("JBSGenExcel")) { proc.Kill(); }
+            }
+            catch (Exception ex) { throw ex; }
+
+            //Backup File Result
+            var FileBilResult = new FileInfo(DirResult + xFileName);
+            try
+            {
+                FileBilResult.MoveTo(BackupResult + FileBilResult.Name.ToString());
+            }
+            catch (Exception ex) { throw ex; }
+
+            // cek data downlod, jika sudah nol maka data billingDownload pindahkan ke Backup Billing
+            try
+            {
+                hitungUlang();
+                _jbsDB.Database.OpenConnection();
+                var cmd = _jbsDB.Database.GetDbConnection().CreateCommand();
+                cmd.CommandType = CommandType.Text;
+                cmd.CommandText = @"SELECT `rowCountDownload` FROM `billing_download_summary` WHERE id=5;";
+                var sumdata = Convert.ToInt32(cmd.ExecuteScalar().ToString());
+                if (sumdata <= 0)
+                {
+                    string[] files = Directory.GetFiles(DirBilling, "BNI_*.xlsx", SearchOption.TopDirectoryOnly);
+                    if (files.Length > 0)
+                    {
+                        var FileBil = new FileInfo(files[0]);
+                        FileBil.MoveTo(BackupFile + FileBil.Name.ToString());
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+            finally
+            {
+                _jbsDB.Database.CloseConnection();
+            }
 
         }
     }

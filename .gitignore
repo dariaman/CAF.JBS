@@ -6,6 +6,7 @@
 *.user
 *.userosscache
 *.sln.docstates
+appsettings.json
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
@@ -240,9 +241,6 @@ ModelManifest.xml
 
 # FAKE - F# Make
 .fake/
-src/CAF.JBS/appsettings.json
-src/CAF.JBS/appsettings.json
-src/CAF.JBS/appsettings.json
 *.prn
 /src/CAF.JBS/FileBilling
 /src/CAF.JBS/BillingBackup
@@ -292,3 +290,9 @@ src/CAF.JBS/appsettings.json
 src/CAF.JBS/GenFile/JBSGenExcel.exe
 /src/CAF.JBS/ResultBackup
 /.vs/CAF.JBS/v14/*.suo
+.vs/CAF.JBS/v14/.suo
+*.config
+src/CAF.JBS/project.json
+src/CAF.JBS/project.lock.json
+src/CAF.JBS/Properties/launchSettings.json
+src/CAF.JBS/appsettings.json
