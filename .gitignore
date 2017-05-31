@@ -296,3 +296,5 @@ src/CAF.JBS/project.json
 src/CAF.JBS/project.lock.json
 src/CAF.JBS/Properties/launchSettings.json
 src/CAF.JBS/appsettings.json
+/.vs
+/src/CAF.JBS/appsettings.json
