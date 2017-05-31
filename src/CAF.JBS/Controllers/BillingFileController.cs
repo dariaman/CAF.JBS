@@ -873,7 +873,6 @@ namespace CAF.JBS.Controllers
             }
             return View(layout,UploadBill);
         }
-
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult UploadResult(string TranCode, [Bind("TranCode,FileBill")] UploadResultBillingVM UploadBill)
@@ -1990,13 +1989,36 @@ namespace CAF.JBS.Controllers
         }
         private void ResultAC(UploadResultBillingVM UploadBill)
         {
-            string tmp, approvalCode, TranDesc, txfilename, policyNo="", Period = "", ACno = "", acName = "", BillOthers = "";
+            string tmp, 
+                approvalCode, 
+                TranDesc, 
+                txfilename, 
+                policyNo="", 
+                Period = "", 
+                ACno = "", 
+                acName = "", 
+                BillOthers = "",
+                fileBillSearch="";
             int? PolicyID = -1, BillingID = -1, recurring_seq = -1;
-            int CycleDate = 0;
+            int CycleDate = 0,bankID=0,sumCode=1;
             DateTime DueDatePre = new DateTime(2000, 1, 1), BillDate = new DateTime(2000, 1, 1);
             decimal BillAmount = 0;
             txfilename = Path.GetFileNameWithoutExtension(UploadBill.FileBill.FileName);
             bool isApprove;
+
+            switch (UploadBill.TranCode)
+            {
+                case "bcaac":
+                    bankID = 1;
+                    fileBillSearch = "BCAac*.xls";
+                    sumCode = 6;
+                    break;
+                case "mandiriac":
+                    bankID = 2;
+                    fileBillSearch = "MandiriAc*.csv";
+                    sumCode = 7;
+                    break;
+            }
 
             // File Upload dalam bentuk txt
             string xFileName = Path.GetFileNameWithoutExtension(UploadBill.FileBill.FileName).ToLower() +
@@ -2056,28 +2078,57 @@ namespace CAF.JBS.Controllers
                             {
                                 cmd.Parameters.Clear();
                                 cmd.CommandType = CommandType.StoredProcedure;
-                                cmd.CommandText = @"FindPolisACGetBillSeq";
-                                cmd.Parameters.Add(new MySqlParameter("@NoPolis", MySqlDbType.VarChar) { Value = policyNo });
-                                using (var rd = cmd.ExecuteReader())
+
+                                if (policyNo != "") // jika transaksi billing Recuring
                                 {
-                                    while (rd.Read())
-                                    {
-                                        PolicyID = Convert.ToInt32(rd["policy_id"]);
-                                        BillingID = Convert.ToInt32(rd["BillingID"]);
-                                        recurring_seq = Convert.ToInt32(rd["recurring_seq"]);
-                                        BillDate = Convert.ToDateTime(rd["BillingDate"]);
-                                        DueDatePre = Convert.ToDateTime(rd["due_dt_pre"]);
-                                        BillAmount = Convert.ToDecimal(rd["TotalAmount"]);
+                                    cmd.CommandText = @"FindPolisACGetBillSeq";
+                                    cmd.Parameters.Add(new MySqlParameter("@NoPolis", MySqlDbType.VarChar) { Value = policyNo });
 
-                                        Period = rd["PeriodeBilling"].ToString();
-                                        CycleDate = Convert.ToInt32(rd["cycleDate"]);
-                                        ACno = rd["acc_no"].ToString();
-                                        acName = rd["acc_name"].ToString();
+                                    using (var rd = cmd.ExecuteReader())
+                                    {
+                                        while (rd.Read())
+                                        {
+                                            PolicyID = Convert.ToInt32(rd["policy_id"]);
+                                            BillingID = Convert.ToInt32(rd["BillingID"]);
+                                            recurring_seq = Convert.ToInt32(rd["recurring_seq"]);
+                                            BillDate = Convert.ToDateTime(rd["BillingDate"]);
+                                            DueDatePre = Convert.ToDateTime(rd["due_dt_pre"]);
+                                            BillAmount = Convert.ToDecimal(rd["TotalAmount"]);
+                                            Period = rd["PeriodeBilling"].ToString();
+                                            CycleDate = Convert.ToInt32(rd["cycleDate"]);
+                                            ACno = rd["acc_no"].ToString();
+                                            acName = rd["acc_name"].ToString();
+                                            BillOthers = "";
+                                        }
+
+                                        if (PolicyID < 1 || BillingID < 1 || recurring_seq < 1)
+                                        {
+                                            throw new Exception("Polis tidak ditemukan,mungkin billingnya tidak dalam status download atau terdapat kesalahan pada data file Upload...");
+                                        }
                                     }
+                                }
+                                else if (BillOthers != "") // jika transaksi Billing Others
+                                {
+                                    cmd.CommandText = @"FindPolisBillOthersAC";
+                                    cmd.Parameters.Add(new MySqlParameter("@BillOthersNo", MySqlDbType.VarChar) { Value = BillOthers });
 
-                                    if (PolicyID < 1 || BillingID < 1 || recurring_seq < 1)
+                                    using (var rd = cmd.ExecuteReader())
                                     {
-                                        throw new Exception("Polis tidak ditemukan,mungkin billingnya tidak dalam status download atau terdapat kesalahan pada data textfile...");
+                                        while (rd.Read())
+                                        {
+                                            PolicyID = Convert.ToInt32(rd["policy_id"]);
+                                            policyNo = rd["policy_no"].ToString();
+                                            BillOthers = rd["BillingID"].ToString();
+                                            BillDate = Convert.ToDateTime(rd["BillingDate"]);
+                                            BillAmount = Convert.ToDecimal(rd["TotalAmount"]);
+                                            ACno = rd["acc_no"].ToString();
+                                            acName = rd["acc_name"].ToString();
+                                        }
+
+                                        if (PolicyID < 1)
+                                        {
+                                            throw new Exception("BillingOthersID tidak ditemukan,mungkin billingnya tidak dalam status download atau terdapat kesalahan pada data file Upload...");
+                                        }
                                     }
                                 }
 
@@ -2088,10 +2139,10 @@ namespace CAF.JBS.Controllers
                                 cmd.Parameters.Add(new MySqlParameter("@Trancode", MySqlDbType.VarChar) { Value = UploadBill.TranCode }); // hardCode BCA AC
                                 cmd.Parameters.Add(new MySqlParameter("@IsApprove", MySqlDbType.Bit) { Value = isApprove });
                                 cmd.Parameters.Add(new MySqlParameter("@policyID", MySqlDbType.VarChar) { Value = PolicyID });
-                                cmd.Parameters.Add(new MySqlParameter("@Seq", MySqlDbType.VarChar) { Value = recurring_seq });
-                                cmd.Parameters.Add(new MySqlParameter("@IDBill", MySqlDbType.VarChar) { Value = BillingID });
+                                cmd.Parameters.Add(new MySqlParameter("@Seq", MySqlDbType.VarChar) { Value = (BillOthers == "") ? recurring_seq : 0 });
+                                cmd.Parameters.Add(new MySqlParameter("@IDBill", MySqlDbType.VarChar) { Value = (BillOthers == "") ? BillingID.ToString() : BillOthers });
                                 cmd.Parameters.Add(new MySqlParameter("@approvalCode", MySqlDbType.VarChar) { Value = approvalCode });
-                                cmd.Parameters.Add(new MySqlParameter("@BankID", MySqlDbType.Int32) { Value = 0 }); // Bukan BCA CC
+                                cmd.Parameters.Add(new MySqlParameter("@BankID", MySqlDbType.Int32) { Value = 0 }); // Bukan BCA CC (jangan pake bankID)
                                 cmd.Parameters.Add(new MySqlParameter("@ErrCode", MySqlDbType.VarChar) { Value = TranDesc });
                                 var uid = cmd.ExecuteScalar().ToString();
 
@@ -2104,9 +2155,9 @@ namespace CAF.JBS.Controllers
                                     cmd2.Parameters.Add(new MySqlParameter("@policy_id", MySqlDbType.Int32) { Value = PolicyID });
                                     cmd2.Parameters.Add(new MySqlParameter("@receipt_amount", MySqlDbType.Decimal) { Value = BillAmount });
                                     cmd2.Parameters.Add(new MySqlParameter("@Source_download", MySqlDbType.VarChar) { Value = "AC" });
-                                    cmd2.Parameters.Add(new MySqlParameter("@recurring_seq", MySqlDbType.Int32) { Value = recurring_seq });
-                                    cmd2.Parameters.Add(new MySqlParameter("@bank_acc_id", MySqlDbType.Int32) { Value = 1 });
-                                    cmd2.Parameters.Add(new MySqlParameter("@due_dt_pre", MySqlDbType.Date) { Value = DueDatePre });
+                                    cmd2.Parameters.Add(new MySqlParameter("@recurring_seq", MySqlDbType.Int32) { Value = (BillOthers == "") ? recurring_seq : 0 });
+                                    cmd2.Parameters.Add(new MySqlParameter("@bank_acc_id", MySqlDbType.Int32) { Value = bankID });
+                                    cmd2.Parameters.Add(new MySqlParameter("@due_dt_pre", MySqlDbType.Date) { Value = (BillOthers == "") ? DueDatePre : BillDate });
                                     var receiptID = cmd2.ExecuteScalar().ToString();
 
                                     // ============================ Proses Insert Pilis CC Transaction Life21 ===========================
@@ -2116,12 +2167,12 @@ namespace CAF.JBS.Controllers
                                     cmd2.Parameters.Add(new MySqlParameter("@PolisID", MySqlDbType.Int32) { Value = PolicyID });
                                     cmd2.Parameters.Add(new MySqlParameter("@Transdate", MySqlDbType.Date) { Value = BillDate });
                                     cmd2.Parameters.Add(new MySqlParameter("@TransType", MySqlDbType.VarChar) { Value = "R" });
-                                    cmd2.Parameters.Add(new MySqlParameter("@Seq", MySqlDbType.Int32) { Value = recurring_seq });
+                                    cmd2.Parameters.Add(new MySqlParameter("@Seq", MySqlDbType.Int32) { Value = (BillOthers == "") ? recurring_seq : 0 });
                                     cmd2.Parameters.Add(new MySqlParameter("@Amount", MySqlDbType.Decimal) { Value = BillAmount });
-                                    cmd2.Parameters.Add(new MySqlParameter("@DueDatePre", MySqlDbType.Date) { Value = DueDatePre });
+                                    cmd2.Parameters.Add(new MySqlParameter("@DueDatePre", MySqlDbType.Date) { Value = (BillOthers == "") ? DueDatePre : BillDate });
                                     cmd2.Parameters.Add(new MySqlParameter("@Period", MySqlDbType.VarChar) { Value = Period });
-                                    cmd2.Parameters.Add(new MySqlParameter("@CycleDate", MySqlDbType.Int32) { Value = CycleDate });
-                                    cmd2.Parameters.Add(new MySqlParameter("@BankID", MySqlDbType.Int32) { Value = 2 });
+                                    cmd2.Parameters.Add(new MySqlParameter("@CycleDate", MySqlDbType.Int32) { Value = (BillOthers == "") ? CycleDate : 0 });
+                                    cmd2.Parameters.Add(new MySqlParameter("@BankID", MySqlDbType.Int32) { Value = bankID });
                                     cmd2.Parameters.Add(new MySqlParameter("@ACno", MySqlDbType.VarChar) { Value = ACno });
                                     cmd2.Parameters.Add(new MySqlParameter("@ACName", MySqlDbType.VarChar) { Value = acName });
                                     cmd2.Parameters.Add(new MySqlParameter("@receiptID", MySqlDbType.Int32) { Value = receiptID });
@@ -2130,7 +2181,9 @@ namespace CAF.JBS.Controllers
                                     // Update table billing
                                     cmd.Parameters.Clear();
                                     cmd.CommandType = CommandType.Text;
-                                    cmd.CommandText = @"UPDATE `billing` SET `IsDownload`=0,
+                                    if (BillOthers == "")
+                                    {
+                                        cmd.CommandText = @"UPDATE `billing` SET `IsDownload`=0,
 			                                                `IsClosed`=1,
 			                                                `status_billing`='P',
 			                                                `status_billing_dateUpdate`=@tgl,
@@ -2139,18 +2192,34 @@ namespace CAF.JBS.Controllers
 			                                                `ReceiptID`=@receiptID,
 			                                                `PaymentTransactionID`=@uid
 		                                                WHERE `BillingID`=@idBill;";
+                                        cmd.Parameters.Add(new MySqlParameter("@idBill", MySqlDbType.Int32) { Value = BillingID });
+                                    }
+                                    else
+                                    {
+                                        cmd.CommandText = @"UPDATE `billing_others` SET `IsDownload`=0,
+			                                                `IsClosed`=1,
+			                                                `status_billing`='P',
+			                                                `status_billing_dateUpdate`=@tgl,
+			                                                `paid_date`=@billDate,
+                                                            Life21TranID=@TransactionID,
+			                                                `ReceiptID`=@receiptID,
+			                                                `PaymentTransactionID`=@uid
+		                                                WHERE `BillingID`=@idBill;";
+                                        cmd.Parameters.Add(new MySqlParameter("@idBill", MySqlDbType.VarChar) { Value = BillOthers });
+                                    }
                                     cmd.Parameters.Add(new MySqlParameter("@tgl", MySqlDbType.DateTime) { Value = DateTime.Now });
                                     cmd.Parameters.Add(new MySqlParameter("@billDate", MySqlDbType.DateTime) { Value = BillDate });
                                     cmd.Parameters.Add(new MySqlParameter("@TransactionID", MySqlDbType.Int32) { Value = CCTransID });
                                     cmd.Parameters.Add(new MySqlParameter("@receiptID", MySqlDbType.Int32) { Value = receiptID });
                                     cmd.Parameters.Add(new MySqlParameter("@uid", MySqlDbType.VarChar) { Value = uid });
-                                    cmd.Parameters.Add(new MySqlParameter("@idBill", MySqlDbType.Int32) { Value = BillingID });
                                     cmd.ExecuteNonQuery();
 
                                     // Update Polis Last Transaction
-                                    cmd.Parameters.Clear();
-                                    cmd.CommandType = CommandType.Text;
-                                    cmd.CommandText = @"UPDATE `policy_last_trans` AS pt
+                                    if (BillOthers == "") // Hanya untuk billing recurring
+                                    {
+                                        cmd.Parameters.Clear();
+                                        cmd.CommandType = CommandType.Text;
+                                        cmd.CommandText = @"UPDATE `policy_last_trans` AS pt
 		                                                INNER JOIN `billing` AS bx ON bx.policy_id=pt.policy_Id
 			                                                SET pt.BillingID=bx.BillingID,
 			                                                pt.recurring_seq=bx.recurring_seq,
@@ -2160,17 +2229,25 @@ namespace CAF.JBS.Controllers
 			                                                pt.receipt_date=bx.BillingDate,
 			                                                pt.bank_id=bx.BankIdDownload
 		                                                WHERE pt.policy_Id=@policyID AND bx.BillingID=@idBill;";
-                                    cmd.Parameters.Add(new MySqlParameter("@policyID", MySqlDbType.Int32) { Value = PolicyID });
-                                    cmd.Parameters.Add(new MySqlParameter("@idBill", MySqlDbType.Int32) { Value = BillingID });
-                                    cmd.ExecuteNonQuery();
-
+                                        cmd.Parameters.Add(new MySqlParameter("@policyID", MySqlDbType.Int32) { Value = PolicyID });
+                                        cmd.Parameters.Add(new MySqlParameter("@idBill", MySqlDbType.Int32) { Value = BillingID });
+                                        cmd.ExecuteNonQuery();
+                                    }
                                 }
                                 else // jika transaksi d reject bank
                                 {//billing hanya ganti flag download, kolom lain tetap sbg status terakhir
                                     cmd.CommandType = CommandType.Text;
                                     cmd.Parameters.Clear();
-                                    cmd.CommandText = @"UPDATE `billing` SET IsDownload=0 WHERE `BillingID`=@billid";
-                                    cmd.Parameters.Add(new MySqlParameter("@billid", MySqlDbType.Int32) { Value = BillingID });
+                                    if (BillOthers == "")
+                                    {// Transaksi Billing Rucurring
+                                        cmd.CommandText = @"UPDATE `billing` SET IsDownload=0 WHERE `BillingID`=@billid";
+                                        cmd.Parameters.Add(new MySqlParameter("@billid", MySqlDbType.Int32) { Value = BillingID });
+                                    }
+                                    else
+                                    {// transaksi Billing Others
+                                        cmd.CommandText = @"UPDATE `billing_others` SET IsDownload=0 WHERE `BillingID`=@billid";
+                                        cmd.Parameters.Add(new MySqlParameter("@billid", MySqlDbType.VarChar) { Value = BillOthers });
+                                    }
                                     cmd.ExecuteNonQuery();
                                 }
 
@@ -2218,12 +2295,15 @@ namespace CAF.JBS.Controllers
                 _jbsDB.Database.OpenConnection();
                 var cmd = _jbsDB.Database.GetDbConnection().CreateCommand();
                 cmd.CommandType = CommandType.Text;
-                cmd.CommandText = @"SELECT `rowCountDownload` FROM `billing_download_summary` WHERE id=7;";
+                cmd.CommandText = @"SELECT `rowCountDownload` FROM `billing_download_summary` WHERE id=@id;";
+                cmd.Parameters.Add(new MySqlParameter("@id", MySqlDbType.Int32) { Value = sumCode });
                 var sumdata = Convert.ToInt32(cmd.ExecuteScalar().ToString());
+
                 if (sumdata <= 0)
                 {
+                    // Jika data download sudah semua dpt result, pindahkan file billing ke folder backup
                     string[] files;
-                    files = Directory.GetFiles(DirBilling, "MandiriAc*.csv", SearchOption.TopDirectoryOnly);
+                    files = Directory.GetFiles(DirBilling, fileBillSearch, SearchOption.TopDirectoryOnly);
                     if (files.Length > 0)
                     {
                         var FileBil = new FileInfo(files[0]);
