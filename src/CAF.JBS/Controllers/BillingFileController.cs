@@ -949,9 +949,16 @@ namespace CAF.JBS.Controllers
 
         private void ResultBCACC(UploadResultBillingVM UploadBill)
         {
-            string tmp, approvalCode, TranDesc,txfilename, policyNo="",Period = "", CCno = "", CCexp = "", ccName = "", addr="",telp="",BillOthers="";
-            int? PolicyID=-1, BillingID=-1, recurring_seq=-1;
-            int CycleDate=0;
+            string tmp, approvalCode, TranDesc,txfilename, 
+                policyNo="",
+                Period = "", 
+                CCno = "", 
+                CCexp = "", 
+                ccName = "", 
+                addr="",
+                telp="",
+                BillOthers="";
+            int PolicyID=-1, BillingID=-1, recurring_seq=-1, Life21TranID = -1,CycleDate=0;
             DateTime DueDatePre = new DateTime(2000, 1, 1), BillDate = new DateTime(2000,1,1);
             decimal BillAmount=0;
             txfilename = Path.GetFileNameWithoutExtension(UploadBill.FileBill.FileName);
@@ -1018,6 +1025,7 @@ namespace CAF.JBS.Controllers
                                             ccName = rd["cc_name"].ToString();
                                             addr = rd["cc_address"].ToString();
                                             telp = rd["cc_telephone"].ToString();
+                                            Life21TranID = rd["Life21TranID"].Equals(DBNull.Value) ? 0 : Convert.ToInt32(rd["Life21TranID"]);
                                             BillOthers = "";
                                         }
 
@@ -1029,7 +1037,7 @@ namespace CAF.JBS.Controllers
                                 }
                                 else if (BillOthers != "") // jika transaksi Billing Others
                                 {
-                                    cmd.CommandText = @"FindPolisBillOthers";
+                                    cmd.CommandText = @"FindPolisBillOthersCC";
                                     cmd.Parameters.Add(new MySqlParameter("@BillOthersNo", MySqlDbType.VarChar) { Value = BillOthers });
 
                                     using (var rd = cmd.ExecuteReader())
@@ -1047,6 +1055,7 @@ namespace CAF.JBS.Controllers
                                             ccName = rd["cc_name"].ToString();
                                             addr = rd["cc_address"].ToString();
                                             telp = rd["cc_telephone"].ToString();
+                                            Life21TranID = rd["Life21TranID"].Equals(DBNull.Value) ? 0 : Convert.ToInt32(rd["Life21TranID"]);
                                         }
 
                                         if (PolicyID < 1 )
@@ -1085,24 +1094,46 @@ namespace CAF.JBS.Controllers
                                     var receiptID = cmd2.ExecuteScalar().ToString();
 
                                     // ============================ Proses Insert Pilis CC Transaction Life21 ===========================
-                                    cmd2.Parameters.Clear();
-                                    cmd2.CommandType = CommandType.StoredProcedure;
-                                    cmd2.CommandText = @"InsertPolistransCC";
-                                    cmd2.Parameters.Add(new MySqlParameter("@PolisID", MySqlDbType.Int32) { Value = PolicyID });
-                                    cmd2.Parameters.Add(new MySqlParameter("@Transdate", MySqlDbType.Date) { Value = BillDate });
-                                    cmd2.Parameters.Add(new MySqlParameter("@Seq", MySqlDbType.Int32) { Value = (BillOthers == "") ? recurring_seq : 0 });
-                                    cmd2.Parameters.Add(new MySqlParameter("@Amount", MySqlDbType.Decimal) { Value = BillAmount });
-                                    cmd2.Parameters.Add(new MySqlParameter("@DueDatePre", MySqlDbType.Date) { Value = (BillOthers == "") ? DueDatePre : BillDate });
-                                    cmd2.Parameters.Add(new MySqlParameter("@Period", MySqlDbType.VarChar) { Value = Period });
-                                    cmd2.Parameters.Add(new MySqlParameter("@CycleDate", MySqlDbType.Int32) { Value = (BillOthers == "") ? CycleDate : 0});
-                                    cmd2.Parameters.Add(new MySqlParameter("@BankID", MySqlDbType.Int32) { Value = 1 });
-                                    cmd2.Parameters.Add(new MySqlParameter("@CCno", MySqlDbType.VarChar) { Value = CCno });
-                                    cmd2.Parameters.Add(new MySqlParameter("@CCExpiry", MySqlDbType.VarChar) { Value = CCexp});
-                                    cmd2.Parameters.Add(new MySqlParameter("@CCName", MySqlDbType.VarChar) { Value = ccName});
-                                    cmd2.Parameters.Add(new MySqlParameter("@CCAddrs", MySqlDbType.VarChar) { Value = addr});
-                                    cmd2.Parameters.Add(new MySqlParameter("@CCtelp", MySqlDbType.VarChar) { Value = telp});
-                                    cmd2.Parameters.Add(new MySqlParameter("@receiptID", MySqlDbType.Int32) { Value = receiptID });
-                                    var CCTransID = cmd2.ExecuteScalar().ToString();
+                                    if (Life21TranID < 1)
+                                    {
+                                        cmd2.Parameters.Clear();
+                                        cmd2.CommandType = CommandType.StoredProcedure;
+                                        cmd2.CommandText = @"InsertPolistransCC";
+                                        cmd2.Parameters.Add(new MySqlParameter("@PolisID", MySqlDbType.Int32) { Value = PolicyID });
+                                        cmd2.Parameters.Add(new MySqlParameter("@Transdate", MySqlDbType.Date) { Value = BillDate });
+                                        cmd2.Parameters.Add(new MySqlParameter("@Seq", MySqlDbType.Int32) { Value = (BillOthers == "") ? recurring_seq : 0 });
+                                        cmd2.Parameters.Add(new MySqlParameter("@Amount", MySqlDbType.Decimal) { Value = BillAmount });
+                                        cmd2.Parameters.Add(new MySqlParameter("@DueDatePre", MySqlDbType.Date) { Value = (BillOthers == "") ? DueDatePre : BillDate });
+                                        cmd2.Parameters.Add(new MySqlParameter("@Period", MySqlDbType.VarChar) { Value = Period });
+                                        cmd2.Parameters.Add(new MySqlParameter("@CycleDate", MySqlDbType.Int32) { Value = (BillOthers == "") ? CycleDate : 0 });
+                                        cmd2.Parameters.Add(new MySqlParameter("@BankID", MySqlDbType.Int32) { Value = 1 });
+                                        cmd2.Parameters.Add(new MySqlParameter("@CCno", MySqlDbType.VarChar) { Value = CCno });
+                                        cmd2.Parameters.Add(new MySqlParameter("@CCExpiry", MySqlDbType.VarChar) { Value = CCexp });
+                                        cmd2.Parameters.Add(new MySqlParameter("@CCName", MySqlDbType.VarChar) { Value = ccName });
+                                        cmd2.Parameters.Add(new MySqlParameter("@CCAddrs", MySqlDbType.VarChar) { Value = addr });
+                                        cmd2.Parameters.Add(new MySqlParameter("@CCtelp", MySqlDbType.VarChar) { Value = telp });
+                                        cmd2.Parameters.Add(new MySqlParameter("@receiptID", MySqlDbType.Int32) { Value = receiptID });
+                                        Life21TranID =Convert.ToInt32(cmd2.ExecuteScalar());
+                                    }
+                                    else
+                                    {
+                                        cmd2.Parameters.Clear();
+                                        cmd2.CommandType = CommandType.Text;
+                                        cmd2.CommandText = @"UPDATE policy_cc_transaction,
+                                                                status_id=2,
+	                                                            SET result_status=@rstStatus,
+	                                                            Remark=@remark,
+	                                                            receipt_id=@receiptID,
+	                                                            update_dt=@tgl
+                                                                WHERE `policy_cc_tran_id`=@id";
+                                        cmd2.Parameters.Add(new MySqlParameter("@rstStatus", MySqlDbType.VarChar) { Value = approvalCode });
+                                        cmd2.Parameters.Add(new MySqlParameter("@remark", MySqlDbType.VarChar) { Value = TranDesc });
+                                        cmd2.Parameters.Add(new MySqlParameter("@receiptID", MySqlDbType.Int32) { Value = receiptID });
+                                        cmd2.Parameters.Add(new MySqlParameter("@tgl", MySqlDbType.Date) { Value = DateTime.Now });
+                                        cmd2.Parameters.Add(new MySqlParameter("@id", MySqlDbType.Int32) { Value = Life21TranID });
+                                        cmd.ExecuteNonQuery();
+                                    }
+                                        
 
                                     // Update table billing
                                     cmd.Parameters.Clear();
@@ -1136,7 +1167,7 @@ namespace CAF.JBS.Controllers
                                     
                                     cmd.Parameters.Add(new MySqlParameter("@tgl", MySqlDbType.DateTime) { Value = DateTime.Now });
                                     cmd.Parameters.Add(new MySqlParameter("@billDate", MySqlDbType.DateTime) { Value = BillDate });
-                                    cmd.Parameters.Add(new MySqlParameter("@TransactionID", MySqlDbType.Int32) { Value = CCTransID });
+                                    cmd.Parameters.Add(new MySqlParameter("@TransactionID", MySqlDbType.Int32) { Value = Life21TranID });
                                     cmd.Parameters.Add(new MySqlParameter("@receiptID", MySqlDbType.Int32) { Value = receiptID });
                                     cmd.Parameters.Add(new MySqlParameter("@uid", MySqlDbType.VarChar) { Value = uid });                                    
                                     cmd.ExecuteNonQuery();
@@ -2186,6 +2217,7 @@ namespace CAF.JBS.Controllers
                                         cmd2.Parameters.Clear();
                                         cmd2.CommandType = CommandType.Text;
                                         cmd2.CommandText = @"UPDATE policy_ac_transaction
+                                                                status_id=2,
 	                                                            SET result_status=@rstStatus,
 	                                                            Remark=@remark,
 	                                                            receipt_id=@receiptID,
