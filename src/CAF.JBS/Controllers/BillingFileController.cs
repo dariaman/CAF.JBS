@@ -200,13 +200,13 @@ namespace CAF.JBS.Controllers
                 }
                 else if (dw.BcaCC && dw.MandiriCC && !(dw.MegaCC || dw.BniCC))
                 {   // jika dipilih BCA dan Mandiri
-                    GenBcaCCFile(2); // BCA 1 3 4 (<> 2)
                     GenMandiriCCFile(); // Mandiri 2
+                    GenBcaCCFile(2); // BCA 1 3 4 (<> 2)
                 }
                 else if (dw.BcaCC && dw.MegaCC && !(dw.MandiriCC || dw.BniCC))
                 {   // jika dipilih BCA dan Mega
-                    GenBcaCCFile(1); // BCA 1 
                     GenMegaOnUsCCFile(); // MegaOn 3
+                    GenBcaCCFile(1); // BCA 1 
                     GenMegaOffUsCCFile(1); // MegaOff 2 4 (<> 1 3)
                 }
                 else if (dw.MandiriCC && dw.MegaCC && !(dw.BcaCC || dw.BniCC))
@@ -227,15 +227,15 @@ namespace CAF.JBS.Controllers
                 }
                 else if (dw.BcaCC && dw.MandiriCC && dw.MegaCC && !dw.BniCC)
                 {   // jika dipilih BCA,Mandiri dan Mega
-                    GenBcaCCFile(1); // BCA 1
                     GenMandiriCCFile(); // Mandiri 2
                     GenMegaOnUsCCFile(); // MegaOn 3
+                    GenBcaCCFile(1); // BCA 1
                     GenMegaOffUsCCFile(2); // MegaOff 4 (<> 1,2,3)
                 }
                 else if (dw.BcaCC && dw.MandiriCC && dw.BniCC && !dw.MegaCC)
                 {   // jika dipilih BCA,Mandiri dan BNI
-                    GenBcaCCFile(1); // BCA 1
                     GenMandiriCCFile(); // Mandiri 2
+                    GenBcaCCFile(1); // BCA 1                    
                     GenBniCCFile(3); //BNI 3 4 (<> 1,2)
                 }
             }
@@ -721,6 +721,17 @@ namespace CAF.JBS.Controllers
                                         b.IsClosed=0,
                                         b.status_billing='A',
                                         b.paid_date=null,
+                                        b.ReceiptOtherID=null,
+                                        b.PaymentTransactionID=null,
+                                        b.`BillingDate`= null,
+                                        b.Source_download=null; ";
+                cmd.ExecuteNonQuery();
+                cmd.CommandText = @"UPDATE `quote_billing` as b 
+                                        SET b.`IsDownload`=0,
+                                        b.`BankIdDownload`=null,
+                                        b.IsClosed=0,
+                                        b.status='A',
+                                        b.paid_dt=null,
                                         b.ReceiptID=null,
                                         b.PaymentTransactionID=null,
                                         b.`BillingDate`= null,
@@ -855,7 +866,7 @@ namespace CAF.JBS.Controllers
         }
 
         [HttpGet]
-        public ActionResult UploadResult( string TranCode)
+        public ActionResult UploadResult(string TranCode)
         {
             string layout = "UploadResult";
             UploadResultBillingVM UploadBill = new UploadResultBillingVM();
