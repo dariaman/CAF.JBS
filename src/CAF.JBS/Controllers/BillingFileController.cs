@@ -342,6 +342,7 @@ namespace CAF.JBS.Controllers
             return File(new FileStream(DirBilling + fileName, FileMode.Open),"application/octet-stream"); 
         }
 
+        #region GenerateFileCC
         protected void GenBcaCCFile(int id)
         {
             FileInfo FileName = new FileInfo(this.BCAccFile);
@@ -392,7 +393,6 @@ namespace CAF.JBS.Controllers
                 }
             }
         }
-
         protected void GenMandiriCCFile()
         {
             foreach (Process proc in Process.GetProcessesByName("JBSGenExcel")) { proc.Kill(); }
@@ -420,7 +420,6 @@ namespace CAF.JBS.Controllers
             }
             catch (Exception ex) { throw ex; }
         }
-
         protected void GenMegaOnUsCCFile()
         {
             FileInfo FileName = new FileInfo(this.MegaOnUsccFile);
@@ -467,7 +466,6 @@ namespace CAF.JBS.Controllers
             }
 
         }
-
         protected void GenMegaOffUsCCFile(int id)
         {
             FileInfo FileName = new FileInfo( this.MegaOfUsccFile);
@@ -514,7 +512,6 @@ namespace CAF.JBS.Controllers
                 }
             }
         }
-
         protected void GenBniCCFile(int id)
         {
             FileInfo FileName = new FileInfo(this.BNIccFile);
@@ -570,7 +567,9 @@ namespace CAF.JBS.Controllers
                 }
             }
         }
+        #endregion
 
+        #region GenerateFileAC
         protected void GenBcaAcFile()
         {
             try
@@ -598,7 +597,6 @@ namespace CAF.JBS.Controllers
             }
             catch (Exception ex) { throw ex; }
         }
-
         protected void GenMandiriAcFile()
         {
             FileInfo FileName = new FileInfo(this.MandiriAcFile);
@@ -662,6 +660,7 @@ namespace CAF.JBS.Controllers
                 }
             }
         }
+        #endregion
 
         protected void GenVA()
         {
@@ -757,7 +756,6 @@ namespace CAF.JBS.Controllers
 
             return RedirectToAction("Index");
         }
-
         public ActionResult Recalculate()
         {
             hitungUlang();
@@ -958,6 +956,7 @@ namespace CAF.JBS.Controllers
             return View(UploadBill);
         }
 
+        #region UploadFileResult
         private void ResultBCACC(UploadResultBillingVM UploadBill)
         {
             string tmp, approvalCode, TranDesc,txfilename, 
@@ -2385,5 +2384,6 @@ namespace CAF.JBS.Controllers
                 _jbsDB.Database.CloseConnection();
             }
         }
+        #endregion
     }
 }
