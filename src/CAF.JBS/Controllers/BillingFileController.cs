@@ -41,7 +41,7 @@ namespace CAF.JBS.Controllers
 
         private readonly string GenerateXls;
 
-        private FileSettings filesettings { get; set; }
+        private FileSettings filesettings;
         //private IConfigurationRoot Configuration { get; set; }
 
         public BillingFileController(JbsDbContext context1, Life21DbContext context2, UserDbContext context3)
@@ -342,7 +342,7 @@ namespace CAF.JBS.Controllers
             return File(new FileStream(DirBilling + fileName, FileMode.Open),"application/octet-stream"); 
         }
 
-        #region GenerateFileCC
+        #region GenerateFileDownloadCC
         protected void GenBcaCCFile(int id)
         {
             FileInfo FileName = new FileInfo(this.BCAccFile);
@@ -569,7 +569,7 @@ namespace CAF.JBS.Controllers
         }
         #endregion
 
-        #region GenerateFileAC
+        #region GenerateFileDownloadAC
         protected void GenBcaAcFile()
         {
             try
