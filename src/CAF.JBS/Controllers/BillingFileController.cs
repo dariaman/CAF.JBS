@@ -878,6 +878,8 @@ namespace CAF.JBS.Controllers
                 case "bnicc": UploadBill.Description = "BNI CC"; break;
                 case "bcaac": UploadBill.Description = "BCA AC"; break;
                 case "mandiriac": UploadBill.Description = "Mandiri AC"; break;
+                case "varealtime": UploadBill.Description = "Virtual Account Realtime Transaction"; break;
+                case "vadaily": UploadBill.Description = "Virtual Account Daily Transaction"; break;
             }
             return View(layout,UploadBill);
         }
@@ -902,7 +904,8 @@ namespace CAF.JBS.Controllers
                     if (UploadBill.FileBill.FileName.ToString().ToLower().Substring(UploadBill.FileBill.FileName.Length - 11) != "s2.bret.xls")
                         ModelState.AddModelError("FileBill", "ResultFile harus File *s2.bret.xls");
                 }
-                else if (UploadBill.TranCode == "bcaac" || UploadBill.TranCode == "mandiriac")
+                else if (UploadBill.TranCode == "bcaac" || UploadBill.TranCode == "mandiriac" || 
+                    UploadBill.TranCode == "varealtime" || UploadBill.TranCode == "vadaily")
                 {
                     if (Path.GetExtension(UploadBill.FileBill.FileName.ToString().ToLower()) != ".txt")
                         ModelState.AddModelError("FileBill", "ResultFile harus File .txt");
