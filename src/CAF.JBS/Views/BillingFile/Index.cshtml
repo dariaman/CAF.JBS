@@ -3,8 +3,6 @@
 @{
     ViewData["Title"] = "Index";
     Layout = "~/Views/Shared/_Layout.cshtml";
-
-
 }
 
 <script>
@@ -88,8 +86,8 @@
                         @Html.ActionLink("Upload", "UploadResult", new { TranCode = "bcacc" });
                     } }
             </td>
-            <td style="text-align:right">@Model.BillingSummary[0].rowCountDownload.ToString("#,###")</td>
-            <td style="text-align:right">@Model.BillingSummary[0].AmountDownload.ToString("#,###")</td>
+            <td style="text-align:right">@Model.BillingSummary[0].rowCountDownload.Value.ToString("#,###")</td>
+            <td style="text-align:right">@Model.BillingSummary[0].AmountDownload.Value.ToString("#,###")</td>
         </tr>
 
         <tr>
@@ -113,8 +111,8 @@
                 @Html.ActionLink("Upload", "UploadResult", new { TranCode = "mandiricc" });
             } }
         </td>
-        <td style="text-align:right">@Model.BillingSummary[1].rowCountDownload.ToString("#,###")</td>
-        <td style="text-align:right">@Model.BillingSummary[1].AmountDownload.ToString("#,###")</td>
+        <td style="text-align:right">@Model.BillingSummary[1].rowCountDownload.Value.ToString("#,###")</td>
+        <td style="text-align:right">@Model.BillingSummary[1].AmountDownload.Value.ToString("#,###")</td>
         </tr>
 
         <tr>
@@ -140,8 +138,8 @@
                 }
             }
         </td>
-        <td style="text-align:right">@Model.BillingSummary[2].rowCountDownload.ToString("#,###")</td>
-        <td style="text-align:right">@Model.BillingSummary[2].AmountDownload.ToString("#,###")</td>
+        <td style="text-align:right">@Model.BillingSummary[2].rowCountDownload.Value.ToString("#,###")</td>
+        <td style="text-align:right">@Model.BillingSummary[2].AmountDownload.Value.ToString("#,###")</td>
         </tr>
         <tr>
             <td>
@@ -162,8 +160,8 @@
                     }
                 }
             </td>
-            <td style="text-align:right">@Model.BillingSummary[3].rowCountDownload.ToString("#,###")</td>
-            <td style="text-align:right">@Model.BillingSummary[3].AmountDownload.ToString("#,###")</td>
+            <td style="text-align:right">@Model.BillingSummary[3].rowCountDownload.Value.ToString("#,###")</td>
+            <td style="text-align:right">@Model.BillingSummary[3].AmountDownload.Value.ToString("#,###")</td>
         </tr>
 
         <tr>
@@ -189,8 +187,8 @@
                     @Html.ActionLink("Upload", "UploadResult", new { TranCode = "bnicc" });
                 } }
         </td>
-        <td style="text-align:right">@Model.BillingSummary[4].rowCountDownload.ToString("#,###")</td>
-        <td style="text-align:right">@Model.BillingSummary[4].AmountDownload.ToString("#,###")</td>
+        <td style="text-align:right">@Model.BillingSummary[4].rowCountDownload.Value.ToString("#,###")</td>
+        <td style="text-align:right">@Model.BillingSummary[4].AmountDownload.Value.ToString("#,###")</td>
         </tr>
         </table>
 
@@ -227,8 +225,8 @@
                         @Html.ActionLink("Upload", "UploadResult", new { TranCode = "bcaac" });
                     } }
             </td>
-            <td style="text-align:right">@Model.BillingSummary[5].rowCountDownload.ToString("#,###")</td>
-            <td style="text-align:right">@Model.BillingSummary[5].AmountDownload.ToString("#,###")</td>
+            <td style="text-align:right">@Model.BillingSummary[5].rowCountDownload.Value.ToString("#,###")</td>
+            <td style="text-align:right">@Model.BillingSummary[5].AmountDownload.Value.ToString("#,###")</td>
         </tr>
         <tr>
             <td>
@@ -252,8 +250,8 @@
                     @Html.ActionLink("Upload", "UploadResult", new { TranCode = "mandiriac" });
                 } }
         </td>
-        <td style="text-align:right">@Model.BillingSummary[6].rowCountDownload.ToString("#,###")</td>
-        <td style="text-align:right">@Model.BillingSummary[6].AmountDownload.ToString("#,###")</td>
+        <td style="text-align:right">@Model.BillingSummary[6].rowCountDownload.Value.ToString("#,###")</td>
+        <td style="text-align:right">@Model.BillingSummary[6].AmountDownload.Value.ToString("#,###")</td>
         </tr>
         </table>
 

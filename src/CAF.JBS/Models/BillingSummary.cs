@@ -14,8 +14,8 @@ namespace CAF.JBS.Models
         public int BankIDSource { get; set; }
         public string SourceDownload { get; set; }
         public string Judul { get; set; }
-        public Decimal AmountDownload { get; set; }
-        public Decimal rowCountDownload { get; set; }
+        public Decimal? AmountDownload { get; set; }
+        public int? rowCountDownload { get; set; }
         public string Description { get; set; }
     }
 }
