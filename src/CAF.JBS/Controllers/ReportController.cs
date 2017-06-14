@@ -11,6 +11,7 @@ using CAF.JBS.ViewModels;
 using OfficeOpenXml;
 using System.IO;
 using System.Data;
+using MySql.Data.MySqlClient;
 
 namespace CAF.JBS.Controllers
 {
@@ -60,7 +61,7 @@ namespace CAF.JBS.Controllers
         [ValidateAntiForgeryToken]
         public FileResult DailyReconcile(ReportViewModel rpt)
         {
-            return BillingReconcile();
+            return BillingReconcile(rpt.tgl);
             //return RedirectToAction("Index");
         }
 
@@ -68,12 +69,12 @@ namespace CAF.JBS.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult MonthlyBilling(ReportViewModel rpt)
         {
-            return MonthlyBilling();
+            return MonthlyBilling(rpt.thn+rpt.bln);
             //var fileName = "MonthlyBilling" + DateTime.Now.ToString("yyyyMMdd") + ".xlsx";
             //return RedirectToAction("Index");
         }
 
-        public FileStreamResult BillingReconcile()
+        public FileStreamResult BillingReconcile(DateTime tgl)
         {
             // kosongkan folder tmp
             var files = Directory.GetFiles(tempFile);
@@ -89,7 +90,7 @@ namespace CAF.JBS.Controllers
             var cmd = _jbsDB.Database.GetDbConnection().CreateCommand();
             cmd.CommandType = CommandType.StoredProcedure;
             cmd.CommandText = "DailyReconcile_sp ";
-            //cmd.Parameters.Add(new MySqlParameter("@BankCode", MySqlDbType.Int16) { Value = id });
+            cmd.Parameters.Add(new MySqlParameter("@tgl", MySqlDbType.VarChar) { Value = tgl.ToString("yyyyMMdd") });
 
             using (ExcelPackage package = new ExcelPackage(new FileInfo(fullePath)))
             {
@@ -125,24 +126,24 @@ namespace CAF.JBS.Controllers
                         var i = 2;
                         while (result.Read())
                         {
-                            sheet.Cells[i, 1].Value = result["Policy No"];
-                            sheet.Cells[i, 2].Value = result["BillingID"];
-                            sheet.Cells[i, 3].Value = result["Recurring seq"];
-                            sheet.Cells[i, 4].Value = result["Billing Date"];
-                            sheet.Cells[i, 5].Value = result["Due Date Pre"];
-                            sheet.Cells[i, 6].Value = result["Billing Type"];
-                            sheet.Cells[i, 7].Value = result["Payment Source"];
-                            sheet.Cells[i, 8].Value = result["Collector/Aqcuiring Bank"];
-                            sheet.Cells[i, 9].Value = result["Status Billing"];
-                            sheet.Cells[i, 10].Value = result["Cancel Date"];
-                            sheet.Cells[i, 11].Value = result["Upload Date"];
-                            sheet.Cells[i, 12].Value = result["Approve Code"];
-                            sheet.Cells[i, 13].Value = result["Rejection Reason"];
-                            sheet.Cells[i, 14].Value = result["User Update"];
-                            sheet.Cells[i, 15].Value = result["Status Polis"];
-                            sheet.Cells[i, 16].Value = result["Payment Method"];
-                            sheet.Cells[i, 17].Value = result["Account Number"];
-                            sheet.Cells[i, 18].Value = result["Expired Card"];
+                            sheet.Cells[i, 1].Value = result[0];
+                            sheet.Cells[i, 2].Value = result[1];
+                            sheet.Cells[i, 3].Value = result[2];
+                            sheet.Cells[i, 4].Value = result[3];
+                            sheet.Cells[i, 5].Value = result[4];
+                            sheet.Cells[i, 6].Value = result[5];
+                            sheet.Cells[i, 7].Value = result[6];
+                            sheet.Cells[i, 8].Value = result[7];
+                            sheet.Cells[i, 9].Value = result[8];
+                            sheet.Cells[i, 10].Value = result[9];
+                            sheet.Cells[i, 11].Value = result[10];
+                            sheet.Cells[i, 12].Value = result[11];
+                            sheet.Cells[i, 13].Value = result[12];
+                            sheet.Cells[i, 14].Value = result[13];
+                            sheet.Cells[i, 15].Value = result[14];
+                            sheet.Cells[i, 16].Value = result[15];
+                            sheet.Cells[i, 17].Value = result[16];
+                            sheet.Cells[i, 18].Value = result[17];
                             i++;
                         }
                         sheet.Column(1).AutoFit();
@@ -180,8 +181,9 @@ namespace CAF.JBS.Controllers
             return File(new FileStream(fullePath, FileMode.Open), mimeType, fileName);
         }
 
-        public FileStreamResult MonthlyBilling()
+        public FileStreamResult MonthlyBilling(string period)
         {
+            // period = yyyyMM
             // kosongkan folder tmp
             var files = Directory.GetFiles(tempFile);
             foreach (string file in files)
@@ -196,7 +198,7 @@ namespace CAF.JBS.Controllers
             var cmd = _jbsDB.Database.GetDbConnection().CreateCommand();
             cmd.CommandType = CommandType.StoredProcedure;
             cmd.CommandText = "MonthlyBilling_sp ";
-            //cmd.Parameters.Add(new MySqlParameter("@BankCode", MySqlDbType.Int16) { Value = id });
+            cmd.Parameters.Add(new MySqlParameter("@period", MySqlDbType.VarChar) { Value = period });
 
             using (ExcelPackage package = new ExcelPackage(new FileInfo(fullePath)))
             {
