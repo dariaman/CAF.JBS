@@ -703,7 +703,6 @@ namespace CAF.JBS.Controllers
                                         b.status_billing='A',
                                         b.LastUploadDate=null,
                                         b.paid_date=null,
-                                        b.Life21TranID=null,
                                         b.ReceiptID=null,
                                         b.PaymentTransactionID=null,
                                         b.`BillingDate`= null,
@@ -803,31 +802,61 @@ namespace CAF.JBS.Controllers
                 {
                     jenisTransaksi = "BCA CC";
                     cmd.CommandText = @"SELECT 1 AS val FROM `billing` b
-                        WHERE b.`IsDownload`=1 AND b.`BankIdDownload`=1 AND b.`Source_download`='CC' LIMIT 1;";
+                                        WHERE b.`IsDownload`=1 AND b.`BankIdDownload`=1 AND b.`Source_download`='CC' 
+                                        UNION ALL
+                                        SELECT 1 AS val FROM `billing_others` b
+                                        WHERE b.`IsDownload`=1 AND b.`BankIdDownload`=1 AND b.`Source_download`='CC' 
+                                        UNION ALL
+                                        SELECT 1 AS val FROM `quote_billing` b
+                                        WHERE b.`IsDownload`=1 AND b.`BankIdDownload`=1 AND b.`Source_download`='CC' LIMIT 1;";
                 }
                 else if (trancode == 2) // Mandiri CC
                 {
                     jenisTransaksi = "Mandiri CC";
                     cmd.CommandText = @"SELECT 1 AS val FROM `billing` b
-                        WHERE b.`IsDownload`=1 AND b.`BankIdDownload`=2 AND b.`Source_download`='CC' LIMIT 1";
+                                        WHERE b.`IsDownload`=1 AND b.`BankIdDownload`=2 AND b.`Source_download`='CC'
+                                        UNION ALL
+                                        SELECT 1 AS val FROM `billing_others` b
+                                        WHERE b.`IsDownload`=1 AND b.`BankIdDownload`=2 AND b.`Source_download`='CC'
+                                        UNION ALL
+                                        SELECT 1 AS val FROM `quote_billing` b
+                                        WHERE b.`IsDownload`=1 AND b.`BankIdDownload`=2 AND b.`Source_download`='CC'  LIMIT 1";
                 }
                 else if (trancode == 3) //Mega On Us
                 {
                     jenisTransaksi = "MegaOnUs CC";
                     cmd.CommandText = @"SELECT 1 AS val FROM `billing` b
-                        WHERE b.`IsDownload`=1 AND b.`BankIdDownload`=12 AND IFNULL(b.`BankID_Source`,0)=12 AND b.`Source_download`='CC' LIMIT 1";
+                                        WHERE b.`IsDownload`=1 AND b.`BankIdDownload`=12 AND IFNULL(b.`BankID_Source`,0)=12 AND b.`Source_download`='CC'
+                                        UNION ALL
+                                        SELECT 1 AS val FROM `billing_others` b
+                                        WHERE b.`IsDownload`=1 AND b.`BankIdDownload`=12 AND IFNULL(b.`BankID_Source`,0)=12 AND b.`Source_download`='CC'
+                                        UNION ALL
+                                        SELECT 1 AS val FROM `quote_billing` b
+                                        WHERE b.`IsDownload`=1 AND b.`BankIdDownload`=12 AND IFNULL(b.`BankID_Source`,0)=12 AND b.`Source_download`='CC' LIMIT 1";
                 }
                 else if (trancode == 4)// Mega Off Us
                 {
                     jenisTransaksi = "MegaOffUs CC";
                     cmd.CommandText = @"SELECT 1 AS val FROM `billing` b
-                        WHERE b.`IsDownload`=1 AND b.`BankIdDownload`=12 AND IFNULL(b.`BankID_Source`,0)<>12 AND b.`Source_download`='CC' LIMIT 1";
+                                        WHERE b.`IsDownload`=1 AND b.`BankIdDownload`=12 AND IFNULL(b.`BankID_Source`,0)<>12 AND b.`Source_download`='CC'
+                                        UNION ALL
+                                        SELECT 1 AS val FROM `billing_others` b
+                                        WHERE b.`IsDownload`=1 AND b.`BankIdDownload`=12 AND IFNULL(b.`BankID_Source`,0)<>12 AND b.`Source_download`='CC'
+                                        UNION ALL
+                                        SELECT 1 AS val FROM `quote_billing` b
+                                        WHERE b.`IsDownload`=1 AND b.`BankIdDownload`=12 AND IFNULL(b.`BankID_Source`,0)<>12 AND b.`Source_download`='CC' LIMIT 1";
                 }
                 else if (trancode == 5) // BNI CC
                 {
                     jenisTransaksi = "BNI CC";
                     cmd.CommandText = @"SELECT 1 AS val FROM `billing` b
-                        WHERE b.`IsDownload`=1 AND b.`BankIdDownload`=3 AND b.`Source_download`='CC' LIMIT 1";
+                                        WHERE b.`IsDownload`=1 AND b.`BankIdDownload`=3 AND b.`Source_download`='CC'
+                                        UNION ALL
+                                        SELECT 1 AS val FROM `billing_others` b
+                                        WHERE b.`IsDownload`=1 AND b.`BankIdDownload`=3 AND b.`Source_download`='CC'
+                                        UNION ALL
+                                        SELECT 1 AS val FROM `quote_billing` b
+                                        WHERE b.`IsDownload`=1 AND b.`BankIdDownload`=3 AND b.`Source_download`='CC' LIMIT 1";
                 }
 
             }
@@ -837,13 +866,25 @@ namespace CAF.JBS.Controllers
                 {
                     jenisTransaksi = "BCA AC";
                     cmd.CommandText = @"SELECT 1 AS val FROM `billing` b
-                        WHERE b.`IsDownload`=1 AND b.`BankIdDownload`=1 AND b.`Source_download`='AC' LIMIT 1";
+                                        WHERE b.`IsDownload`=1 AND b.`BankIdDownload`=1 AND b.`Source_download`='AC'
+                                        UNION ALL
+                                        SELECT 1 AS val FROM `billing_others` b
+                                        WHERE b.`IsDownload`=1 AND b.`BankIdDownload`=1 AND b.`Source_download`='AC'
+                                        UNION ALL
+                                        SELECT 1 AS val FROM `quote_billing` b
+                                        WHERE b.`IsDownload`=1 AND b.`BankIdDownload`=1 AND b.`Source_download`='AC' LIMIT 1";
                 }
                 else if (trancode == 2) // Mandiri AC
                 {
                     jenisTransaksi = "Mandiri AC";
                     cmd.CommandText = @"SELECT 1 AS val FROM `billing` b
-                        WHERE b.`IsDownload`=1 AND b.`BankIdDownload`=2 AND b.`Source_download`='AC' LIMIT 1";
+                                        WHERE b.`IsDownload`=1 AND b.`BankIdDownload`=2 AND b.`Source_download`='AC'
+                                        UNION ALL
+                                        SELECT 1 AS val FROM `billing_others` b
+                                        WHERE b.`IsDownload`=1 AND b.`BankIdDownload`=2 AND b.`Source_download`='AC'
+                                        UNION ALL
+                                        SELECT 1 AS val FROM `quote_billing` b
+                                        WHERE b.`IsDownload`=1 AND b.`BankIdDownload`=2 AND b.`Source_download`='AC' LIMIT 1";
                 }
             }
 
@@ -1377,7 +1418,7 @@ namespace CAF.JBS.Controllers
         }
         private void ResultMandiriCC(UploadResultBillingVM UploadBill)
         {
-            string xFileName = Path.GetFileNameWithoutExtension(UploadBill.FileBill.FileName).ToLower() +
+            string xFileName =DateTime.Now.ToString("yyyyMMdd") + Path.GetFileNameWithoutExtension(UploadBill.FileBill.FileName).ToLower() +
                Path.GetRandomFileName().Replace(".", "").Substring(0, 8).ToLower() + ".xls";
 
             if (System.IO.File.Exists(DirResult + xFileName)) System.IO.File.Delete(DirResult + xFileName);
@@ -1401,12 +1442,10 @@ namespace CAF.JBS.Controllers
                 process.WaitForExit();
             }
             catch (Exception ex) { throw ex; }
-
-            try
+            finally
             {
                 foreach (Process proc in Process.GetProcessesByName("JBSGenExcel")) { proc.Kill(); }
             }
-            catch (Exception ex) { throw ex; }
 
             //Backup alias pindah File Result
             var FileBilResult = new FileInfo(DirResult + xFileName);
@@ -1452,10 +1491,7 @@ namespace CAF.JBS.Controllers
             if (System.IO.File.Exists(DirResult + xFileName)) System.IO.File.Delete(DirResult + xFileName);
             using (var fileStream = new FileStream(DirResult + xFileName, FileMode.Create)) UploadBill.FileBill.CopyTo(fileStream);
 
-            try
-            {
-                foreach (Process proc in Process.GetProcessesByName("JBSGenExcel")) { proc.Kill(); }
-            }
+            try { foreach (Process proc in Process.GetProcessesByName("JBSGenExcel")) { proc.Kill(); } }
             catch (Exception ex) { throw ex; }
 
             try
@@ -1469,21 +1505,17 @@ namespace CAF.JBS.Controllers
                 process.Start();
                 process.WaitForExit();
             }
-            catch (Exception ex) { throw ex; }
-
-            try
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+            finally
             {
                 foreach (Process proc in Process.GetProcessesByName("JBSGenExcel")) { proc.Kill(); }
             }
-            catch (Exception ex) { throw ex; }
 
             //Backup alias pindah File Result
             var FileBilResult = new FileInfo(DirResult + xFileName);
-            try
-            {
-                FileBilResult.MoveTo(BackupResult + FileBilResult.Name.ToString());
-            }
-            catch (Exception ex) { throw ex; }
 
             // cek data downlod, jika sudah nol maka data billingDownload pindahkan ke Backup Billing
             try
@@ -1521,10 +1553,7 @@ namespace CAF.JBS.Controllers
             if (System.IO.File.Exists(DirResult + xFileName)) System.IO.File.Delete(DirResult + xFileName);
             using (var fileStream = new FileStream(DirResult + xFileName, FileMode.Create)) UploadBill.FileBill.CopyTo(fileStream);
 
-            try
-            {
-                foreach (Process proc in Process.GetProcessesByName("JBSGenExcel")) { proc.Kill(); }
-            }
+            try { foreach (Process proc in Process.GetProcessesByName("JBSGenExcel")) { proc.Kill(); } }
             catch (Exception ex) { throw ex; }
 
             try
@@ -1538,13 +1567,14 @@ namespace CAF.JBS.Controllers
                 process.Start();
                 process.WaitForExit();
             }
-            catch (Exception ex) { throw ex; }
-
-            try
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+            finally
             {
                 foreach (Process proc in Process.GetProcessesByName("JBSGenExcel")) { proc.Kill(); }
             }
-            catch (Exception ex) { throw ex; }
 
             //Backup alias pindah File Result
             var FileBilResult = new FileInfo(DirResult + xFileName);
@@ -1590,10 +1620,7 @@ namespace CAF.JBS.Controllers
             if (System.IO.File.Exists(DirResult + xFileName)) System.IO.File.Delete(DirResult + xFileName);
             using (var fileStream = new FileStream(DirResult + xFileName, FileMode.Create)) UploadBill.FileBill.CopyTo(fileStream);
 
-            try
-            {
-                foreach (Process proc in Process.GetProcessesByName("JBSGenExcel")) { proc.Kill(); }
-            }
+            try { foreach (Process proc in Process.GetProcessesByName("JBSGenExcel")) { proc.Kill(); } }
             catch (Exception ex) { throw ex; }
 
             try
@@ -1608,12 +1635,10 @@ namespace CAF.JBS.Controllers
                 process.WaitForExit();
             }
             catch (Exception ex) { throw ex; }
-
-            try
+            finally
             {
                 foreach (Process proc in Process.GetProcessesByName("JBSGenExcel")) { proc.Kill(); }
             }
-            catch (Exception ex) { throw ex; }
 
             //Backup File Result
             var FileBilResult = new FileInfo(DirResult + xFileName);
@@ -1650,7 +1675,6 @@ namespace CAF.JBS.Controllers
             {
                 _jbsDB.Database.CloseConnection();
             }
-
         }
         private void ResultAC(UploadResultBillingVM UploadBill)
         {
