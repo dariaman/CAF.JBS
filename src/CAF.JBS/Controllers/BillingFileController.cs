@@ -948,13 +948,13 @@ namespace CAF.JBS.Controllers
                 }
                 else if (UploadBill.TranCode == "megaonus")
                 { //  Path.GetFileNameWithoutExtension(fullPath)
-                    if (UploadBill.FileBill.FileName.ToString().ToLower().Substring(UploadBill.FileBill.FileName.Length - 11) != "s1.bret.xls")
-                        ModelState.AddModelError("FileBill", "ResultFile harus File *s1.bret.xls");
+                    if (UploadBill.FileBill.FileName.ToString().ToLower().Substring(UploadBill.FileBill.FileName.Length - 11) != "s1.bret.xlsx")
+                        ModelState.AddModelError("FileBill", "ResultFile harus File *s1.bret.xlsx");
                 }
                 else if (UploadBill.TranCode == "megaoffus")
                 { //  Path.GetFileNameWithoutExtension(fullPath)
-                    if (UploadBill.FileBill.FileName.ToString().ToLower().Substring(UploadBill.FileBill.FileName.Length - 11) != "s2.bret.xls")
-                        ModelState.AddModelError("FileBill", "ResultFile harus File *s2.bret.xls");
+                    if (UploadBill.FileBill.FileName.ToString().ToLower().Substring(UploadBill.FileBill.FileName.Length - 11) != "s2.bret.xlsx")
+                        ModelState.AddModelError("FileBill", "ResultFile harus File *s2.bret.xlsx");
                 }
                 else if (UploadBill.TranCode == "bcaac" || UploadBill.TranCode == "mandiriac" ||
                     UploadBill.TranCode == "vabcarealtime" || UploadBill.TranCode == "vabcadaily")
@@ -964,8 +964,8 @@ namespace CAF.JBS.Controllers
                 }
                 else
                 {
-                    if (Path.GetExtension(UploadBill.FileBill.FileName.ToString().ToLower()) != ".xls")
-                        ModelState.AddModelError("FileBill", "ResultFile harus File .xls");
+                    if (Path.GetExtension(UploadBill.FileBill.FileName.ToString().ToLower()) != ".xlsx")
+                        ModelState.AddModelError("FileBill", "ResultFile harus File .xlsx");
                 }
                 if (UploadBill.FileBill.Length < 1)
                 {
@@ -1447,15 +1447,6 @@ namespace CAF.JBS.Controllers
                 foreach (Process proc in Process.GetProcessesByName("JBSGenExcel")) { proc.Kill(); }
             }
 
-            //Backup alias pindah File Result
-            var FileBilResult = new FileInfo(DirResult + xFileName);
-            try
-            {
-                FileBilResult.MoveTo(BackupResult + FileBilResult.Name.ToString());
-            }
-            catch (Exception ex) { throw ex; }
-
-            // cek data downlod, jika sudah nol maka data billingDownload pindahkan ke Backup Billing
             try
             {
                 hitungUlang();
@@ -1676,8 +1667,49 @@ namespace CAF.JBS.Controllers
                 _jbsDB.Database.CloseConnection();
             }
         }
+
+        private void ResultCC(UploadResultBillingVM UploadBill)
+        {// File xlsx
+            string tmp, approvalCode, TranDesc, txfilename,
+                policyNo = "",
+                Period = "",
+                CCno = "",
+                CCexp = "",
+                ccName = "",
+                addr = "",
+                telp = "",
+                BillOthers = "",
+                passwordExcel=null;
+            int PolicyID = -1, BillingID = -1, recurring_seq = -1, Life21TranID = -1, CycleDate = 0, Billqoute = -1;
+            DateTime DueDatePre = new DateTime(2000, 1, 1), BillDate = new DateTime(2000, 1, 1);
+            decimal BillAmount = 0,
+                fileamount = 0; //fileamount = amount dr upload file, tuk monitoring amount sama dgn data billing
+            txfilename = Path.GetFileNameWithoutExtension(UploadBill.FileBill.FileName);
+
+            string xFileName = DateTime.Now.ToString("yyyyMMdd")+"_" + Path.GetFileNameWithoutExtension(UploadBill.FileBill.FileName).ToLower() + Path.GetRandomFileName().Replace(".", "").Substring(0, 8).ToLower() + ".xlsx";
+            // Simpan File yang diUpload ke File Backup
+            using (var fileStream = new FileStream(BackupResult + xFileName, FileMode.Create))
+            {
+                UploadBill.FileBill.CopyTo(fileStream);
+            }
+
+            if (UploadBill.TranCode == "bnicc") passwordExcel = "bnicc" + DateTime.Now.ToString("MMyy");
+            using (ExcelPackage package = new ExcelPackage(new FileInfo(xFileName), passwordExcel))
+            {
+                ExcelWorkbook wb = package.Workbook;
+                if (UploadBill.TranCode != "bnicc" && wb.Worksheets.Count != 2) throw new Exception("File Result harus 2 Sheet");
+                for (int sht = 0; sht < 2; sht++) // looping sheet 1 & 2
+                {
+                    ExcelWorksheet ws = wb.Worksheets[sht];
+                    int row = 0;
+
+
+                    if (UploadBill.TranCode == "bnicc") break; // BNI cma 1 Sheet
+                } // END for(int sht=0; sht < 2; sht++)
+            }
+        }
         private void ResultAC(UploadResultBillingVM UploadBill)
-        {
+        {// File Result txt
             string tmp,
                 approvalCode,
                 TranDesc,
