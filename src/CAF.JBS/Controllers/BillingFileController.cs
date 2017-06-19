@@ -2530,11 +2530,12 @@ namespace CAF.JBS.Controllers
                 TranDesc = "",
                 txfilename,
                 policyNo = "",
-                Period = "";
-                //ACno = "",
-                //acName = "",
-                //BillOthers = "",
-                //fileBillSearch = "";
+                Period = "",
+                PaymentMeth = "",
+                ACno = "",
+                acName = "";
+            //BillOthers = "",
+            //fileBillSearch = "";
             int PolicyID = -1, BillingID = -1, recurring_seq = -1, Life21TranID = -1;
             //int CycleDate = 0, bankID = 0, sumCode = 1;
             DateTime DueDatePre = new DateTime(2000, 1, 1), BillDate = new DateTime(2000, 1, 1),tglTransaksi= new DateTime(2000, 1, 1);
@@ -2611,7 +2612,7 @@ namespace CAF.JBS.Controllers
 
                                 cmd.Parameters.Clear();
                                 cmd.CommandType = CommandType.StoredProcedure;
-                                cmd.CommandText = @"FindPolisACGetBillSeq";
+                                cmd.CommandText = @"FindPolisTranVA";
                                 cmd.Parameters.Add(new MySqlParameter("@NoPolis", MySqlDbType.VarChar) { Value = policyNo });
                                 using (var rd = cmd.ExecuteReader())
                                 {
@@ -2619,12 +2620,16 @@ namespace CAF.JBS.Controllers
                                     {
                                         PolicyID = Convert.ToInt32(rd["policy_id"]);
                                         BillingID = Convert.ToInt32(rd["BillingID"]);
+                                        //ACno=rd["ACC_NO"].ToString();
+                                        //acName= rd["ACC_NAME"].ToString();
+                                        PaymentMeth = rd["payment_method"].ToString().ToUpper();
                                         recurring_seq = Convert.ToInt32(rd["recurring_seq"]);
                                         DueDatePre = Convert.ToDateTime(rd["due_dt_pre"]);
                                         Period = rd["PeriodeBilling"].ToString();
-                                        Life21TranID = rd["Life21TranID"].Equals(DBNull.Value) ? 0 : Convert.ToInt32(rd["Life21TranID"]);
+                                        //Life21TranID = rd["Life21TranID"].Equals(DBNull.Value) ? 0 : Convert.ToInt32(rd["Life21TranID"]);
+                                        int.TryParse(rd["Life21TranID"].ToString().Trim(), out Life21TranID);
                                     }
-                                    if (PolicyID < 1 || BillingID < 1 || recurring_seq < 1)
+                                    if (PolicyID < 1 )
                                     {
                                         throw new Exception("Billing dengan Polis {"+ policyNo+"} tidak ditemukan ");
                                     }
@@ -2656,6 +2661,25 @@ namespace CAF.JBS.Controllers
                                 cmd2.Parameters.Add(new MySqlParameter("@due_dt_pre", MySqlDbType.Date) { Value = DueDatePre });
                                 var receiptID = cmd2.ExecuteScalar().ToString();
 
+                                if(PaymentMeth=="AC" )
+                                {
+                                    cmd2.Parameters.Clear();
+                                    cmd2.CommandType = CommandType.Text;
+                                    cmd2.CommandText = @"UPDATE `policy_ac_transaction` pa
+                                                        SET pa.`status_id`=5 AND pa.`remark`='VA'
+                                                        WHERE pa.`policy_id`=@policy_id AND pa.`status_id`=1 LIMIT 1";
+                                }
+                                else if (PaymentMeth == "CC" )
+                                {
+                                    cmd2.Parameters.Clear();
+                                    cmd2.CommandType = CommandType.Text;
+                                    cmd2.CommandText = @"UPDATE `policy_cc_transaction` pa
+                                                        SET pa.`status_id`=5 AND pa.`remark`='VA'
+                                                        WHERE pa.`policy_id`=@policy_id AND pa.`status_id`=1 LIMIT 1";
+                                }
+                                cmd2.Parameters.Add(new MySqlParameter("@policy_id", MySqlDbType.Int32) { Value = PolicyID });
+                                cmd2.ExecuteNonQuery();
+
                                 // Update table billing
                                 cmd.Parameters.Clear();
                                 cmd.CommandType = CommandType.Text;
@@ -2664,14 +2688,14 @@ namespace CAF.JBS.Controllers
 			                                                `status_billing`='P',
 			                                                `LastUploadDate`=@tgl,
 			                                                `paid_date`=@billDate,
-                                                            Life21TranID=@TransactionID,
+                                                            Source_download='VA',
+                                                            BankIdDownload=1,
 			                                                `ReceiptID`=@receiptID,
 			                                                `PaymentTransactionID`=@uid
 		                                                WHERE `BillingID`=@idBill;";
                                 cmd.Parameters.Add(new MySqlParameter("@idBill", MySqlDbType.Int32) { Value = BillingID });
                                 cmd.Parameters.Add(new MySqlParameter("@tgl", MySqlDbType.DateTime) { Value = DateTime.Now });
                                 cmd.Parameters.Add(new MySqlParameter("@billDate", MySqlDbType.DateTime) { Value = tglTransaksi });
-                                cmd.Parameters.Add(new MySqlParameter("@TransactionID", MySqlDbType.Int32) { Value = 0 }); // karena gak masuk polis CC/AC transaksion
                                 cmd.Parameters.Add(new MySqlParameter("@receiptID", MySqlDbType.Int32) { Value = receiptID });
                                 cmd.Parameters.Add(new MySqlParameter("@uid", MySqlDbType.VarChar) { Value = uid }); 
                                 cmd.ExecuteNonQuery();
@@ -2702,7 +2726,6 @@ namespace CAF.JBS.Controllers
                             }
                         }// end using (var dbTrans2 = cmdx2.BeginTransaction())
                     }// End using (var dbTrans = cmdx.BeginTransaction())
-
 
                     policyNo = "";
                     BillAmount = 0;
