@@ -2169,7 +2169,7 @@ namespace CAF.JBS.Controllers
             int PolicyID = -1, BillingID = -1, recurring_seq = -1, Life21TranID = -1;
             int CycleDate = 0, bankID = 0, sumCode = 1;
             DateTime DueDatePre = new DateTime(2000, 1, 1), BillDate = new DateTime(2000, 1, 1);
-            decimal BillAmount = 0;
+            decimal BillAmount = 0, fileamount=0;
             txfilename = DateTime.Now.ToString("yyyyMMdd") + "_" + Path.GetFileNameWithoutExtension(UploadBill.FileBill.FileName).ToLower() + ".txt";
             bool isApprove;
 
@@ -2200,6 +2200,7 @@ namespace CAF.JBS.Controllers
             using (var reader = new StreamReader(UploadBill.FileBill.OpenReadStream()))
             {
                 int i = 0;
+                long tempx;
                 while (reader.Peek() >= 0)
                 {
                     i++;
@@ -2209,18 +2210,24 @@ namespace CAF.JBS.Controllers
 
                     if (UploadBill.TranCode == "bcaac")
                     {
-                        if (tmp.Substring(92, 1).Trim() == "A") BillOthers = tmp.Substring(92, 15).Trim();
-                        else policyNo = tmp.Substring(92, 15).Trim();
-                        //policyNo = tmp.Substring(92, 15).Trim();
+                        var tempa = tmp.Substring(92, 15).Trim();
+                        if (! long.TryParse(tempa.Substring(1), out tempx)) continue;
+                        if (! decimal.TryParse(tmp.Substring(74, 17).Trim(), out fileamount)) continue;
+
+                        if (tempa.Substring(0,1) == "A") BillOthers = tempa;
+                        else policyNo = tempa;
                         approvalCode = tmp.Substring(129, 9).Trim();
                         TranDesc = tmp.Substring(138, 50).Trim();
                         isApprove = (approvalCode.ToLower() == "berhasil") ? true : false;
                     }
                     else if (UploadBill.TranCode == "mandiriac")
                     {
-                        if (tmp.Substring(590, 1).Trim() == "A") BillOthers = tmp.Substring(590, 40).Trim();
-                        else policyNo = tmp.Substring(590, 40).Trim();
-                        //policyNo = tmp.Substring(590, 40).Trim();
+                        var tempa = tmp.Substring(590, 40).Trim();
+                        if (! long.TryParse(tempa.Substring(1), out tempx)) continue;
+                        if (! decimal.TryParse(tmp.Substring(633, 10).Trim(), out fileamount)) continue;
+
+                        if (tempa.Substring(0, 1).Trim() == "A") BillOthers = tempa;
+                        else policyNo = tempa;
                         approvalCode = tmp.Substring(674, 45).Trim();
                         TranDesc = tmp.Substring(720).Trim();
                         isApprove = (approvalCode.ToLower() == "success") ? true : false;
@@ -2272,7 +2279,7 @@ namespace CAF.JBS.Controllers
 
                                         if (PolicyID < 1 || BillingID < 1 || recurring_seq < 1)
                                         {
-                                            throw new Exception("Polis tidak ditemukan,mungkin billingnya tidak dalam status download atau terdapat kesalahan pada data file Upload...");
+                                            throw new Exception("Polis {"+policyNo+"} tidak ditemukan,mungkin billingnya tidak dalam status download atau terdapat kesalahan pada data file Upload...");
                                         }
                                     }
                                 }
@@ -2297,7 +2304,7 @@ namespace CAF.JBS.Controllers
 
                                         if (PolicyID < 1)
                                         {
-                                            throw new Exception("BillingOthersID tidak ditemukan,mungkin billingnya tidak dalam status download atau terdapat kesalahan pada data file Upload...");
+                                            throw new Exception("BillingOthers {" + BillOthers + "} tidak ditemukan,mungkin billingnya tidak dalam status download atau terdapat kesalahan pada data file Upload...");
                                         }
                                     }
                                 }
@@ -2311,6 +2318,7 @@ namespace CAF.JBS.Controllers
                                 cmd.Parameters.Add(new MySqlParameter("@policyID", MySqlDbType.VarChar) { Value = PolicyID });
                                 cmd.Parameters.Add(new MySqlParameter("@Seq", MySqlDbType.VarChar) { Value = (BillOthers == "") ? recurring_seq : 0 });
                                 cmd.Parameters.Add(new MySqlParameter("@IDBill", MySqlDbType.VarChar) { Value = (BillOthers == "") ? BillingID.ToString() : BillOthers });
+                                cmd.Parameters.Add(new MySqlParameter("@amount", MySqlDbType.Decimal) { Value = fileamount });
                                 cmd.Parameters.Add(new MySqlParameter("@approvalCode", MySqlDbType.VarChar) { Value = approvalCode });
                                 cmd.Parameters.Add(new MySqlParameter("@BankID", MySqlDbType.Int32) { Value = 0 }); // Bukan BCA CC (jangan pake bankID)
                                 cmd.Parameters.Add(new MySqlParameter("@ErrCode", MySqlDbType.VarChar) { Value = TranDesc });
@@ -2470,6 +2478,7 @@ namespace CAF.JBS.Controllers
                         }
                         BillAmount = 0;
                         policyNo = "";
+                        BillOthers = "";
                         PolicyID = -1;
                         BillingID = -1;
                         recurring_seq = -1;
