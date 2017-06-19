@@ -948,12 +948,12 @@ namespace CAF.JBS.Controllers
                 }
                 else if (UploadBill.TranCode == "megaonus")
                 { //  Path.GetFileNameWithoutExtension(fullPath)
-                    if (UploadBill.FileBill.FileName.ToString().ToLower().Substring(UploadBill.FileBill.FileName.Length - 11) != "s1.bret.xlsx")
+                    if (UploadBill.FileBill.FileName.ToString().ToLower().Substring(UploadBill.FileBill.FileName.Length - 12) != "s1.bret.xlsx")
                         ModelState.AddModelError("FileBill", "ResultFile harus File *s1.bret.xlsx");
                 }
                 else if (UploadBill.TranCode == "megaoffus")
                 { //  Path.GetFileNameWithoutExtension(fullPath)
-                    if (UploadBill.FileBill.FileName.ToString().ToLower().Substring(UploadBill.FileBill.FileName.Length - 11) != "s2.bret.xlsx")
+                    if (UploadBill.FileBill.FileName.ToString().ToLower().Substring(UploadBill.FileBill.FileName.Length - 12) != "s2.bret.xlsx")
                         ModelState.AddModelError("FileBill", "ResultFile harus File *s2.bret.xlsx");
                 }
                 else if (UploadBill.TranCode == "bcaac" || UploadBill.TranCode == "mandiriac" ||
@@ -1679,7 +1679,13 @@ namespace CAF.JBS.Controllers
                 addr = "",
                 telp = "",
                 BillOthers = "";
-            int PolicyID = -1, BillingID = -1, recurring_seq = -1, Life21TranID = -1, CycleDate = 0, Billqoute = -1;
+            int PolicyID = -1, 
+                BillingID = -1, 
+                recurring_seq = -1, 
+                Life21TranID = -1, 
+                CycleDate = 0, 
+                Billqoute = -1,
+                sumCode=0;
             DateTime DueDatePre = new DateTime(2000, 1, 1), BillDate = new DateTime(2000, 1, 1);
             decimal BillAmount = 0,
                 fileamount = 0; //fileamount = amount dr upload file, tuk monitoring amount sama dgn data billing
@@ -1703,60 +1709,72 @@ namespace CAF.JBS.Controllers
                     if (UploadBill.TranCode != "bnicc" && wb.Worksheets.Count < 2) throw new Exception("File Result harus 2 Sheet");
                     for (int sht = 1; sht < 3; sht++) // looping sheet 1 & 2
                     {
-                        var sa = wb.Worksheets.Count;
+                        long tmpa=0;
                         ExcelWorksheet ws = wb.Worksheets[sht];
                         for (int row = ws.Dimension.Start.Row; row <= ws.Dimension.End.Row; row++)
                         {
                             if (UploadBill.TranCode == "mandiricc")
                             {
-                                if (ws.Cells[row, 5].Value == null) continue;
-                                if (ws.Cells[row, 5].Value.ToString() == "") continue;
                                 fileBillSearch = "Mandiri_*.xls";
-                                if (sht == 0) // APPROVE
+                                if (sht == 1) // Sheet APPROVE
                                 {
-                                    policyNo = ws.Cells[row, 5].Value.ToString();
-                                    approvalCode = ws.Cells[row, 3].Value.ToString();
-                                    TranDesc = ws.Cells[row, 4].Value.ToString();
+                                    if (ws.Cells[row, 6].Value == null) continue;
+                                    if (! long.TryParse(ws.Cells[row, 6].Value.ToString().Trim().Substring(1), out tmpa)) continue;
+
+                                    policyNo = ws.Cells[row, 6].Value.ToString().Trim();
+                                    approvalCode = ws.Cells[row, 4].Value.ToString().Trim();
+                                    TranDesc = ws.Cells[row, 5].Value.ToString().Trim();
                                     isApprove = true;
                                 }
-                                else // REJECT
+                                else // Sheet REJECT
                                 {
-                                    policyNo = ws.Cells[row, 3].Value.ToString();
-                                    approvalCode = ws.Cells[row, 4].Value.ToString();
-                                    TranDesc = ws.Cells[row, 5].Value.ToString();
+                                    if (ws.Cells[row, 4].Value == null) continue;
+                                    if (! long.TryParse(ws.Cells[row, 4].Value.ToString().Trim().Substring(1), out tmpa)) continue;
+
+                                    policyNo = ws.Cells[row, 4].Value.ToString().Trim();
+                                    approvalCode = ws.Cells[row, 5].Value.ToString().Trim();
+                                    TranDesc = ws.Cells[row, 6].Value.ToString().Trim();
                                     isApprove = false;
                                 }
-                                if (decimal.TryParse(ws.Cells[row, 2].Value.ToString(), out fileamount)) continue;
-
-
+                                if (! decimal.TryParse(ws.Cells[row, 3].Value.ToString().Trim(), out fileamount)) continue;
+                                sumCode = 2;
                             }
                             else if (UploadBill.TranCode == "megaonus" || UploadBill.TranCode == "megaoffus")
                             {
-                                if (ws.Cells[row, 1].Value == null) continue;
-                                if (ws.Cells[row, 1].Value.ToString() == "") continue;
-                                fileBillSearch = (UploadBill.TranCode == "megaonus") ? "CAF*_MegaOnUs.bpmt" : "CAF*_MegaOffUs.bpmt";
-
-                                var temp = ws.Cells[row, 1].Value.ToString();
-                                policyNo = temp.Split('-').Last();
+                                if (ws.Cells[row, 2].Value == null) continue;
+                                var temp = ws.Cells[row, 2].Value.ToString().Trim();
+                                policyNo = temp.Split('-').Last().Trim();
                                 if (policyNo == "") continue;
+                                if (!long.TryParse(policyNo.Substring(1), out tmpa)) continue;
 
-                                approvalCode = ws.Cells[row, 4].Value.ToString();
-                                TranDesc = ws.Cells[row, 5].Value.ToString();
-                                isApprove = (sht == 0) ? true : false;
+                                approvalCode = ws.Cells[row, 5].Value.ToString().Trim();
+                                TranDesc = ws.Cells[row, 6].Value.ToString().Trim();
+                                isApprove = (sht == 1) ? true : false;
 
-                                if (decimal.TryParse(ws.Cells[row, 2].Value.ToString(), out fileamount)) continue;
+                                if (! decimal.TryParse(ws.Cells[row, 3].Value.ToString().Trim(), out fileamount)) continue;
+                                if (UploadBill.TranCode == "megaonus")
+                                {
+                                    fileBillSearch = "CAF*_MegaOnUs.bpmt";
+                                    sumCode = 3;
+                                }
+                                else
+                                {
+                                    fileBillSearch = "CAF*_MegaOffUs.bpmt";
+                                    sumCode = 4;
+                                }
                             }
                             else if (UploadBill.TranCode == "bnicc")
                             {
-                                if (ws.Cells[row, 6].Value == null) continue;
-                                if (ws.Cells[row, 6].Value.ToString() == "") continue;
-                                fileBillSearch = "BNI_*.xlsx";
+                                if (ws.Cells[row, 7].Value == null) continue;
+                                if (! long.TryParse(ws.Cells[row, 7].Value.ToString().Trim().Substring(1), out tmpa)) continue;
+                                if (!decimal.TryParse(ws.Cells[row, 8].Value.ToString().Trim(), out fileamount)) continue;
 
-                                policyNo = ws.Cells[row, 6].Value.ToString();
-                                approvalCode = ws.Cells[row, 8].Value.ToString();
-                                TranDesc = ws.Cells[row, 9].Value.ToString();
+                                policyNo = ws.Cells[row, 7].Value.ToString().Trim();
+                                approvalCode = ws.Cells[row, 9].Value.ToString().Trim();
+                                TranDesc = ws.Cells[row, 10].Value.ToString().Trim();
                                 isApprove = (approvalCode == "") ? false : true;
-                                if (decimal.TryParse(ws.Cells[row, 7].Value.ToString(), out fileamount)) continue;
+                                fileBillSearch = "BNI_*.xlsx";
+                                sumCode = 5;
 
                             } // END UploadBill.TranCode ==
                             else
@@ -1775,9 +1793,9 @@ namespace CAF.JBS.Controllers
                                 policyNo = "";
                             }
 
-                            var cmdx = _jbsDB.Database; cmdx.OpenConnection(); // jbs
-                            var cmdx2 = _life21.Database; cmdx2.OpenConnection(); // life21
-                            var cmdx3 = _life21p.Database; cmdx3.OpenConnection(); //life21p
+                            var cmdx = _jbsDB.Database; cmdx.OpenConnection(); cmdx.SetCommandTimeout(0); // jbs
+                            var cmdx2 = _life21.Database; cmdx2.OpenConnection(); cmdx2.SetCommandTimeout(0); // life21
+                            var cmdx3 = _life21p.Database; cmdx3.OpenConnection(); cmdx3.SetCommandTimeout(0); //life21p
 
                             var cmd = cmdx.GetDbConnection().CreateCommand();
                             var cmd2 = cmdx2.GetDbConnection().CreateCommand();
@@ -1878,13 +1896,13 @@ namespace CAF.JBS.Controllers
                                     cmd.CommandType = CommandType.StoredProcedure;
                                     cmd.CommandText = @"InsertTransactionBank;";
                                     cmd.Parameters.Add(new MySqlParameter("@FileName", MySqlDbType.VarChar) { Value = xFileName });
-                                    cmd.Parameters.Add(new MySqlParameter("@Trancode", MySqlDbType.VarChar) { Value = "bcacc" }); // hardCode BCA CC
+                                    cmd.Parameters.Add(new MySqlParameter("@Trancode", MySqlDbType.VarChar) { Value = UploadBill.TranCode }); // hardCode BCA CC
                                     cmd.Parameters.Add(new MySqlParameter("@IsApprove", MySqlDbType.Bit) { Value = isApprove });
                                     cmd.Parameters.Add(new MySqlParameter("@policyID", MySqlDbType.Int32) { Value = (PolicyID < 1) ? Billqoute : PolicyID });
                                     cmd.Parameters.Add(new MySqlParameter("@Seq", MySqlDbType.VarChar) { Value = (policyNo != "" && BillOthers == "") ? recurring_seq : 0 });
                                     cmd.Parameters.Add(new MySqlParameter("@IDBill", MySqlDbType.VarChar) { Value = (BillingID > 0) ? BillingID.ToString() : (Billqoute > 0 ? Billqoute.ToString() : BillOthers) });
                                     cmd.Parameters.Add(new MySqlParameter("@amount", MySqlDbType.Decimal) { Value = fileamount });
-                                    cmd.Parameters.Add(new MySqlParameter("@approvalCode", MySqlDbType.VarChar) { Value = (isApprove) ? approvalCode : TranDesc });
+                                    cmd.Parameters.Add(new MySqlParameter("@approvalCode", MySqlDbType.VarChar) { Value = approvalCode });
                                     cmd.Parameters.Add(new MySqlParameter("@BankID", MySqlDbType.Int32) { Value = 1 }); // hardCode BCA
                                     cmd.Parameters.Add(new MySqlParameter("@ErrCode", MySqlDbType.VarChar) { Value = TranDesc });
                                     var uid = cmd.ExecuteScalar().ToString();
@@ -2098,11 +2116,10 @@ namespace CAF.JBS.Controllers
                             recurring_seq = -1;
                             approvalCode = null;
                             TranDesc = null;
+                            isApprove = false;
                         }// END for (row=ws.Dimension.Start.Row; row <= ws.Dimension.End.Row; row++)
 
                         if (UploadBill.TranCode == "bnicc") break; // BNI cma 1 Sheet (1x loop langsung break)
-                        sht++;
-                        if (sht < 3) break;
                     } // END for(int sht=0; sht < 2; sht++)
                 } // END using (ExcelPackage package = new ExcelPackage(new FileInfo(xFileName)))
             }
@@ -2115,7 +2132,7 @@ namespace CAF.JBS.Controllers
                 var cmd = _jbsDB.Database.GetDbConnection().CreateCommand();
                 cmd.CommandType = CommandType.Text;
                 cmd.CommandText = @"SELECT `rowCountDownload` FROM `billing_download_summary` WHERE id=@id;";
-                cmd.Parameters.Add(new MySqlParameter("@id", MySqlDbType.Int16) { Value = BillOthers });
+                cmd.Parameters.Add(new MySqlParameter("@id", MySqlDbType.Int16) { Value = sumCode });
                 var sumdata = Convert.ToInt32(cmd.ExecuteScalar().ToString());
                 if (sumdata <= 0)
                 {
