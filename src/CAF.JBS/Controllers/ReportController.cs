@@ -234,34 +234,32 @@ namespace CAF.JBS.Controllers
                         sheet.Cells[1, 20].Value = result.GetName(19);
                         sheet.Cells[1, 21].Value = result.GetName(20);
                         sheet.Cells[1, 22].Value = result.GetName(21);
-                        sheet.Cells[1, 23].Value = result.GetName(22);
 
                         var i = 2;
                         while (result.Read())
                         {
-                            sheet.Cells[i, 1].Value = result["Policy No"];
-                            sheet.Cells[i, 2].Value = result["BillingID"];
-                            sheet.Cells[i, 3].Value = result["Product Code"];
-                            sheet.Cells[i, 4].Value = result["Product Name"];
-                            sheet.Cells[i, 5].Value = result["Payment Frequent"];
-                            sheet.Cells[i, 6].Value = result["Channel Sales"];
-                            sheet.Cells[i, 7].Value = result["Recurring Seq"];
-                            sheet.Cells[i, 8].Value = result["Date Create"];
-                            sheet.Cells[i, 9].Value = result["Due Date Pre"];
-                            sheet.Cells[i,10].Value = result["Billing Type"];
-                            sheet.Cells[i, 11].Value = result["Regular Premium"];
-                            sheet.Cells[i, 12].Value = result["Payment Source"];
-                            sheet.Cells[i, 13].Value = result["Collector/Aqcuiring Bank"];
-                            sheet.Cells[i, 14].Value = result["Status Billing"];
-                            sheet.Cells[i, 15].Value = result["Cancel Date"];
-                            sheet.Cells[i, 16].Value = result["Upload Date"];
-                            sheet.Cells[i, 17].Value = result["Approve Code"];
-                            sheet.Cells[i, 18].Value = result["Rejection Reason"];
-                            sheet.Cells[i, 19].Value = result["User Update"];
-                            sheet.Cells[i, 20].Value = result["Status Polis"];
-                            sheet.Cells[i, 21].Value = result["Payment Method"];
-                            sheet.Cells[i, 22].Value = result["Account Number"];
-                            sheet.Cells[i, 23].Value = result["Expired Card"];
+                            sheet.Cells[i, 1].Value = result[0];
+                            sheet.Cells[i, 2].Value = result[1];
+                            sheet.Cells[i, 3].Value = result[2];
+                            sheet.Cells[i, 4].Value = result[3];
+                            sheet.Cells[i, 5].Value = result[4];
+                            sheet.Cells[i, 6].Value = result[5];
+                            sheet.Cells[i, 7].Value = result[6];
+                            sheet.Cells[i, 8].Value = result[7];
+                            sheet.Cells[i, 9].Value = result[8];
+                            sheet.Cells[i,10].Value = result[9];
+                            sheet.Cells[i, 11].Value = result[10];
+                            sheet.Cells[i, 12].Value = result[11];
+                            sheet.Cells[i, 13].Value = result[12];
+                            sheet.Cells[i, 14].Value = result[13];
+                            sheet.Cells[i, 15].Value = result[14];
+                            sheet.Cells[i, 16].Value = result[15];
+                            sheet.Cells[i, 17].Value = result[16];
+                            sheet.Cells[i, 18].Value = result[17];
+                            sheet.Cells[i, 19].Value = result[18];
+                            sheet.Cells[i, 20].Value = result[19];
+                            sheet.Cells[i, 21].Value = result[20];
+                            sheet.Cells[i, 22].Value = result[21];
                             i++;
                         }
                         sheet.Column(1).AutoFit();

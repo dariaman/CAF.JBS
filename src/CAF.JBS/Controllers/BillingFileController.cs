@@ -941,7 +941,7 @@ namespace CAF.JBS.Controllers
                         ModelState.AddModelError("FileBill", "ResultFile BCA CC harus File .txt");
 
                     var str = Path.GetFileNameWithoutExtension(UploadBill.FileBill.FileName.ToString().ToLower());
-                    if (str.Substring(str.Length-1) !="a" && str.Substring(str.Length - 1) != "r")
+                    if (!(str.Substring(str.Length-1) =="a" || str.Substring(str.Length - 1) == "r"))
                     {
                         ModelState.AddModelError("FileBill", "ResultFile BCA CC, FileName harus berakhiran A atau R");
                     }
@@ -1030,11 +1030,10 @@ namespace CAF.JBS.Controllers
             DateTime DueDatePre = new DateTime(2000, 1, 1), BillDate = new DateTime(2000, 1, 1);
             decimal BillAmount = 0,
                 fileamount = 0; //fileamount = amount dr upload file, tuk monitoring amount sama dgn data billing
-            txfilename = Path.GetFileNameWithoutExtension(UploadBill.FileBill.FileName);
+            txfilename = Path.GetFileNameWithoutExtension(UploadBill.FileBill.FileName).ToLower();
             bool isApprove = (txfilename.Substring(txfilename.Length - 1) == "a" ? true : false);
 
-            string xFileName = Path.GetFileNameWithoutExtension(UploadBill.FileBill.FileName).ToLower() +
-                Path.GetRandomFileName().Replace(".", "").Substring(0, 8).ToLower() + ".txt";
+            string xFileName = DateTime.Now.ToString("yyyyMMdd") + "_" + Path.GetFileNameWithoutExtension(UploadBill.FileBill.FileName).ToLower()  + ".txt";
 
             // Simpan File yang diUpload ke File Backup
             using (var fileStream = new FileStream(BackupResult + xFileName, FileMode.Create))
@@ -1333,17 +1332,17 @@ namespace CAF.JBS.Controllers
                                 cmd.CommandType = CommandType.Text;
                                 if (BillOthers == "")
                                 {// Transaksi Billing Rucurring
-                                    cmd.CommandText = @"UPDATE `billing` SET IsDownload=0 WHERE `BillingID`=@billid";
+                                    cmd.CommandText = @"UPDATE `billing` SET IsDownload=0,LastUploadDate=NOW() WHERE `BillingID`=@billid";
                                     cmd.Parameters.Add(new MySqlParameter("@billid", MySqlDbType.Int32) { Value = BillingID });
                                 }
                                 else if (Billqoute > 0)
                                 {// Transaksi Billing Rucurring
-                                    cmd.CommandText = @"UPDATE `quote_billing` SET IsDownload=0 WHERE `BillingID`=@billid";
+                                    cmd.CommandText = @"UPDATE `quote_billing` SET IsDownload=0,LastUploadDate=NOW() WHERE `BillingID`=@billid";
                                     cmd.Parameters.Add(new MySqlParameter("@billid", MySqlDbType.Int32) { Value = Billqoute });
                                 }
                                 else
                                 {// transaksi Billing Others
-                                    cmd.CommandText = @"UPDATE `billing_others` SET IsDownload=0 WHERE `BillingID`=@billid";
+                                    cmd.CommandText = @"UPDATE `billing_others` SET IsDownload=0,LastUploadDate=NOW() WHERE `BillingID`=@billid";
                                     cmd.Parameters.Add(new MySqlParameter("@billid", MySqlDbType.VarChar) { Value = BillOthers });
                                 }
                                 cmd.ExecuteNonQuery();
@@ -1692,7 +1691,7 @@ namespace CAF.JBS.Controllers
             bool isApprove;
             txfilename = Path.GetFileNameWithoutExtension(UploadBill.FileBill.FileName);
 
-            string xFileName = DateTime.Now.ToString("yyyyMMdd") + "_" + Path.GetFileNameWithoutExtension(UploadBill.FileBill.FileName).ToLower() + Path.GetRandomFileName().Replace(".", "").Substring(0, 8).ToLower() + ".xlsx";
+            string xFileName = DateTime.Now.ToString("yyyyMMdd") + "_" + Path.GetFileNameWithoutExtension(UploadBill.FileBill.FileName).ToLower() + ".xlsx";
             // Simpan File yang diUpload ke File Backup
             using (var fileStream = new FileStream(BackupResult + xFileName, FileMode.Create))
             {
@@ -1903,7 +1902,7 @@ namespace CAF.JBS.Controllers
                                     cmd.Parameters.Add(new MySqlParameter("@IDBill", MySqlDbType.VarChar) { Value = (BillingID > 0) ? BillingID.ToString() : (Billqoute > 0 ? Billqoute.ToString() : BillOthers) });
                                     cmd.Parameters.Add(new MySqlParameter("@amount", MySqlDbType.Decimal) { Value = fileamount });
                                     cmd.Parameters.Add(new MySqlParameter("@approvalCode", MySqlDbType.VarChar) { Value = approvalCode });
-                                    cmd.Parameters.Add(new MySqlParameter("@BankID", MySqlDbType.Int32) { Value = 1 }); // hardCode BCA
+                                    cmd.Parameters.Add(new MySqlParameter("@BankID", MySqlDbType.Int32) { Value = 0 }); // hardCode BCA
                                     cmd.Parameters.Add(new MySqlParameter("@ErrCode", MySqlDbType.VarChar) { Value = TranDesc });
                                     var uid = cmd.ExecuteScalar().ToString();
 
@@ -2063,17 +2062,17 @@ namespace CAF.JBS.Controllers
                                         cmd.CommandType = CommandType.Text;
                                         if (BillOthers == "")
                                         {// Transaksi Billing Rucurring
-                                            cmd.CommandText = @"UPDATE `billing` SET IsDownload=0 WHERE `BillingID`=@billid";
+                                            cmd.CommandText = @"UPDATE `billing` SET IsDownload=0,LastUploadDate=NOW() WHERE `BillingID`=@billid";
                                             cmd.Parameters.Add(new MySqlParameter("@billid", MySqlDbType.Int32) { Value = BillingID });
                                         }
                                         else if (Billqoute > 0)
                                         {// Transaksi Billing Rucurring
-                                            cmd.CommandText = @"UPDATE `quote_billing` SET IsDownload=0 WHERE `BillingID`=@billid";
+                                            cmd.CommandText = @"UPDATE `quote_billing` SET IsDownload=0,LastUploadDate=NOW() WHERE `BillingID`=@billid";
                                             cmd.Parameters.Add(new MySqlParameter("@billid", MySqlDbType.Int32) { Value = Billqoute });
                                         }
                                         else
                                         {// transaksi Billing Others
-                                            cmd.CommandText = @"UPDATE `billing_others` SET IsDownload=0 WHERE `BillingID`=@billid";
+                                            cmd.CommandText = @"UPDATE `billing_others` SET IsDownload=0,LastUploadDate=NOW() WHERE `BillingID`=@billid";
                                             cmd.Parameters.Add(new MySqlParameter("@billid", MySqlDbType.VarChar) { Value = BillOthers });
                                         }
                                         cmd.ExecuteNonQuery();
@@ -2171,7 +2170,7 @@ namespace CAF.JBS.Controllers
             int CycleDate = 0, bankID = 0, sumCode = 1;
             DateTime DueDatePre = new DateTime(2000, 1, 1), BillDate = new DateTime(2000, 1, 1);
             decimal BillAmount = 0;
-            txfilename = Path.GetFileNameWithoutExtension(UploadBill.FileBill.FileName);
+            txfilename = DateTime.Now.ToString("yyyyMMdd") + "_" + Path.GetFileNameWithoutExtension(UploadBill.FileBill.FileName).ToLower() + ".txt";
             bool isApprove;
 
             switch (UploadBill.TranCode)
