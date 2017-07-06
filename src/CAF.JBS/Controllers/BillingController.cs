@@ -8,16 +8,23 @@ using Microsoft.EntityFrameworkCore;
 using CAF.JBS.Data;
 using CAF.JBS.Models;
 using CAF.JBS.ViewModels;
+using System.Diagnostics;
 
 namespace CAF.JBS.Controllers
 {
     public class BillingController : Controller
     {
+
+        private readonly string ConsoleFile;
+        private FileSettings filesettings;
+
         private readonly JbsDbContext _context;
 
         public BillingController(JbsDbContext context)
         {
             _context = context;
+            filesettings = new FileSettings();
+            ConsoleFile = filesettings.GenFileXls;
         }
 
         // GET: Billing
@@ -35,7 +42,7 @@ namespace CAF.JBS.Controllers
                         BillingDate=cd.BillingDate,
                         due_dt_pre = cd.due_dt_pre,
                         PeriodeBilling=cd.PeriodeBilling,
-                        //BillingType=cd.BillingType,
+                        IsPending=cd.IsPending,
                         policy_regular_premium=cd.TotalAmount,
                         status_billing=cd.status_billing,
                         IsDownload=cd.IsDownload,
@@ -43,6 +50,35 @@ namespace CAF.JBS.Controllers
                         ReceiptID=cd.ReceiptID
                      });
             return View(BillingView);
+        }
+
+        public IActionResult SyncData()
+        {
+            //var billingModel = await 0;
+            foreach (Process proc in Process.GetProcessesByName("JBSGenExcel")) { proc.Kill(); }
+
+            try
+            {
+                var process = new Process();
+                process.StartInfo.FileName = ConsoleFile;
+                process.StartInfo.Arguments = @" sync /c";
+
+                process.EnableRaisingEvents = true;
+                process.StartInfo.UseShellExecute = false;
+                process.StartInfo.RedirectStandardOutput = true;
+
+                process.Start();
+                process.WaitForExit();
+
+            }
+            catch (Exception ex) { throw ex; }
+
+            try
+            {
+                foreach (Process proc in Process.GetProcessesByName("JBSGenExcel")) { proc.Kill(); }
+            }
+            catch (Exception ex) { throw ex; }
+            return RedirectToAction("Index");
         }
 
         //// GET: Billing/Details/5

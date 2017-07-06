@@ -1,154 +1,47 @@
-@model CAF.JBS.Models.BillingModel
+@model CAF.JBS.ViewModels.PolicyCycleDateVM
 
 @{
     ViewData["Title"] = "Edit";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<h2>Edit</h2>
+<h2></h2>
+<h4>Edit Polis <b>(@Model.policy_no)</b></h4>
 
+<table class="table table-bordered">
+    <tr>
+        <td>Polis No</td> <td>@Model.policy_no</td>
+        <td>Reguler Premium</td> <td>@Model.regular_premium</td>
+    </tr>
+    <tr>
+        <td>Holder</td> <td>@Model.HolderName</td>
+        <td>Status</td><td>@Model.Status</td>
+    </tr>
+    <tr>
+        <td>Product</td><td>@Model.product_Name</td>
+        <td>Payment Method</td><td>@Model.payment_method</td>
+    </tr>
+    <tr>
+        <td>Commence Date</td><td>@Model.commence_dt.ToString("dd MMM yyyy")</td>
+        <td>Payment Frequency</td><td>@Model.premium_mode Month</td>
+    </tr>
+</table>
 <form asp-action="Edit">
     <div class="form-horizontal">
-        <h4>BillingModel</h4>
         <hr />
         <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-    <input type="hidden" asp-for="BillingID" />
+    <input type="hidden" asp-for="policy_Id" />
         <div class="form-group">
-            <label asp-for="policy_id" class="col-md-2 control-label"></label>
+            <label asp-for="cycleDate" class="col-md-2 control-label">Cycle Date</label>
             <div class="col-md-10">
-                <input asp-for="policy_id" class="form-control" />
-                <span asp-validation-for="policy_id" class="text-danger"></span>
+                <input asp-for="cycleDate" class="form-control" style="width:70px;"/>
+                <span asp-validation-for="cycleDate" class="text-danger"></span>
             </div>
         </div>
-        <div class="form-group">
-            <label asp-for="recurring_seq" class="col-md-2 control-label"></label>
-            <div class="col-md-10">
-                <input asp-for="recurring_seq" class="form-control" />
-                <span asp-validation-for="recurring_seq" class="text-danger"></span>
-            </div>
-        </div>
-        <div class="form-group">
-            <label asp-for="BillingDate" class="col-md-2 control-label"></label>
-            <div class="col-md-10">
-                <input asp-for="BillingDate" class="form-control" />
-                <span asp-validation-for="BillingDate" class="text-danger"></span>
-            </div>
-        </div>
-        <div class="form-group">
-            <label asp-for="due_date_pre" class="col-md-2 control-label"></label>
-            <div class="col-md-10">
-                <input asp-for="due_date_pre" class="form-control" />
-                <span asp-validation-for="due_date_pre" class="text-danger"></span>
-            </div>
-        </div>
-        <div class="form-group">
-            <label asp-for="PeriodeBilling" class="col-md-2 control-label"></label>
-            <div class="col-md-10">
-                <input asp-for="PeriodeBilling" class="form-control" />
-                <span asp-validation-for="PeriodeBilling" class="text-danger"></span>
-            </div>
-        </div>
-        <div class="form-group">
-            <label asp-for="BillingType" class="col-md-2 control-label"></label>
-            <div class="col-md-10">
-                <input asp-for="BillingType" class="form-control" />
-                <span asp-validation-for="BillingType" class="text-danger"></span>
-            </div>
-        </div>
-        <div class="form-group">
-            <label asp-for="policy_regular_premium" class="col-md-2 control-label"></label>
-            <div class="col-md-10">
-                <input asp-for="policy_regular_premium" class="form-control" />
-                <span asp-validation-for="policy_regular_premium" class="text-danger"></span>
-            </div>
-        </div>
-        <div class="form-group">
-            <label asp-for="DISC_REGULAR_PREMIUM" class="col-md-2 control-label"></label>
-            <div class="col-md-10">
-                <input asp-for="DISC_REGULAR_PREMIUM" class="form-control" />
-                <span asp-validation-for="DISC_REGULAR_PREMIUM" class="text-danger"></span>
-            </div>
-        </div>
-        <div class="form-group">
-            <label asp-for="DISC_REGULAR_PREMIUM_PCT_Amount" class="col-md-2 control-label"></label>
-            <div class="col-md-10">
-                <input asp-for="DISC_REGULAR_PREMIUM_PCT_Amount" class="form-control" />
-                <span asp-validation-for="DISC_REGULAR_PREMIUM_PCT_Amount" class="text-danger"></span>
-            </div>
-        </div>
-        <div class="form-group">
-            <label asp-for="TotalAmount" class="col-md-2 control-label"></label>
-            <div class="col-md-10">
-                <input asp-for="TotalAmount" class="form-control" />
-                <span asp-validation-for="TotalAmount" class="text-danger"></span>
-            </div>
-        </div>
-        <div class="form-group">
-            <label asp-for="statusBilling" class="col-md-2 control-label"></label>
-            <div class="col-md-10">
-                <input asp-for="statusBilling" class="form-control" />
-                <span asp-validation-for="statusBilling" class="text-danger"></span>
-            </div>
-        </div>
-        <div class="form-group">
-            <label asp-for="IsDownload" class="col-md-2 control-label"></label>
-            <div class="col-md-10">
-                <input asp-for="IsDownload" class="form-control" />
-                <span asp-validation-for="IsDownload" class="text-danger"></span>
-            </div>
-        </div>
-        <div class="form-group">
-            <label asp-for="DownloadDate" class="col-md-2 control-label"></label>
-            <div class="col-md-10">
-                <input asp-for="DownloadDate" class="form-control" />
-                <span asp-validation-for="DownloadDate" class="text-danger"></span>
-            </div>
-        </div>
-        <div class="form-group">
-            <label asp-for="ReceiptID" class="col-md-2 control-label"></label>
-            <div class="col-md-10">
-                <input asp-for="ReceiptID" class="form-control" />
-                <span asp-validation-for="ReceiptID" class="text-danger"></span>
-            </div>
-        </div>
-        <div class="form-group">
-            <label asp-for="PaymentTransactionID" class="col-md-2 control-label"></label>
-            <div class="col-md-10">
-                <input asp-for="PaymentTransactionID" class="form-control" />
-                <span asp-validation-for="PaymentTransactionID" class="text-danger"></span>
-            </div>
-        </div>
-        <div class="form-group">
-            <label asp-for="UserCrt" class="col-md-2 control-label"></label>
-            <div class="col-md-10">
-                <input asp-for="UserCrt" class="form-control" />
-                <span asp-validation-for="UserCrt" class="text-danger"></span>
-            </div>
-        </div>
-        <div class="form-group">
-            <label asp-for="DateCrt" class="col-md-2 control-label"></label>
-            <div class="col-md-10">
-                <input asp-for="DateCrt" class="form-control" />
-                <span asp-validation-for="DateCrt" class="text-danger"></span>
-            </div>
-        </div>
-        <div class="form-group">
-            <label asp-for="UserUpdate" class="col-md-2 control-label"></label>
-            <div class="col-md-10">
-                <input asp-for="UserUpdate" class="form-control" />
-                <span asp-validation-for="UserUpdate" class="text-danger"></span>
-            </div>
-        </div>
-        <div class="form-group">
-            <label asp-for="DateUpdate" class="col-md-2 control-label"></label>
-            <div class="col-md-10">
-                <input asp-for="DateUpdate" class="form-control" />
-                <span asp-validation-for="DateUpdate" class="text-danger"></span>
-            </div>
-        </div>
+
         <div class="form-group">
             <div class="col-md-offset-2 col-md-10">
-                <input type="submit" value="Save" class="btn btn-default" />
+                <input type="submit" value="Save" class="btn btn-primary" />
             </div>
         </div>
     </div>

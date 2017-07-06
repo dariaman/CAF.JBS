@@ -12,6 +12,7 @@
 </style>
 <h2>Billing</h2>
 
+<input type="button" value="Sync Data" class="btn btn-success" onclick="location.href='@Url.Action("SyncData", "Billing")'" />
 
 @(Html
     .Grid(Model)
@@ -20,14 +21,15 @@
         columns.Add(model => model.BillingID).Titled("BillingID");
         //columns.Add(model => model.policy_id).Titled("PolicyID");
         columns.Add(model => model.PolicyNo).Titled("PolicyNo");
-        columns.Add(model => model.recurring_seq).Titled("Recurring Seq");
+        columns.Add(model => model.recurring_seq).Titled("Seq");
         columns.Add(model => model.BillingDate).Titled("BillingDate").Formatted("{0:dd-MM-yyyy}").Css("colDate");
         columns.Add(model => model.due_dt_pre).Titled("Due Date Pre").Formatted("{0:dd-MM-yyyy}").Css("colDate");
-        columns.Add(model => model.PeriodeBilling).Titled("PeriodeBilling");
+        columns.Add(model => model.PeriodeBilling).Titled("Periode");
         //columns.Add(model => model.BillingType).Titled("BillingType");
-        columns.Add(model => model.policy_regular_premium).Titled("Regular Premium");
-        columns.Add(model => model.status_billing).Titled("StatusBilling");
+        columns.Add(model => model.policy_regular_premium).Titled("Premi");
         columns.Add(model => model.IsDownload).Titled("IsDownload");
+        columns.Add(model => model.IsPending).Titled("IsPending");
+        columns.Add(model => model.IsClosed).Titled("IsClosed");
         columns.Add(model => model.BankIdDownload).Titled("BankIdDownload");
         columns.Add(model => model.ReceiptID).Titled("ReceiptID");
     }).Empty("No data found")

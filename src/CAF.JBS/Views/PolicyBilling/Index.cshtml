@@ -24,7 +24,7 @@
         //columns.Add(model => model.EmailHolder).Titled("EmailHolder");
         //columns.Add(model => model.regular_premium).Titled("RegularPremium");
         //columns.Add(model => model.Policy_status).Titled("StatusPolis");
-        //columns.Add(model => model.cc_no).Titled("CC No");
+        columns.Add(model => model.cycleDate).Titled("Cycle Date");
         //columns.Add(model => model.cc_acquirer_bank_id).Titled("CC BankId");
         //columns.Add(model => model.cc_expiry).Titled("cc_expiry");
         //columns.Add(model => model.cc_name).Titled("cc_name");
@@ -42,9 +42,7 @@
         //columns.Add(model => model.last_receipt_date).Titled("LastReceiptDate").Formatted("{0: dd-MM-yyyy}");
         //columns.Add(model => model.last_acquirer_bank_id).Titled("LastAcquirerBankID");
         columns.Add(model => model.IsHoldBilling).Titled("IsHold");
-        //columns.Add(model => "<a class='glyphicon glyphicon-pencil' href='./BillingHold/Edit/" + model.policy_Id + "'>" +
-        //                    "</a>  <a class='glyphicon glyphicon-trash' href='./BillingHold/Delete/" + model.policy_Id + "'></a>")
-        //.Encoded(false).Filterable(false);
+        columns.Add(model => "<a class='glyphicon glyphicon-pencil' href='./PolicyBilling/Edit/" + model.policy_Id + "'></a>").Encoded(false).Filterable(false);
     }).Empty("No data found")
     .Pageable(pager =>
     {

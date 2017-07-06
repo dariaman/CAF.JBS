@@ -178,6 +178,7 @@ namespace CAF.JBS.Controllers
              * 2. Mandiri
              * 3. Mega
              * 4. Bank Lain
+             * BCA harus paling atas, karena pengaruh untuk produk Flexy Link
             */
 
             //if (ModelState.IsValid) { /*return RedirectToAction("Index"); */ }
@@ -203,13 +204,13 @@ namespace CAF.JBS.Controllers
                 }
                 else if (dw.BcaCC && dw.MandiriCC && !(dw.MegaCC || dw.BniCC))
                 {   // jika dipilih BCA dan Mandiri
-                    GenMandiriCCFile(); // Mandiri 2
                     GenBcaCCFile(2); // BCA 1 3 4 (<> 2)
+                    GenMandiriCCFile(); // Mandiri 2
                 }
                 else if (dw.BcaCC && dw.MegaCC && !(dw.MandiriCC || dw.BniCC))
                 {   // jika dipilih BCA dan Mega
-                    GenMegaOnUsCCFile(); // MegaOn 3
                     GenBcaCCFile(1); // BCA 1 
+                    GenMegaOnUsCCFile(); // MegaOn 3
                     GenMegaOffUsCCFile(1); // MegaOff 2 4 (<> 1 3)
                 }
                 else if (dw.MandiriCC && dw.MegaCC && !(dw.BcaCC || dw.BniCC))
@@ -230,15 +231,15 @@ namespace CAF.JBS.Controllers
                 }
                 else if (dw.BcaCC && dw.MandiriCC && dw.MegaCC && !dw.BniCC)
                 {   // jika dipilih BCA,Mandiri dan Mega                    
-                    GenMegaOnUsCCFile(); // MegaOn 3
                     GenBcaCCFile(1); // BCA 1
+                    GenMegaOnUsCCFile(); // MegaOn 3
                     GenMegaOffUsCCFile(2); // MegaOff 4 (<> 1,2,3)
                     GenMandiriCCFile(); // Mandiri 2
                 }
                 else if (dw.BcaCC && dw.MandiriCC && dw.BniCC && !dw.MegaCC)
                 {   // jika dipilih BCA,Mandiri dan BNI
+                    GenBcaCCFile(1); // BCA 1
                     GenMandiriCCFile(); // Mandiri 2
-                    GenBcaCCFile(1); // BCA 1                    
                     GenBniCCFile(3); //BNI 3 4 (<> 1,2)
                 }
             }

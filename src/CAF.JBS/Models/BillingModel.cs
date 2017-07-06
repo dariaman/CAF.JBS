@@ -23,7 +23,9 @@ namespace CAF.JBS.Models
         public string status_billing { get; set; }
         public DateTime status_billing_dateUpdate { get; set; }
         public DateTime paid_date { get; set; }
-        public Boolean IsDownload { get; set; }
+        public bool IsDownload { get; set; }
+        public bool IsPending { get; set; }
+        public bool IsClosed { get; set; }
         public string Source_download { get; set; }
         public int BankIdDownload { get; set; }
         public int ReceiptID { get; set; }

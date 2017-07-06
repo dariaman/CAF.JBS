@@ -17,11 +17,11 @@ namespace CAF.JBS.Models
         public decimal regular_premium { get; set; }
         public int cycleDate { get; set; }
         public string Policy_status { get; set; }
-        public DateTime Policy_status_dateupdate { get; set; }
+        public Nullable<DateTime> Policy_status_dateupdate { get; set; }
         public Boolean IsHoldBilling { get; set; }
         public string UserCrt { get; set; }
         public DateTime DateCrt { get; set; }
         public string UserUpdate { get; set; }
-        public DateTime DateUpdate { get; set; }
+        public Nullable<DateTime> DateUpdate { get; set; }
     }
 }

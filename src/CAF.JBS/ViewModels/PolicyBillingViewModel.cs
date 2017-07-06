@@ -43,8 +43,6 @@ namespace CAF.JBS.ViewModels
         public string UserCrt { get; set; }
         public DateTime DateCrt { get; set; }
         public string UserUpdate { get; set; }
-        public DateTime DateUpdate { get; set; }
-
-        
+        public Nullable<DateTime> DateUpdate { get; set; }
     }
 }
