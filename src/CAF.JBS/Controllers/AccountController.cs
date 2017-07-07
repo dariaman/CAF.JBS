@@ -23,13 +23,17 @@ namespace CAF.JBS.Controllers
         private readonly ISmsSender _smsSender;
         private readonly ILogger _logger;
 
+        private readonly IAuthenticationService _authService;
+
         public AccountController(
             UserManager<ApplicationUser> userManager,
             SignInManager<ApplicationUser> signInManager,
             IEmailSender emailSender,
             ISmsSender smsSender,
-            ILoggerFactory loggerFactory)
+            ILoggerFactory loggerFactory,
+            IAuthenticationService authService)
         {
+            _authService = authService;
             _userManager = userManager;
             _signInManager = signInManager;
             _emailSender = emailSender;
@@ -57,6 +61,30 @@ namespace CAF.JBS.Controllers
             ViewData["ReturnUrl"] = returnUrl;
             if (ModelState.IsValid)
             {
+                try
+                {
+                    var user = _authService.Login(model.Email, model.Password);
+                    if (null != user)
+                    {
+                        var userClaims = new List<Claim>
+                    {
+                        new Claim("displayName", user.DisplayName),
+                        new Claim("username", user.Username)
+                    };
+                        if (user.IsAdmin)
+                        {
+                            userClaims.Add(new Claim(ClaimTypes.Role, "Admins"));
+                        }
+                        var principal = new ClaimsPrincipal(new ClaimsIdentity(userClaims, _authService.GetType().Name));
+                        await HttpContext.Authentication.SignInAsync("app", principal);
+                        return Redirect("/");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    ModelState.AddModelError(string.Empty, ex.Message);
+                }
+
                 // This doesn't count login failures towards account lockout
                 // To enable password failures to trigger account lockout, set lockoutOnFailure: true
                 var result = await _signInManager.PasswordSignInAsync(model.Email, model.Password, model.RememberMe, lockoutOnFailure: false);
@@ -130,6 +158,7 @@ namespace CAF.JBS.Controllers
         // POST: /Account/LogOff
         [HttpPost]
         [ValidateAntiForgeryToken]
+        //[Authorize(Roles = UserRoles.Everyone)]
         public async Task<IActionResult> LogOff()
         {
             await _signInManager.SignOutAsync();

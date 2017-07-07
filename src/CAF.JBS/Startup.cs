@@ -17,6 +17,7 @@ using CAF.JBS.Services;
 using NonFactors.Mvc.Grid;
 using System.Reflection;
 using MySQL.Data.Entity.Extensions;
+using CAF.JBS.Auth;
 
 namespace CAF.JBS
 {
@@ -44,6 +45,8 @@ namespace CAF.JBS
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.Configure<LdapConfig>(Configuration.GetSection("ldap"));
+            services.AddScoped<IAuthenticationService, LdapAuthenticationService>();
             // Add framework services.
             //services.AddApplicationInsightsTelemetry(Configuration);
 
