@@ -30,11 +30,12 @@ namespace CAF.JBS
                 .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
                 .AddJsonFile($"appsettings.{env.EnvironmentName}.json", optional: true);
 
-            if (env.IsDevelopment())
-            {
+            //if (env.IsDevelopment())
+            //{
                 builder.AddUserSecrets("dariaman46@");
-                //builder.AddApplicationInsightsSettings(developerMode: true);
-            }
+            //builder.AddApplicationInsightsSettings(developerMode: true);
+            //}
+            //app.UseExceptionHandler("Home/Error");
 
             builder.AddEnvironmentVariables();
             Configuration = builder.Build();
@@ -95,20 +96,21 @@ namespace CAF.JBS
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
         {
+
             app.UseSession();
             loggerFactory.AddConsole(Configuration.GetSection("Logging"));
             loggerFactory.AddDebug();
 
-            if (env.IsDevelopment())
-            {
-                app.UseDeveloperExceptionPage();
-                app.UseDatabaseErrorPage();
-                app.UseBrowserLink();
-            }
-            else
-            {
-                app.UseExceptionHandler("/Home/Error");
-            }
+            //if (env.IsDevelopment())
+            //{
+            //    app.UseDeveloperExceptionPage();
+            //    app.UseDatabaseErrorPage();
+            //    app.UseBrowserLink();
+            //}
+            //else
+            //{
+            app.UseExceptionHandler("/Home/Error");
+            //}
 
             app.UseStaticFiles();
             app.UseIdentity();
