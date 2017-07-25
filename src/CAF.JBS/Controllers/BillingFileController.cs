@@ -1129,7 +1129,7 @@ namespace CAF.JBS.Controllers
                     tbank.BillAmount = lst.amount;
                     tbank.ApprovalCode = lst.ApprovalCode;
                     tbank.deskripsi = lst.Description;
-                    //tbank.accNo=lst.
+                    tbank.accNo = lst.ACCno;
 
                     cmdx.OpenConnection(); cmdx.BeginTransaction();
                     cmdx2.OpenConnection(); cmdx2.BeginTransaction();
@@ -1831,8 +1831,7 @@ namespace CAF.JBS.Controllers
             var cmd = _jbsDB.Database.GetDbConnection().CreateCommand();
             cmd.Parameters.Clear();
             cmd.CommandType = CommandType.Text;
-            cmd.CommandText = @"DELETE FROM `stagingupload`;
-                                ALTER TABLE `stagingupload` AUTO_INCREMENT = 1;";
+            cmd.CommandText = @"DELETE FROM `stagingupload`;";
             try
             {
                 _jbsDB.Database.OpenConnection();
@@ -1953,7 +1952,8 @@ namespace CAF.JBS.Controllers
                             var polisTran = (billcode=="B") ? policyNo : ((billcode == "A") ? BillOthers : Billqoute.ToString());
                             try
                             {
-                                InsertStagingTable(polisTran, billcode, trandate, fileamount, isApprove, approvalCode, TranDesc, UploadBill.TranCode, xFileName, accNo);
+                                var baris ="0000" + row.ToString();
+                                InsertStagingTable(Convert.ToInt32(sht.ToString() + baris.Substring(baris.Length-5)),polisTran, billcode, trandate, fileamount, isApprove, approvalCode, TranDesc, UploadBill.TranCode, xFileName, accNo);
                             }
                             catch(Exception ex)
                             {
@@ -2559,13 +2559,14 @@ namespace CAF.JBS.Controllers
             } // end using (var reader = new StreamReader(UploadBill.FileBill.OpenReadStream()))
         }
 
-        private void InsertStagingTable(string polisno,string billcode,DateTime? tgl,decimal amount,Boolean isSukses,
+        private void InsertStagingTable(int id, string polisno,string billcode,DateTime? tgl,decimal amount,Boolean isSukses,
             string appcode,string desc, string trancode, string filename, string accNo)
         {
             var cmd = _jbsDB.Database.GetDbConnection().CreateCommand();
             cmd.Parameters.Clear();
             cmd.CommandType = CommandType.StoredProcedure;
             cmd.CommandText = @"InsertStagingUpload";
+            cmd.Parameters.Add(new MySqlParameter("@id", MySqlDbType.Int32) { Value = id });
             cmd.Parameters.Add(new MySqlParameter("@polis", MySqlDbType.VarChar) { Value = polisno });
             cmd.Parameters.Add(new MySqlParameter("@billCode", MySqlDbType.VarChar) { Value = billcode });
             cmd.Parameters.Add(new MySqlParameter("@tgl", MySqlDbType.DateTime) { Value = tgl });
@@ -2603,12 +2604,13 @@ namespace CAF.JBS.Controllers
             cm.Parameters.Add(new MySqlParameter("@TranDate", MySqlDbType.VarChar) { Value = tb.TranDate });
             cm.Parameters.Add(new MySqlParameter("@IsApprove", MySqlDbType.Bit) { Value = tb.IsSuccess });
             cm.Parameters.Add(new MySqlParameter("@policyID", MySqlDbType.Int32) { Value = tb.PolicyId});
-            cm.Parameters.Add(new MySqlParameter("@Seq", MySqlDbType.VarChar) { Value = tb.ReqSeq });
             cm.Parameters.Add(new MySqlParameter("@IDBill", MySqlDbType.VarChar) { Value = tb.BillingID});
             cm.Parameters.Add(new MySqlParameter("@amount", MySqlDbType.Decimal) { Value = tb.BillAmount });
             cm.Parameters.Add(new MySqlParameter("@approvalCode", MySqlDbType.VarChar) { Value = tb.ApprovalCode });
             cm.Parameters.Add(new MySqlParameter("@ErrCode", MySqlDbType.VarChar) { Value = tb.deskripsi });
-            return (int)cm.ExecuteScalar();
+            cm.Parameters.Add(new MySqlParameter("@AccNo", MySqlDbType.VarChar) { Value = tb.accNo });
+            var hasil = (int)cm.ExecuteScalar();
+            return hasil;
 
         }
     }
