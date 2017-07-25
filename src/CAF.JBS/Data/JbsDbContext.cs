@@ -29,6 +29,9 @@ namespace CAF.JBS.Data
             builder.Entity<PolicyLastTrans>().ToTable("policy_last_trans");
             builder.Entity<BillingSummary>().ToTable("billing_download_summary");
             builder.Entity<Product>().ToTable("product");
+
+            builder.Entity<StagingUpload>().ToTable("stagingupload");
+            builder.Entity<StagingUpload>().HasKey(c => new { c.Billid, c.PolicyId});
             //builder.Entity<LogErrorUploadResult>().ToTable("log_error_upload_result");
         }
 
@@ -45,6 +48,7 @@ namespace CAF.JBS.Data
         public DbSet<PolicyLastTrans> PolicyLastTrans { get; set; }
         public DbSet<BillingSummary> BillingSummary { get; set; }
         public DbSet<Product> Product { get; set; }
+        public DbSet<StagingUpload> StagingUpload { get; set; }
         //public DbSet<LogErrorUploadResult> LogErrorUploadResult { get; set; }
     }
 }

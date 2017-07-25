@@ -43,13 +43,33 @@
                     }
                 }
             }
+            @{
+                if (TempData["terimaError"] != null)
+                {
+                    var pesan = (string)TempData["terimaError"];
+                        @pesan <br />
+                }
+            }
+        </p>
+    </i>
+</b>
+<b>
+    <i>
+        <p class="text-success">
+            @{
+                if (TempData["pesanSukses"] != null)
+                {
+                    var pesanSukses = (string)TempData["pesanSukses"];
+                    @pesanSukses <br />
+                }
+            }
         </p>
     </i>
 </b>
 
 <form asp-action="Download">
     <div class="container" style="margin: auto; padding: 20px;">
-        <div class="panel panel-primary" style="margin: auto;width:900px;">
+        <div class="panel panel-primary" style="margin: auto;width:1100px;">
             <div class="panel-heading">Download Billing</div>
             <div class="panel-body">
                 <h4>Billing CC</h4>
@@ -67,9 +87,9 @@
                 <tr>
                     <td>
                         @{ if (ViewBag.BCACC == null)
-                        {
+                            {
                             <input type="checkbox" asp-for="BcaCC" />
-                        } }
+                            } }
                     BCA
                 </td>
                 <td>
@@ -81,21 +101,36 @@
                     </b>
                 </td>
                 <td>
-                    @{ if (ViewBag.BCACC != null)
-                    {
+                    @{ if (ViewBag.BCACC != null) {
                         @Html.ActionLink("Upload", "UploadResult", new { TranCode = "bcacc" });
-                    } }
+                        } }
             </td>
-            <td style="text-align:right">@Model.BillingSummary[0].rowCountDownload.Value.ToString("#,###")</td>
-            <td style="text-align:right">@Model.BillingSummary[0].AmountDownload.Value.ToString("#,###")</td>
+            <td style="text-align:right">
+                @{ if (ViewBag.BCACC != null)
+                    {
+                        <b>@Model.BillingSummary[0].TotalCountDWD.Value.ToString("#,###")</b><br>
+                        @:Recurring =  @Model.BillingSummary[0].BillingCountDWD.Value.ToString("#,###")<br>
+                        @:Others = @Model.BillingSummary[0].OthersCountDWD.Value.ToString("#,###")<br>
+                        @: Quote = @Model.BillingSummary[0].QuoteCountDWD.Value.ToString("#,###")
+                    } }
+                    </td>
+            <td style="text-align:right">
+                @{ if (ViewBag.BCACC != null)
+                    {
+                        <b>@Model.BillingSummary[0].TotalAmountDWD.Value.ToString("#,###")</b><br>
+                        @:Recurring = @Model.BillingSummary[0].BillingAmountDWD.Value.ToString("#,###")<br>
+                        @:Others = @Model.BillingSummary[0].OthersAmountDWD.Value.ToString("#,###")<br>
+                        @:Quote = @Model.BillingSummary[0].QuoteAmountDWD.Value.ToString("#,###")
+            } }
+            </td>
         </tr>
 
         <tr>
             <td>
                 @{ if (ViewBag.MandiriCC == null)
-                {
+                    {
                     <input type="checkbox" asp-for="MandiriCC" />
-                } } Mandiri
+                    } } Mandiri
         </td>
         <td>
             <b>
@@ -106,21 +141,34 @@
             </b>
         </td>
         <td>
-            @{ if (ViewBag.MandiriCC != null)
-            {
+            @{ if (ViewBag.MandiriCC != null) {
                 @Html.ActionLink("Upload", "UploadResult", new { TranCode = "mandiricc" });
+                } }
+        </td>
+        <td style="text-align:right">
+            @{ if (ViewBag.MandiriCC != null) {
+                    <b>@Model.BillingSummary[1].TotalCountDWD.Value.ToString("#,###")</b><br>
+                    @:Recurring = @Model.BillingSummary[1].BillingCountDWD.Value.ToString("#,###")<br>
+                    @:Others = @Model.BillingSummary[1].OthersCountDWD.Value.ToString("#,###")<br>
+                    @:Quote = @Model.BillingSummary[1].QuoteCountDWD.Value.ToString("#,###")
+                } }
+        </td>
+        <td style="text-align:right">
+            @{ if (ViewBag.MandiriCC != null) {
+                <b>@Model.BillingSummary[1].TotalAmountDWD.Value.ToString("#,###")</b><br>
+                @:Recurring = @Model.BillingSummary[1].BillingAmountDWD.Value.ToString("#,###")<br>
+                @:Others = @Model.BillingSummary[1].OthersAmountDWD.Value.ToString("#,###")<br>
+                @:Quote = @Model.BillingSummary[1].QuoteAmountDWD.Value.ToString("#,###")
             } }
         </td>
-        <td style="text-align:right">@Model.BillingSummary[1].rowCountDownload.Value.ToString("#,###")</td>
-        <td style="text-align:right">@Model.BillingSummary[1].AmountDownload.Value.ToString("#,###")</td>
         </tr>
 
         <tr>
             <td rowspan="2">
                 @{ if (ViewBag.MegaOnUs == null || ViewBag.MegaOfUs == null)
-                {
+                    {
                     <input type="checkbox" asp-for="MegaCC" />
-                } } Mega
+                    } } Mega
         </td>
         <td>
             <b>
@@ -132,14 +180,26 @@
             </b>
         </td>
         <td>
-            @{ if (ViewBag.MegaOnUs != null)
-                {
+            @{ if (ViewBag.MegaOnUs != null) {
                     @Html.ActionLink("Upload", "UploadResult", new { TranCode = "megaonus" });
-                }
-            }
+                } }
         </td>
-        <td style="text-align:right">@Model.BillingSummary[2].rowCountDownload.Value.ToString("#,###")</td>
-        <td style="text-align:right">@Model.BillingSummary[2].AmountDownload.Value.ToString("#,###")</td>
+            <td style="text-align:right">
+                @{ if (ViewBag.MegaOnUs != null) {
+                <b>@Model.BillingSummary[2].TotalCountDWD.Value.ToString("#,###")</b><br>
+                @:Recurring = @Model.BillingSummary[2].BillingCountDWD.Value.ToString("#,###")<br>
+                @:Others = @Model.BillingSummary[2].OthersCountDWD.Value.ToString("#,###")<br>
+                @:Quote = @Model.BillingSummary[2].QuoteCountDWD.Value.ToString("#,###")
+                } }
+            </td>
+            <td style="text-align:right">
+                @{ if (ViewBag.MegaOnUs != null) {
+                <b>@Model.BillingSummary[2].TotalAmountDWD.Value.ToString("#,###")</b><br>
+                    @:Recurring = @Model.BillingSummary[2].BillingAmountDWD.Value.ToString("#,###")<br>
+                    @:Others = @Model.BillingSummary[2].OthersAmountDWD.Value.ToString("#,###")<br>
+                    @:Quote = @Model.BillingSummary[2].QuoteAmountDWD.Value.ToString("#,###")
+                } }
+            </td>
         </tr>
         <tr>
             <td>
@@ -154,22 +214,36 @@
                 </b>
             </td>
             <td>
-                @{ if (ViewBag.MegaOfUs != null)
-                    {
+                @{ if (ViewBag.MegaOfUs != null) {
                         @Html.ActionLink("Upload", "UploadResult", new { TranCode = "megaoffus" });
                     }
                 }
             </td>
-            <td style="text-align:right">@Model.BillingSummary[3].rowCountDownload.Value.ToString("#,###")</td>
-            <td style="text-align:right">@Model.BillingSummary[3].AmountDownload.Value.ToString("#,###")</td>
+            <td style="text-align:right">
+                @{ if (ViewBag.MegaOfUs != null) {
+                <b>@Model.BillingSummary[3].TotalCountDWD.Value.ToString("#,###")</b><br>
+                        @:Recurring = @Model.BillingSummary[3].BillingCountDWD.Value.ToString("#,###")<br>
+                        @:Others = @Model.BillingSummary[3].OthersCountDWD.Value.ToString("#,###")<br>
+                            @:Quote = @Model.BillingSummary[3].QuoteCountDWD.Value.ToString("#,###")
+                                  } }
+            </td>
+            <td style="text-align:right">
+                @{ if (ViewBag.MegaOfUs != null)
+                    {
+                <b>@Model.BillingSummary[3].TotalAmountDWD.Value.ToString("#,###")</b><br>
+                @:Recurring = @Model.BillingSummary[3].BillingAmountDWD.Value.ToString("#,###")<br>
+                @:Others = @Model.BillingSummary[3].OthersAmountDWD.Value.ToString("#,###")<br>
+                @:Quote = @Model.BillingSummary[3].QuoteAmountDWD.Value.ToString("#,###")
+                } }
+            </td>
         </tr>
 
         <tr>
             <td>
                 @{ if (ViewBag.BNICC == null)
-                {
+                    {
                     <input type="checkbox" asp-for="BniCC" />
-                }
+                    }
             } BNI
         </td>
         <td>
@@ -182,13 +256,26 @@
             </b>
         </td>
         <td>
-            @{ if (ViewBag.BNICC != null)
-                {
+            @{ if (ViewBag.BNICC != null) {
                     @Html.ActionLink("Upload", "UploadResult", new { TranCode = "bnicc" });
                 } }
         </td>
-        <td style="text-align:right">@Model.BillingSummary[4].rowCountDownload.Value.ToString("#,###")</td>
-        <td style="text-align:right">@Model.BillingSummary[4].AmountDownload.Value.ToString("#,###")</td>
+            <td style="text-align:right">
+                @{ if (ViewBag.BNICC != null) {
+                <b>@Model.BillingSummary[4].TotalCountDWD.Value.ToString("#,###")</b><br>
+                @:Recurring = @Model.BillingSummary[4].BillingCountDWD.Value.ToString("#,###")<br>
+                @:Others = @Model.BillingSummary[4].OthersCountDWD.Value.ToString("#,###")<br>
+                @:Quote = @Model.BillingSummary[4].QuoteCountDWD.Value.ToString("#,###")
+                } }
+            </td>
+            <td style="text-align:right">
+                @{ if (ViewBag.BNICC != null) {
+                <b>@Model.BillingSummary[4].TotalAmountDWD.Value.ToString("#,###")</b><br>
+                @:Recurring = @Model.BillingSummary[4].BillingAmountDWD.Value.ToString("#,###")<br>
+                @:Others = @Model.BillingSummary[4].OthersAmountDWD.Value.ToString("#,###")<br>
+                @:Quote = @Model.BillingSummary[4].QuoteAmountDWD.Value.ToString("#,###")
+                } }
+            </td>
         </tr>
         </table>
 
@@ -213,20 +300,34 @@
                 <td>
                     <b>
                         @{ if (ViewBag.BcaAC != null)
-                        {
+                            {
                             @Html.ActionLink((string)ViewBag.BcaAC, "DownloadFile", new { fileName = ViewBag.BcaAC });
-                        }
+                            }
                     }
                 </b>
             </td>
             <td>
-                @{ if (ViewBag.BcaAC != null)
-                    {
+                @{ if (ViewBag.BcaAC != null) {
                         @Html.ActionLink("Upload", "UploadResult", new { TranCode = "bcaac" });
                     } }
             </td>
-            <td style="text-align:right">@Model.BillingSummary[5].rowCountDownload.Value.ToString("#,###")</td>
-            <td style="text-align:right">@Model.BillingSummary[5].AmountDownload.Value.ToString("#,###")</td>
+                <td style="text-align:right">
+                    @{ if (ViewBag.BcaAC != null)
+                        {
+                    <b>@Model.BillingSummary[5].TotalCountDWD.Value.ToString("#,###")</b><br>
+                    @:Recurring = @Model.BillingSummary[5].BillingCountDWD.Value.ToString("#,###")<br>
+                    @:Others = @Model.BillingSummary[5].OthersCountDWD.Value.ToString("#,###")<br>
+                    @:Quote = @Model.BillingSummary[5].QuoteCountDWD.Value.ToString("#,###")
+                    } }
+                </td>
+                <td style="text-align:right">
+                    @{ if (ViewBag.BcaAC != null) {
+                    <b>@Model.BillingSummary[5].TotalAmountDWD.Value.ToString("#,###")</b><br>
+                    @:Recurring = @Model.BillingSummary[5].BillingAmountDWD.Value.ToString("#,###")<br>
+                    @:Others = @Model.BillingSummary[5].OthersAmountDWD.Value.ToString("#,###")<br>
+                    @:Quote = @Model.BillingSummary[5].QuoteAmountDWD.Value.ToString("#,###")
+                    } }
+                </td>
         </tr>
         <tr>
             <td>
@@ -245,13 +346,26 @@
                 </b>
             </td>
             <td>
-                @{ if (ViewBag.MandiriAC != null)
-                {
+                @{ if (ViewBag.MandiriAC != null) {
                     @Html.ActionLink("Upload", "UploadResult", new { TranCode = "mandiriac" });
-                } }
+                    } }
         </td>
-        <td style="text-align:right">@Model.BillingSummary[6].rowCountDownload.Value.ToString("#,###")</td>
-        <td style="text-align:right">@Model.BillingSummary[6].AmountDownload.Value.ToString("#,###")</td>
+            <td style="text-align:right">
+                @{ if (ViewBag.MandiriAC != null) {
+                <b>@Model.BillingSummary[6].TotalCountDWD.Value.ToString("#,###")</b><br>
+                @:Recurring = @Model.BillingSummary[6].BillingCountDWD.Value.ToString("#,###")<br>
+                @:Others = @Model.BillingSummary[6].OthersCountDWD.Value.ToString("#,###")<br>
+                @:Quote = @Model.BillingSummary[6].QuoteCountDWD.Value.ToString("#,###")
+                } }
+            </td>
+            <td style="text-align:right">
+                @{ if (ViewBag.MandiriAC != null) {
+                <b>@Model.BillingSummary[6].TotalAmountDWD.Value.ToString("#,###")</b><br>
+                @:Recurring = @Model.BillingSummary[6].BillingAmountDWD.Value.ToString("#,###")<br>
+                @:Others = @Model.BillingSummary[6].OthersAmountDWD.Value.ToString("#,###")<br>
+                @:Quote = @Model.BillingSummary[6].QuoteAmountDWD.Value.ToString("#,###")
+                } }
+            </td>
         </tr>
         </table>
 

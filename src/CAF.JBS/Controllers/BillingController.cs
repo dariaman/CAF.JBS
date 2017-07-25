@@ -9,6 +9,8 @@ using CAF.JBS.Data;
 using CAF.JBS.Models;
 using CAF.JBS.ViewModels;
 using System.Diagnostics;
+using System.Data;
+using MySql.Data.MySqlClient;
 
 namespace CAF.JBS.Controllers
 {
@@ -54,30 +56,25 @@ namespace CAF.JBS.Controllers
 
         public IActionResult SyncData()
         {
-            //var billingModel = await 0;
-            foreach (Process proc in Process.GetProcessesByName("JBSGenExcel")) { proc.Kill(); }
+            var cmd = _context.Database.GetDbConnection().CreateCommand();
+            cmd.Parameters.Clear();
+            cmd.CommandType = CommandType.StoredProcedure;
+            cmd.CommandText = @"SycnDataBill";
 
             try
             {
-                var process = new Process();
-                process.StartInfo.FileName = ConsoleFile;
-                process.StartInfo.Arguments = @" sync /c";
-
-                process.EnableRaisingEvents = true;
-                process.StartInfo.UseShellExecute = false;
-                process.StartInfo.RedirectStandardOutput = true;
-
-                process.Start();
-                process.WaitForExit();
-
+                _context.Database.OpenConnection();
+                cmd.ExecuteNonQuery();
             }
-            catch (Exception ex) { throw ex; }
-
-            try
+            catch (Exception ex)
             {
-                foreach (Process proc in Process.GetProcessesByName("JBSGenExcel")) { proc.Kill(); }
+                throw new Exception(ex.Message);
             }
-            catch (Exception ex) { throw ex; }
+            finally
+            {
+                cmd.Dispose();
+                _context.Database.CloseConnection();
+            }
             return RedirectToAction("Index");
         }
 
