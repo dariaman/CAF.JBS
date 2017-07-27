@@ -27,18 +27,19 @@
     .Grid(Model.StagingUploadVM)
     .Build(columns =>
     {
+        columns.Add(model => model.id).Titled("ID").Filterable(false);
         columns.Add(model => model.BillCode).Titled("BillCode").Filterable(false);
         columns.Add(model => model.polisNo).Titled("PolisNo").Filterable(false);
         columns.Add(model => model.tgl).Titled("tgl").Formatted("{0: yyyy-MM-dd hh:mm:ss}").Css("coldate").Filterable(false);
         columns.Add(model => model.IsSuccess).Titled("IsSuccess").Filterable(false);
-        columns.Add(model => model.amount).Titled("Amount").Filterable(false);
+        columns.Add(model => model.amount).Titled("Amount").Formatted("{0:N0}").Filterable(false);
 
         columns.Add(model => "<a class='glyphicon glyphicon-stop'></a>").Titled("||").Encoded(false).Filterable(false);
 
         columns.Add(model => model.BillingID).Titled("BillingID").Filterable(false);
         columns.Add(model => model.ReqSeq).Titled("Seq").Filterable(false);
         columns.Add(model => model.Due_Date_Pre).Titled("Due_Date_Pre").Formatted("{0: dd MMM yyyy}").Css("coldate").Filterable(false);
-        columns.Add(model => model.billAmount).Titled("billAmount").Filterable(false);
+        columns.Add(model => model.billAmount).Titled("billAmount").Formatted("{0:N0}").Filterable(false);
     }).Empty("Data semua valid")
     .Pageable(pager =>
     {

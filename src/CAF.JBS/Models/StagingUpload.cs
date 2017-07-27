@@ -14,7 +14,8 @@ namespace CAF.JBS.Models
         public int id { get; set; }
         public string polisNo { get; set; }
         public string BillCode { get; set; }
-        public Nullable<DateTime> tgl { get; set; }
+        public Nullable<DateTime> tgl { get; set; } // utk tgl transaksi >> lebih krusial utk VA
+        public Nullable<DateTime> due_dt_pre { get; set; }
         public Decimal amount { get; set; }
         public Boolean IsSuccess { get; set; }
         public string ApprovalCode { get; set; }
@@ -22,7 +23,15 @@ namespace CAF.JBS.Models
         public string ACCno { get; set; }
         public string trancode { get; set; }
         public string filename { get; set; }
+        public int? life21TranID { get; set; } // ada isi untuk billing others
         public int? PolicyId { get; set; }
+        public int? recurring_seq { get; set; }
         public string Billid { get; set; }
+
+        // Untuk kebutuhan temporer
+        public DateTime TglSkrg { get; set; }
+        public int receipt_id { get; set; }
+        public int receipt_other_id { get; set; }
+        public int PaymentTransactionID { get; set; } // id di histori
     }
 }

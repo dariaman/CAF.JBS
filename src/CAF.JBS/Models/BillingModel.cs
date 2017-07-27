@@ -29,7 +29,8 @@ namespace CAF.JBS.Models
         public string Source_download { get; set; }
         public int BankIdDownload { get; set; }
         public int ReceiptID { get; set; }
-        public int PaymentTransactionID { get; set; }
+        public int PaymentTransactionID { get; set; } // id transaction_bank di JBS
+        public int Life21TranID { get; set; } // id CC/AC transaction di Life21
         public string UserCrt { get; set; }
         public DateTime DateCrt { get; set; }
         public string UserUpdate { get; set; }
