@@ -1038,21 +1038,7 @@ namespace CAF.JBS.Controllers
             }
 
             ////// Cek detail summary
-            cmd.CommandType = CommandType.StoredProcedure;
-            cmd.CommandText = @"CompareUploadDownload";
-            try
-            {
-                _jbsDB.Database.OpenConnection();
-                var rd = cmd.ExecuteReader();
-            }
-            catch (Exception ex)
-            {
-                throw new Exception(ex.Message);
-            }
-            finally
-            {
-                _jbsDB.Database.CloseConnection();
-            }
+            SummaryData(ref SubmitUpload);
 
             return View(SubmitUpload);
         }
@@ -2457,6 +2443,178 @@ namespace CAF.JBS.Controllers
             {
                 throw new Exception("UpdateLastTransJBS => (BillingID = " + bm.Billid.ToString() + ") " + ex.Message);
             }
+        }
+
+        private void SummaryData(ref SubmitUploadVM stg)
+        {
+            string sql = @"SELECT bd.`BillingCountDWD`,bd.`BillingAmountDWD`,bd.`OthersCountDWD`,bd.`OthersAmountDWD`,
+	                        bd.`QuoteCountDWD`,bd.`QuoteAmountDWD`,bd.`TotalCountDWD`,bd.`TotalAmountDWD`
+                        FROM `billing_download_summary` bd 
+                        WHERE bd.`trancode`=@trancode;";
+            var cmd = _jbsDB.Database.GetDbConnection().CreateCommand();
+            cmd.CommandType = CommandType.Text;
+            cmd.Parameters.Add(new MySqlParameter("@trancode", MySqlDbType.VarChar) { Value = stg.trancode });
+            cmd.CommandText = sql;
+
+            ///// Data download
+            try
+            {
+                cmd.Connection.Open();
+                using (var result = cmd.ExecuteReader())
+                {
+                    while (result.Read())
+                    {
+                        stg.BCountDw = Convert.ToInt32(result["BillingCountDWD"]);
+                        stg.BSumDw = Convert.ToDecimal(result["BillingAmountDWD"]);
+                        stg.ACountDw = Convert.ToInt32(result["OthersCountDWD"]);
+                        stg.ASumDw = Convert.ToDecimal(result["OthersAmountDWD"]);
+                        stg.QCountDw = Convert.ToInt32(result["QuoteCountDWD"]);
+                        stg.QSumDw = Convert.ToDecimal(result["QuoteAmountDWD"]);
+                        stg.TCountDownload = Convert.ToInt32(result["TotalCountDWD"]);
+                        stg.TSumDownload = Convert.ToDecimal(result["TotalAmountDWD"]);
+                    }
+                }
+            }
+            catch (Exception ex) { throw new Exception(ex.Message); }
+            finally { cmd.Connection.Close(); }
+
+            ///////// Hitung total Upload
+            sql = @"SELECT COUNT(1) AS TotalUpload,SUM(su.`amount`) AS totalAmount
+                    FROM `stagingupload` su WHERE su.`trancode`=@trancode;";
+            cmd.CommandText = sql;
+            try
+            {
+                cmd.Connection.Open();
+                using (var result = cmd.ExecuteReader())
+                {
+                    while (result.Read())
+                    {
+                        stg.CountUpload = Convert.ToInt32(result["TotalUpload"]);
+                        stg.SumUpload = Convert.ToDecimal(result["totalAmount"]);
+                    }
+                }
+            }
+            catch (Exception ex) { throw new Exception(ex.Message); }
+            finally { cmd.Connection.Close(); }
+
+            /////////// Hitung Total Upload Per BillCode
+            sql = @"SELECT su.`BillCode`, COUNT(1) AS jlhUpload, SUM(su.`amount`) AS totalAmount
+                    FROM `stagingupload` su 
+                    WHERE su.`trancode`=@trancode
+                    GROUP BY su.`BillCode`;";
+            cmd.CommandText = sql;
+            try
+            {
+                cmd.Connection.Open();
+                using (var result = cmd.ExecuteReader())
+                {
+                    while (result.Read())
+                    {
+                        if (result["BillCode"].ToString() == "A")
+                        {
+                            stg.ACountUp = Convert.ToInt32(result["jlhUpload"]);
+                            stg.ASumUp = Convert.ToDecimal(result["totalAmount"]);
+                        }else if (result["BillCode"].ToString() == "B")
+                        {
+                            stg.BCountUp = Convert.ToInt32(result["jlhUpload"]);
+                            stg.BSumUp = Convert.ToDecimal(result["totalAmount"]);
+                        }
+                        else if (result["BillCode"].ToString() == "Q")
+                        {
+                            stg.QCountUp = Convert.ToInt32(result["jlhUpload"]);
+                            stg.QSumUp = Convert.ToDecimal(result["totalAmount"]);
+                        }
+
+                    }
+                }
+            }
+            catch (Exception ex) { throw new Exception(ex.Message); }
+            finally { cmd.Connection.Close(); }
+
+            ////// Hitung Jlh Approve
+            sql = @"SELECT su.`BillCode`, COUNT(1) AS jlhUpload, SUM(su.`amount`) AS totalAmount
+                        FROM `stagingupload` su 
+                        WHERE su.`trancode`=@trancode AND su.`IsSuccess`=1
+                        GROUP BY su.`BillCode`;";
+            cmd.CommandText = sql;
+            try
+            {
+                cmd.Connection.Open();
+                using (var result = cmd.ExecuteReader())
+                {
+                    while (result.Read())
+                    {
+                        if (result["BillCode"].ToString() == "A")
+                        {
+                            stg.ACountUpAp = Convert.ToInt32(result["jlhUpload"]);
+                            stg.ASumUpAp = Convert.ToDecimal(result["totalAmount"]);
+                        }
+                        else if (result["BillCode"].ToString() == "B")
+                        {
+                            stg.BCountUpAp = Convert.ToInt32(result["jlhUpload"]);
+                            stg.BSumUpAp = Convert.ToDecimal(result["totalAmount"]);
+                        }
+                        else if (result["BillCode"].ToString() == "Q")
+                        {
+                            stg.QCountUpAp = Convert.ToInt32(result["jlhUpload"]);
+                            stg.QSumUpAp = Convert.ToDecimal(result["totalAmount"]);
+                        }
+
+                    }
+                }
+            }
+            catch (Exception ex) { throw new Exception(ex.Message); }
+            finally { cmd.Connection.Close(); }
+
+            ////// Hitung Jlh Reject
+            sql = @"SELECT su.`BillCode`, COUNT(1) AS jlhUpload, SUM(su.`amount`) AS totalAmount
+                        FROM `stagingupload` su 
+                        WHERE su.`trancode`=@trancode AND su.`IsSuccess`=0
+                        GROUP BY su.`BillCode`;";
+            cmd.CommandText = sql;
+            try
+            {
+                cmd.Connection.Open();
+                using (var result = cmd.ExecuteReader())
+                {
+                    while (result.Read())
+                    {
+                        if (result["BillCode"].ToString() == "A")
+                        {
+                            stg.ACountUpRj = Convert.ToInt32(result["jlhUpload"]);
+                            stg.ASumUpRj = Convert.ToDecimal(result["totalAmount"]);
+                        }
+                        else if (result["BillCode"].ToString() == "B")
+                        {
+                            stg.BCountUpRj = Convert.ToInt32(result["jlhUpload"]);
+                            stg.BSumUpRj = Convert.ToDecimal(result["totalAmount"]);
+                        }
+                        else if (result["BillCode"].ToString() == "Q")
+                        {
+                            stg.QCountUpRj = Convert.ToInt32(result["jlhUpload"]);
+                            stg.QSumUpRj = Convert.ToDecimal(result["totalAmount"]);
+                        }
+
+                    }
+                }
+            }
+            catch (Exception ex) { throw new Exception(ex.Message); }
+            finally { cmd.Connection.Close(); }
+
+
+            //try
+            //{
+            //    cmd.Connection.Open();
+            //}
+            //catch (Exception ex)
+            //{
+            //    throw new Exception(ex.Message);
+            //}
+            //finally
+            //{
+            //    cmd.Connection.Close();
+            //}
+
         }
     }
 }
