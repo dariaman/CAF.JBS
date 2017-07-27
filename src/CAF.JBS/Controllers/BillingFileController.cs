@@ -2489,8 +2489,8 @@ namespace CAF.JBS.Controllers
                 {
                     while (result.Read())
                     {
-                        stg.CountUpload = Convert.ToInt32(result["TotalUpload"]);
-                        stg.SumUpload = Convert.ToDecimal(result["totalAmount"]);
+                        stg.CountUpload = (result["TotalUpload"] == DBNull.Value) ?0:Convert.ToInt32(result["TotalUpload"]);
+                        stg.SumUpload = (result["totalAmount"] == DBNull.Value) ? 0 : Convert.ToDecimal(result["totalAmount"]);
                     }
                 }
             }
@@ -2512,17 +2512,17 @@ namespace CAF.JBS.Controllers
                     {
                         if (result["BillCode"].ToString() == "A")
                         {
-                            stg.ACountUp = Convert.ToInt32(result["jlhUpload"]);
-                            stg.ASumUp = Convert.ToDecimal(result["totalAmount"]);
+                            stg.ACountUp = (result["jlhUpload"] == DBNull.Value) ? 0 : Convert.ToInt32(result["jlhUpload"]);
+                            stg.ASumUp = (result["totalAmount"] == DBNull.Value) ? 0 : Convert.ToDecimal(result["totalAmount"]);
                         }else if (result["BillCode"].ToString() == "B")
                         {
-                            stg.BCountUp = Convert.ToInt32(result["jlhUpload"]);
-                            stg.BSumUp = Convert.ToDecimal(result["totalAmount"]);
+                            stg.BCountUp = (result["jlhUpload"] == DBNull.Value) ? 0 : Convert.ToInt32(result["jlhUpload"]);
+                            stg.BSumUp = (result["totalAmount"] == DBNull.Value) ? 0 : Convert.ToDecimal(result["totalAmount"]);
                         }
                         else if (result["BillCode"].ToString() == "Q")
                         {
-                            stg.QCountUp = Convert.ToInt32(result["jlhUpload"]);
-                            stg.QSumUp = Convert.ToDecimal(result["totalAmount"]);
+                            stg.QCountUp = (result["jlhUpload"] == DBNull.Value) ? 0 : Convert.ToInt32(result["jlhUpload"]);
+                            stg.QSumUp = (result["totalAmount"] == DBNull.Value) ? 0 : Convert.ToDecimal(result["totalAmount"]);
                         }
 
                     }
@@ -2546,18 +2546,18 @@ namespace CAF.JBS.Controllers
                     {
                         if (result["BillCode"].ToString() == "A")
                         {
-                            stg.ACountUpAp = Convert.ToInt32(result["jlhUpload"]);
-                            stg.ASumUpAp = Convert.ToDecimal(result["totalAmount"]);
+                            stg.ACountUpAp = (result["jlhUpload"] == DBNull.Value) ? 0 : Convert.ToInt32(result["jlhUpload"]);
+                            stg.ASumUpAp = (result["totalAmount"] == DBNull.Value) ? 0 : Convert.ToDecimal(result["totalAmount"]);
                         }
                         else if (result["BillCode"].ToString() == "B")
                         {
-                            stg.BCountUpAp = Convert.ToInt32(result["jlhUpload"]);
-                            stg.BSumUpAp = Convert.ToDecimal(result["totalAmount"]);
+                            stg.BCountUpAp = (result["jlhUpload"] == DBNull.Value) ? 0 : Convert.ToInt32(result["jlhUpload"]);
+                            stg.BSumUpAp = (result["totalAmount"] == DBNull.Value) ? 0 : Convert.ToDecimal(result["totalAmount"]);
                         }
                         else if (result["BillCode"].ToString() == "Q")
                         {
-                            stg.QCountUpAp = Convert.ToInt32(result["jlhUpload"]);
-                            stg.QSumUpAp = Convert.ToDecimal(result["totalAmount"]);
+                            stg.QCountUpAp = (result["jlhUpload"] == DBNull.Value) ? 0 : Convert.ToInt32(result["jlhUpload"]);
+                            stg.QSumUpAp = (result["totalAmount"] == DBNull.Value) ? 0 : Convert.ToDecimal(result["totalAmount"]);
                         }
 
                     }
@@ -2581,18 +2581,18 @@ namespace CAF.JBS.Controllers
                     {
                         if (result["BillCode"].ToString() == "A")
                         {
-                            stg.ACountUpRj = Convert.ToInt32(result["jlhUpload"]);
-                            stg.ASumUpRj = Convert.ToDecimal(result["totalAmount"]);
+                            stg.ACountUpRj = (result["jlhUpload"] == DBNull.Value) ? 0 : Convert.ToInt32(result["jlhUpload"]);
+                            stg.ASumUpRj = (result["totalAmount"] == DBNull.Value) ? 0 : Convert.ToDecimal(result["totalAmount"]);
                         }
                         else if (result["BillCode"].ToString() == "B")
                         {
-                            stg.BCountUpRj = Convert.ToInt32(result["jlhUpload"]);
-                            stg.BSumUpRj = Convert.ToDecimal(result["totalAmount"]);
+                            stg.BCountUpRj = (result["jlhUpload"] == DBNull.Value) ? 0 : Convert.ToInt32(result["jlhUpload"]);
+                            stg.BSumUpRj = (result["totalAmount"] == DBNull.Value) ? 0 : Convert.ToDecimal(result["totalAmount"]);
                         }
                         else if (result["BillCode"].ToString() == "Q")
                         {
-                            stg.QCountUpRj = Convert.ToInt32(result["jlhUpload"]);
-                            stg.QSumUpRj = Convert.ToDecimal(result["totalAmount"]);
+                            stg.QCountUpRj = (result["jlhUpload"] == DBNull.Value) ? 0 : Convert.ToInt32(result["jlhUpload"]);
+                            stg.QSumUpRj = (result["totalAmount"] == DBNull.Value) ? 0 : Convert.ToDecimal(result["totalAmount"]);
                         }
 
                     }

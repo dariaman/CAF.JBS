@@ -22,8 +22,62 @@
     </i>
 </b>
 
+<table class="table table-bordered table-striped">
+    <thead>
+        <tr>
+            <th class="bg-primary" colspan="3">Data Download</th>
+            <th class="bg-primary" colspan="3">Data Upload</th>
+        </tr>
+        <tr>
+            <th class="bg-success">Jenis Tagihan</th>
+            <th>Jumlah Data</th>
+            <th>Total Nilai</th>
 
-@(Html
+            <th class="bg-success">Jenis Tagihan</th>
+            <th>Jumlah Data</th>
+            <th>Total Nilai</th>
+        </tr>
+        <tr>
+            <td class="bg-success">Total</td>
+            <td>@Model.TCountDownload</td>
+            <td>@Model.TSumDownload</td>
+
+            <td class="bg-success">Total</td>
+            <td>@Model.CountUpload</td>
+            <td>@Model.SumUpload</td>
+        </tr>
+        <tr>
+            <td class="bg-success">Recurring</td>
+            <td>@Model.BCountDw</td>
+            <td>@Model.BSumDw</td>
+
+            <td class="bg-success">Recurring</td>
+            <td>@Model.BCountDw</td>
+            <td>@Model.BSumDw</td>
+        </tr>
+        <tr>
+            <td class="bg-success">Billing Others</td>
+            <td>@Model.ACountDw</td>
+            <td>@Model.ASumDw</td>
+
+            <td class="bg-success">Billing Others</td>
+            <td>@Model.ASumUp</td>
+            <td>@Model.ASumUp</td>
+        </tr>
+        <tr>
+            <td class="bg-success">Quote</td>
+            <td>@Model.QCountUp</td>
+            <td>@Model.QSumUp</td>
+
+            <td class="bg-success">Quote</td>
+            <td>@Model.QCountUp</td>
+            <td>@Model.QSumUp</td>
+        </tr>
+    </thead>
+</table>
+
+
+    @(Html
     .Grid(Model.StagingUploadVM)
     .Build(columns =>
     {
@@ -49,9 +103,9 @@
     .Sortable()
     .Filterable()
     .Css("table-hover")
-)
-<form asp-action="SubmitUpload">
-    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-    <input type="hidden" asp-for="trancode" />
-    <input type="submit" value="Submit" class="btn btn-success" />
-</form>
+    )
+    <form asp-action="SubmitUpload">
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+        <input type="hidden" asp-for="trancode" />
+        <input type="submit" value="Submit" class="btn btn-success" />
+    </form>
