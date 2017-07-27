@@ -2497,7 +2497,45 @@ namespace CAF.JBS.Controllers
             catch (Exception ex) { throw new Exception(ex.Message); }
             finally { cmd.Connection.Close(); }
 
-            /////////// Hitung Total Upload Per BillCode
+            ///////// Hitung total Approve
+            sql = @"SELECT COUNT(1) AS TotalUpload,SUM(su.`amount`) AS totalAmount
+                    FROM `stagingupload` su WHERE su.`trancode`=@trancode AND su.`IsSuccess`=1;";
+            cmd.CommandText = sql;
+            try
+            {
+                cmd.Connection.Open();
+                using (var result = cmd.ExecuteReader())
+                {
+                    while (result.Read())
+                    {
+                        stg.CountApprove = (result["TotalUpload"] == DBNull.Value) ? 0 : Convert.ToInt32(result["TotalUpload"]);
+                        stg.SumApprove = (result["totalAmount"] == DBNull.Value) ? 0 : Convert.ToDecimal(result["totalAmount"]);
+                    }
+                }
+            }
+            catch (Exception ex) { throw new Exception(ex.Message); }
+            finally { cmd.Connection.Close(); }
+
+            ///////// Hitung total Reject
+            sql = @"SELECT COUNT(1) AS TotalUpload,SUM(su.`amount`) AS totalAmount
+                    FROM `stagingupload` su WHERE su.`trancode`=@trancode AND su.`IsSuccess`=0;";
+            cmd.CommandText = sql;
+            try
+            {
+                cmd.Connection.Open();
+                using (var result = cmd.ExecuteReader())
+                {
+                    while (result.Read())
+                    {
+                        stg.CountReject = (result["TotalUpload"] == DBNull.Value) ? 0 : Convert.ToInt32(result["TotalUpload"]);
+                        stg.SumReject = (result["totalAmount"] == DBNull.Value) ? 0 : Convert.ToDecimal(result["totalAmount"]);
+                    }
+                }
+            }
+            catch (Exception ex) { throw new Exception(ex.Message); }
+            finally { cmd.Connection.Close(); }
+
+            /////////// Hitung Total Upload 
             sql = @"SELECT su.`BillCode`, COUNT(1) AS jlhUpload, SUM(su.`amount`) AS totalAmount
                     FROM `stagingupload` su 
                     WHERE su.`trancode`=@trancode
