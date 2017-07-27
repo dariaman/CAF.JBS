@@ -25,10 +25,23 @@
 <table class="table table-bordered table-striped">
     <thead>
         <tr>
-            <th class="bg-primary" colspan="3">Data Download</th>
-            <th class="bg-primary" colspan="3">Data Upload</th>
+            <th class="bg-primary" colspan="3" rowspan="2" style="text-align:center; vertical-align:middle">Data Download</th>
+            <th class="bg-primary" colspan="12" style="text-align:center; vertical-align:middle">Data Upload</th>
         </tr>
         <tr>
+            <th class="bg-primary" colspan="3" style="text-align:center; vertical-align:middle">Summary Upload</th>
+            <th class="bg-primary" colspan="3" style="text-align:center; vertical-align:middle">Data Reject</th>
+            <th class="bg-primary" colspan="3" style="text-align:center; vertical-align:middle">Data Approve</th>
+        </tr>
+        <tr>
+            <th class="bg-success">Jenis Tagihan</th>
+            <th>Jumlah Data</th>
+            <th>Total Nilai</th>
+
+            <th class="bg-success">Jenis Tagihan</th>
+            <th>Jumlah Data</th>
+            <th>Total Nilai</th>
+
             <th class="bg-success">Jenis Tagihan</th>
             <th>Jumlah Data</th>
             <th>Total Nilai</th>
@@ -39,39 +52,71 @@
         </tr>
         <tr>
             <td class="bg-success">Total</td>
-            <td>@Model.TCountDownload</td>
-            <td>@Model.TSumDownload</td>
+            <td align="right">@string.Format("{0:N0}", Model.TCountDownload)</td>
+            <td align="right">@string.Format("{0:N0}", Model.TSumDownload)</td>
 
             <td class="bg-success">Total</td>
-            <td>@Model.CountUpload</td>
-            <td>@Model.SumUpload</td>
+            <td align="right">@string.Format("{0:N0}", Model.CountUpload)</td>
+            <td align="right">@string.Format("{0:N0}", Model.SumUpload)</td>
+
+            <td class="bg-success">Total</td>
+            <td align="right">@string.Format("{0:N0}", Model.CountReject)</td>
+            <td align="right">@string.Format("{0:N0}", Model.SumReject)</td>
+
+            <td class="bg-success">Total</td>
+            <td align="right">@string.Format("{0:N0}", Model.CountApprove)</td>
+            <td align="right">@string.Format("{0:N0}", Model.SumApprove)</td>
         </tr>
         <tr>
             <td class="bg-success">Recurring</td>
-            <td>@Model.BCountDw</td>
-            <td>@Model.BSumDw</td>
+            <td align="right">@string.Format("{0:N0}", Model.BCountDw)</td>
+            <td align="right">@string.Format("{0:N0}", Model.BSumDw)</td>
 
             <td class="bg-success">Recurring</td>
-            <td>@Model.BCountDw</td>
-            <td>@Model.BSumDw</td>
+            <td align="right">@string.Format("{0:N0}", Model.BCountDw)</td>
+            <td align="right">@string.Format("{0:N0}", Model.BSumDw)</td>
+
+            <td class="bg-success">Recurring</td>
+            <td align="right">@string.Format("{0:N0}", Model.BCountUpRj)</td>
+            <td align="right">@string.Format("{0:N0}", Model.ASumUpRj)</td>
+
+            <td class="bg-success">Recurring</td>
+            <td align="right">@string.Format("{0:N0}", Model.BCountUpAp)</td>
+            <td align="right">@string.Format("{0:N0}", Model.BSumUpAp)</td>
         </tr>
         <tr>
             <td class="bg-success">Billing Others</td>
-            <td>@Model.ACountDw</td>
-            <td>@Model.ASumDw</td>
+            <td align="right">@string.Format("{0:N0}", Model.ACountDw)</td>
+            <td align="right">@string.Format("{0:N0}", Model.ASumDw)</td>
 
             <td class="bg-success">Billing Others</td>
-            <td>@Model.ASumUp</td>
-            <td>@Model.ASumUp</td>
+            <td align="right">@string.Format("{0:N0}", Model.ASumUp)</td>
+            <td align="right">@string.Format("{0:N0}", Model.ASumUp)</td>
+
+            <td class="bg-success">Billing Others</td>
+            <td align="right">@string.Format("{0:N0}", Model.ACountUpRj)</td>
+            <td align="right">@string.Format("{0:N0}", Model.ASumUpRj)</td>
+
+            <td class="bg-success">Billing Others</td>
+            <td align="right">@string.Format("{0:N0}", Model.ACountUpAp)</td>
+            <td align="right">@string.Format("{0:N0}", Model.ASumUpAp)</td>
         </tr>
         <tr>
             <td class="bg-success">Quote</td>
-            <td>@Model.QCountUp</td>
-            <td>@Model.QSumUp</td>
+            <td align="right">@string.Format("{0:N0}", Model.QCountUp)</td>
+            <td align="right">@string.Format("{0:N0}", Model.QSumUp)</td>
 
             <td class="bg-success">Quote</td>
-            <td>@Model.QCountUp</td>
-            <td>@Model.QSumUp</td>
+            <td align="right">@string.Format("{0:N0}", Model.QCountUp)</td>
+            <td align="right">@string.Format("{0:N0}", Model.QSumUp)</td>
+
+            <td class="bg-success">Quote</td>
+            <td align="right">@string.Format("{0:N0}", Model.QCountUpRj)</td>
+            <td align="right">@string.Format("{0:N0}", Model.QSumUpRj)</td>
+
+            <td class="bg-success">Quote</td>
+            <td align="right">@string.Format("{0:N0}", Model.QCountUpAp)</td>
+            <td align="right">@string.Format("{0:N0}", Model.QSumUpAp)</td>
         </tr>
     </thead>
 </table>
