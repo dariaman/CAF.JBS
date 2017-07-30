@@ -21,6 +21,7 @@ namespace CAF.JBS.Models
         public string ApprovalCode { get; set; }
         public string Description { get; set; }
         public string ACCno { get; set; }
+        public string ACCname { get; set; }
         public string trancode { get; set; }
         public string filename { get; set; }
         public int? life21TranID { get; set; } // ada isi untuk billing others
