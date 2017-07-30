@@ -129,7 +129,7 @@
         columns.Add(model => model.id).Titled("ID").Filterable(false).Sortable(false);
         columns.Add(model => model.BillCode).Titled("BillCode").Filterable(false).Sortable(false);
         columns.Add(model => model.polisNo).Titled("PolisNo").Filterable(false).Sortable(false);
-        columns.Add(model => model.tgl).Titled("tgl").Formatted("{0: yyyy-MM-dd hh:mm:ss}").Css("coldate").Filterable(false).Sortable(false);
+        columns.Add(model => model.tgl).Titled("tgl").Formatted("{0: yyyy-MM-dd HH:mm:ss}").Css("coldate").Filterable(false).Sortable(false);
         columns.Add(model => model.IsSuccess).Titled("IsSuccess").Filterable(false).Sortable(false);
         columns.Add(model => model.amount).Titled("Amount").Formatted("{0:N0}").Filterable(false).Sortable(false);
 

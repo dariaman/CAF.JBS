@@ -937,7 +937,7 @@ namespace CAF.JBS.Controllers
                         ModelState.AddModelError("FileBill", "ResultFile harus File *s2.bret.xlsx");
                 }
                 else if (UploadBill.TranCode == "bcaac" || UploadBill.TranCode == "mandiriac" ||
-                    UploadBill.TranCode == "vabcarealtime" || UploadBill.TranCode == "vabcadaily")
+                    UploadBill.TranCode == "varealtime" || UploadBill.TranCode == "vadaily")
                 {
                     if (Path.GetExtension(UploadBill.FileBill.FileName.ToString().ToLower()) != ".txt")
                         ModelState.AddModelError("FileBill", "ResultFile harus File .txt");
@@ -972,8 +972,8 @@ namespace CAF.JBS.Controllers
                 if ((UploadBill.TranCode == "bcacc") || 
                     (UploadBill.TranCode == "bcaac") || 
                     (UploadBill.TranCode == "mandiriac") || 
-                    (UploadBill.TranCode == "vabcarealtime") || 
-                    (UploadBill.TranCode == "vabcadaily"))
+                    (UploadBill.TranCode == "varealtime") || 
+                    (UploadBill.TranCode == "vadaily"))
                     ResultTextFile(UploadBill);
 
                 TempData["ModeUpload"] = UploadBill.TranCode;
@@ -1002,10 +1002,14 @@ namespace CAF.JBS.Controllers
             }
 
             SubmitUploadVM SubmitUpload = new SubmitUploadVM();
+            SubmitUpload.trancode = (string)TempData["ModeUpload"];
             List<StagingUploadVM> StagingUpload = new List<StagingUploadVM>();
             var cmd = _jbsDB.Database.GetDbConnection().CreateCommand();
             cmd.CommandType = CommandType.StoredProcedure;
-            cmd.CommandText = @"CompareUploadDownload";
+            if ((SubmitUpload.trancode == "varealtime") || (SubmitUpload.trancode == "vadaily"))
+                cmd.CommandText = @"SubmitUploadVA";
+            else
+                cmd.CommandText = @"CompareUploadDownload";
             try
             {
                 _jbsDB.Database.OpenConnection();
@@ -1026,7 +1030,7 @@ namespace CAF.JBS.Controllers
                     });
                 }
                 SubmitUpload.StagingUploadVM = StagingUpload;
-                SubmitUpload.trancode= (string)TempData["ModeUpload"];
+                
             }
             catch(Exception ex)
             {
@@ -1072,7 +1076,10 @@ namespace CAF.JBS.Controllers
             ///mulai eksekusi transaksi
             List<StagingUpload> StagingUploadx = new List<StagingUpload>();
             cmdT.CommandType = CommandType.Text;
-            cmdT.CommandText = @"SELECT * FROM `stagingupload` su WHERE su.`Billid` IS NOT NULL AND su.`trancode`=@trcode;";
+            //if((SubmitUpload.trancode== "varealtime") || (SubmitUpload.trancode == "vadaily"))
+            //    cmdT.CommandText = @"SELECT * FROM `stagingupload` su WHERE su.`trancode`=@trcode;";
+            //else
+                cmdT.CommandText = @"SELECT * FROM `stagingupload` su WHERE su.`Billid` IS NOT NULL AND su.`trancode`=@trcode;";
             cmdT.Parameters.Add(new MySqlParameter("@trcode", MySqlDbType.VarChar) { Value = SubmitUpload.trancode });
             try
             {
@@ -1127,7 +1134,6 @@ namespace CAF.JBS.Controllers
             foreach (var lst in StagingUploadx)
             {
                 var BankID = 0;
-                var TransactionBankID = 0;
                 var ReciptID = 0;
                 var ReciptOtherID = 0;
                 var IDLife21Tran = 0;
@@ -1292,83 +1298,151 @@ namespace CAF.JBS.Controllers
                 _jbsDB.Database.CloseConnection();
             }
 
-            string approvalCode="", TranDesc="", txfilename,
-                policyNo = "",
-                accNo = "",
-                BillOthers = "";
-            int Billqoute = -1;
-            DateTime? trandate = null;
+            string txfilename;
             decimal fileamount = 0; // amount dr file
-            bool isApprove=false;
             txfilename = Path.GetFileNameWithoutExtension(UploadBill.FileBill.FileName);
 
             string xFileName = DateTime.Now.ToString("yyyyMMdd") + "_" + Path.GetFileNameWithoutExtension(UploadBill.FileBill.FileName).ToLower() +
-                Guid.NewGuid().ToString().Substring(0, 8) +"."+ Path.GetExtension(UploadBill.FileBill.FileName);
+                Guid.NewGuid().ToString().Substring(0, 8) + Path.GetExtension(UploadBill.FileBill.FileName);
             // Simpan File yang diUpload ke File Backup
             using (var fileStream = new FileStream(BackupResult + xFileName, FileMode.Create))
             {
                 UploadBill.FileBill.CopyTo(fileStream);
             }
 
+            StagingUpload st;
             using (var reader = new StreamReader(UploadBill.FileBill.OpenReadStream()))
             {
-                int i = 1;
+                int i = 0;
                 while (reader.Peek() >= 0)
                 {
+                    i++;
+                    st = new StagingUpload();
+                    st.trancode = UploadBill.TranCode;
+                    st.filename = xFileName;
+                    st.BillCode = "B"; // untuk AC dan VA hanya transaksi recurring
+
                     var tmp = reader.ReadLine();
                     if (UploadBill.TranCode == "bcacc")
                     {
-                        policyNo = tmp.Substring(9, 25).Trim();
+                        var panjang = tmp.Trim().Length;
+                        if (panjang < 91) continue;
+
+                        st.polisNo = tmp.Substring(9, 25).Trim();
+                        st.ACCno = tmp.Substring(34, 16).Trim();
+                        st.ACCname = tmp.Substring(65, 26).Trim();
                         if (! Decimal.TryParse(tmp.Substring(54, 9), out fileamount)) continue;
-                        TranDesc= tmp.Substring(tmp.Length - 8).Substring(0, 6);
-                        approvalCode = tmp.Substring(tmp.Length - 2);
-                        if (approvalCode == "00") isApprove = true;
+                        st.amount = fileamount;
+                        st.Description = tmp.Substring(tmp.Length - 8).Substring(0, 6);
+                        st.ApprovalCode = tmp.Substring(tmp.Length - 2);
+                        if (st.ApprovalCode == "00") st.IsSuccess = true;
+
+                        if (st.polisNo.Substring(0, 1) == "A") st.BillCode = "A";
+                        else if (st.polisNo.Substring(0, 1) == "X")
+                        {
+                            st.polisNo = st.polisNo.Substring(1);
+                            st.BillCode = "Q";
+                        }
+                        else st.BillCode = "B";
+
                     }
                     else if (UploadBill.TranCode == "bcaac")
                     {
+                        var panjang = tmp.Length;
+                        if (panjang < 205) continue;
 
+                        st.polisNo = tmp.Substring(92, 15).Trim();
+                        st.ApprovalCode = tmp.Substring(129, 9).Trim();
+                        st.Description = tmp.Substring(138, 51).Trim();
+                        st.IsSuccess = (st.ApprovalCode.ToLower() == "berhasil") ? true : false;
+                        st.ACCno = tmp.Substring(37, 11).Trim();
+                        st.ACCname = tmp.Substring(48, 26).Trim();
+                        if (!Decimal.TryParse(tmp.Substring(74, 18), out fileamount)) continue;
+                        st.amount = fileamount;
+                        DateTime time;
+                        if (!DateTime.TryParseExact(tmp.Substring(189, 16).Trim(),"yyyyMMdd", CultureInfo.InvariantCulture, DateTimeStyles.None, out time)) continue;
+                        st.tgl = time;
                     }
                     else if (UploadBill.TranCode == "mandiriac")
                     {
+                        var panjang = tmp.Length;
+                        if (panjang < 820) continue;
+
+                        st.polisNo = tmp.Substring(590, 40).Trim();
+                        if (!Decimal.TryParse(tmp.Substring(634, 40), out fileamount)) continue;
+                        st.amount = fileamount;
+                        st.ApprovalCode = tmp.Substring(674, 46).Trim();
+                        st.Description = tmp.Substring(720, 100).Trim();
+                        st.IsSuccess = (st.ApprovalCode.ToLower() == "success") ? true : false;
+                        //temp.Split('-').Last().Trim();
+                        var acc = tmp.Substring(306, 244).Trim().Split('/');
+                        if (acc.Length < 2) continue;
+                        st.ACCno = acc[0].Trim();
+                        st.ACCname = acc[1].Replace("(IDR)", string.Empty).Trim();
+                        DateTime time;
+                        if (!DateTime.TryParseExact(tmp.Substring(0, 19).Trim(), "yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture, DateTimeStyles.None, out time)) continue;
+                        st.tgl = time;
+                    }
+                    else if (UploadBill.TranCode == "varealtime")
+                    {
+                        var panjang = tmp.Length;
+                        if (panjang < 195) continue;
+                        st.IsSuccess = true ;
+                        if (!int.TryParse(tmp.Substring(0, 5), out i)) continue; // cek no urut
+                        st.polisNo = tmp.Substring(11, 19).Trim();
+                        st.ACCname= tmp.Substring(45, 31).Trim();
+                        if (!Decimal.TryParse(tmp.Substring(112, 22), out fileamount)) continue;
+                        st.amount = fileamount;
+                        st.Description = tmp.Substring(158, 37).Trim();
+                        DateTime time;
+                        if (!DateTime.TryParseExact(tmp.Substring(136, 19).Trim(), "dd/MM/yyyy HH:mm:ss", CultureInfo.InvariantCulture, DateTimeStyles.None, out time)) continue;
+                        st.tgl = time;
+
+                    }
+                    else if (UploadBill.TranCode == "vadaily")
+                    {
+                        var panjang = tmp.Length;
+                        if (panjang < 133) continue;
+                        st.IsSuccess = true;
+                        if (!int.TryParse(tmp.Substring(1, 5), out i)) continue; // cek no urut
+                        st.polisNo = tmp.Substring(8, 20).Trim();
+                        st.ACCname = tmp.Substring(28, 18).Trim();
+                        if (!Decimal.TryParse(tmp.Substring(52, 19), out fileamount)) continue;
+                        st.amount = fileamount;
+                        st.Description = tmp.Substring(100, 33).Trim();
+                        DateTime time;
+                        if (!DateTime.TryParseExact(tmp.Substring(73, 18).Trim(), "dd/MM/yy  HH:mm:ss", CultureInfo.InvariantCulture, DateTimeStyles.None, out time)) continue;
+                        st.tgl = time;
 
                     }
                     else throw new Exception("Transaksi CC, TranCode belum di defenisikan");
 
-                    if (policyNo.Substring(0, 1) == "A")
-                    {
-                        BillOthers = policyNo;
-                        policyNo = "";
-                    }
-                    else if (policyNo.Substring(0, 1) == "X")
-                    {
-                        Billqoute = Convert.ToInt32(policyNo.Substring(1));
-                        policyNo = "";
-                    }
+                    //if (st.polisNo.Substring(0, 1) == "A")
+                    //{
+                    //    //st.Billid = st.polisNo;
+                    //    st.BillCode = "A";
+                    //    //st.polisNo = "";
+                    //}
+                    //else if (st.polisNo.Substring(0, 1) == "X")
+                    //{
+                    //    st.polisNo = st.polisNo.Substring(1);
+                    //    st.BillCode = "Q";
+                    //    //st.polisNo = "";
+                    //}
+                    //else st.BillCode = "B";
 
-                    var billcode = (policyNo == "") ? ((Billqoute < 1) ? "A" : "Q") : "B";
-                    var polisTran = (billcode == "B") ? policyNo : ((billcode == "A") ? BillOthers : Billqoute.ToString());
 
                     try
                     {
-                        var baris = "0000" + i.ToString();
-                        InsertStagingTable(Convert.ToInt32(baris.Substring(baris.Length - 5)), polisTran, billcode, trandate, fileamount, isApprove, approvalCode, TranDesc, UploadBill.TranCode, xFileName, accNo);
+                        st.id = i;
+                        //InsertStagingTable(Convert.ToInt32(baris.Substring(baris.Length - 5)), polisTran, billcode, trandate, fileamount, isApprove, approvalCode, TranDesc, UploadBill.TranCode, xFileName, accNo);
+                        InsertStagingTable(st);
                     }
                     catch (Exception ex)
                     {
-                        throw new Exception(ex.Message + billcode);
+                        throw new Exception(ex.Message + st.Billid);
                     }
-
-                    trandate = null;
-                    polisTran = "";
-                    accNo = "";
-                    fileamount = 0;
-                    Billqoute = 0;
-                    BillOthers = "";
-                    policyNo = "";
-                    approvalCode = null;
-                    TranDesc = null;
-                    isApprove = false;
-                    i++;
+                    
                 } // END while (reader.Peek() >= 0)
             } // END using (var reader = new StreamReader(UploadBill.FileBill.OpenReadStream()))
         }
@@ -1400,24 +1474,19 @@ namespace CAF.JBS.Controllers
                 _jbsDB.Database.CloseConnection();
             }
 
-            string approvalCode, TranDesc, txfilename,
-                policyNo = "",
-                accNo="",
-                BillOthers = "";
-            int Billqoute = -1;
-            DateTime? trandate=null;
+            string txfilename;
             decimal fileamount = 0; // amount dr file
-            bool isApprove;
             txfilename = Path.GetFileNameWithoutExtension(UploadBill.FileBill.FileName);
 
             string xFileName = DateTime.Now.ToString("yyyyMMdd") + "_" + Path.GetFileNameWithoutExtension(UploadBill.FileBill.FileName).ToLower() + 
-                Guid.NewGuid().ToString().Substring(0, 8) + "." + Path.GetExtension(UploadBill.FileBill.FileName);
+                Guid.NewGuid().ToString().Substring(0, 8) + Path.GetExtension(UploadBill.FileBill.FileName);
             // Simpan File yang diUpload ke File Backup
             using (var fileStream = new FileStream(BackupResult + xFileName, FileMode.Create))
             {
                 UploadBill.FileBill.CopyTo(fileStream);
             }
 
+            StagingUpload st;
             byte[] file = System.IO.File.ReadAllBytes(BackupResult + xFileName);
             using (MemoryStream ms = new MemoryStream(file))
             {
@@ -1427,10 +1496,13 @@ namespace CAF.JBS.Controllers
                     if (UploadBill.TranCode != "bnicc" && wb.Worksheets.Count < 2) throw new Exception("File Result harus 2 Sheet");
                     for (int sht = 1; sht < 3; sht++) // looping sheet 1 & 2
                     {
+                        st = new StagingUpload();
+                        st.trancode = UploadBill.TranCode;
                         long tmpa=0;
                         ExcelWorksheet ws = wb.Worksheets[sht];
                         for (int row = ws.Dimension.Start.Row; row <= ws.Dimension.End.Row; row++)
                         {
+
                             if (UploadBill.TranCode == "mandiricc")
                             {
                                 if ((ws.Cells[row, 1].Value == null) || // Nourut
@@ -1445,24 +1517,32 @@ namespace CAF.JBS.Controllers
                                 {
                                     if (ws.Cells[row, 6].Value == null) continue;
                                     if (! long.TryParse(ws.Cells[row, 6].Value.ToString().Trim().Substring(1), out tmpa)) continue;
-
-                                    policyNo = ws.Cells[row, 6].Value.ToString().Trim();
-                                    approvalCode = ws.Cells[row, 4].Value.ToString().Trim();
-                                    TranDesc = ws.Cells[row, 5].Value.ToString().Trim();
-                                    isApprove = true;
+                                    st.polisNo =ws.Cells[row, 6].Value.ToString().Trim();
+                                    st.ApprovalCode = ws.Cells[row, 4].Value.ToString().Trim();
+                                    st.Description = ws.Cells[row, 5].Value.ToString().Trim();
+                                    st.IsSuccess = true;
+                                    //policyNo = ws.Cells[row, 6].Value.ToString().Trim();
+                                    //approvalCode = ws.Cells[row, 4].Value.ToString().Trim();
+                                    //TranDesc = ws.Cells[row, 5].Value.ToString().Trim();
+                                    //isApprove = true;
                                 }
                                 else // Sheet REJECT
                                 {
                                     if (ws.Cells[row, 4].Value == null) continue;
                                     if (! long.TryParse(ws.Cells[row, 4].Value.ToString().Trim().Substring(1), out tmpa)) continue;
 
-                                    policyNo = ws.Cells[row, 4].Value.ToString().Trim();
-                                    approvalCode = ws.Cells[row, 5].Value.ToString().Trim();
-                                    TranDesc = ws.Cells[row, 6].Value.ToString().Trim();
-                                    isApprove = false;
+                                    st.polisNo = ws.Cells[row, 4].Value.ToString().Trim();
+                                    st.ApprovalCode = ws.Cells[row, 5].Value.ToString().Trim();
+                                    st.Description = ws.Cells[row, 6].Value.ToString().Trim();
+                                    st.IsSuccess = false;
+
+                                    //policyNo = ws.Cells[row, 4].Value.ToString().Trim();
+                                    //approvalCode = ws.Cells[row, 5].Value.ToString().Trim();
+                                    //TranDesc = ws.Cells[row, 6].Value.ToString().Trim();
+                                    //isApprove = false;
                                 }
                                 if (! decimal.TryParse(ws.Cells[row, 3].Value.ToString().Trim(), out fileamount)) continue;
-                                accNo = ws.Cells[row, 7].Value.ToString().Trim();
+                                st.ACCno = ws.Cells[row, 7].Value.ToString().Trim();
                             }
                             else if (UploadBill.TranCode == "megaonus" || UploadBill.TranCode == "megaoffus")
                             {
@@ -1476,17 +1556,18 @@ namespace CAF.JBS.Controllers
                                 if (!long.TryParse(ws.Cells[row, 1].Value.ToString().Trim(), out tmpa)) continue;
                                 
                                 var temp = ws.Cells[row, 2].Value.ToString().Trim();
-                                policyNo = temp.Split('-').Last().Trim();
-                                if (policyNo == "") continue;
-                                if (!long.TryParse(policyNo.Substring(1), out tmpa)) continue;
+                                st.polisNo = temp.Split('-').Last().Trim();
+                                if (string.IsNullOrEmpty(st.polisNo)) continue;
+                                if (!long.TryParse(st.polisNo.Substring(1), out tmpa)) continue;
 
-                                approvalCode = ws.Cells[row, 5].Value.ToString().Trim();
-                                TranDesc = ws.Cells[row, 6].Value.ToString().Trim();
-                                isApprove = (sht == 1) ? true : false;
+                                st.ApprovalCode= ws.Cells[row, 5].Value.ToString().Trim();
+                                st.Description= ws.Cells[row, 6].Value.ToString().Trim();
+                                st.IsSuccess = (sht == 1) ? true : false;
 
                                 if (! decimal.TryParse(ws.Cells[row, 3].Value.ToString().Trim(), out fileamount)) continue;
+                                st.amount = fileamount;
                                 DateTime time;
-                                if(DateTime.TryParse(ws.Cells[row, 3].Value.ToString().Trim(), out time)) trandate=time;
+                                if(DateTime.TryParse(ws.Cells[row, 3].Value.ToString().Trim(), out time)) st.tgl=time;
                             }
                             else if (UploadBill.TranCode == "bnicc")
                             {
@@ -1506,51 +1587,45 @@ namespace CAF.JBS.Controllers
                                 // amount
                                 if (!decimal.TryParse(ws.Cells[row, 8].Value.ToString().Trim(), out fileamount)) continue;
 
-                                policyNo = ws.Cells[row, 7].Value.ToString().Trim();
-                                approvalCode = ws.Cells[row, 9].Value.ToString().Trim();
-                                TranDesc = ws.Cells[row, 10].Value.ToString().Trim();
-                                isApprove = (approvalCode == "") ? false : true;
-                                accNo = ws.Cells[row, 4].Value.ToString().Trim();
-                                trandate = null;
+                                st.polisNo = ws.Cells[row, 7].Value.ToString().Trim();
+                                st.ApprovalCode= ws.Cells[row, 9].Value.ToString().Trim();
+                                st.Description = ws.Cells[row, 10].Value.ToString().Trim();
+                                st.IsSuccess = (st.ApprovalCode == "") ? false : true;
+                                st.ACCno = ws.Cells[row, 4].Value.ToString().Trim();
+                                
                             } // END UploadBill.TranCode ==
                             else
                             {
                                 throw new Exception("Transaksi CC, TranCode belum di defenisikan");
                             }
 
-                            if (policyNo.Substring(0, 1) == "A")
+                            if (st.polisNo.Substring(0, 1) == "A")
                             {
-                                BillOthers = policyNo;
-                                policyNo = "";
+                                st.Billid = st.polisNo;
+                                st.BillCode = "A";
+                                st.polisNo = "";
                             }
-                            else if (policyNo.Substring(0, 1) == "X")
+                            else if (st.polisNo.Substring(0, 1) == "X")
                             {
-                                Billqoute = Convert.ToInt32(policyNo.Substring(1));
-                                policyNo = "";
+                                st.Billid = st.polisNo.Substring(1);
+                                st.BillCode = "Q";
+                                st.polisNo = "";
+                            }
+                            else
+                            {
+                                st.BillCode = "Q";
                             }
 
-                            var billcode = (policyNo == "") ? ((Billqoute < 1) ? "A" : "Q") : "B";
-                            var polisTran = (billcode=="B") ? policyNo : ((billcode == "A") ? BillOthers : Billqoute.ToString());
                             try
                             {
                                 var baris ="0000" + row.ToString();
-                                InsertStagingTable(Convert.ToInt32(sht.ToString() + baris.Substring(baris.Length-5)),polisTran, billcode, trandate, fileamount, isApprove, approvalCode, TranDesc, UploadBill.TranCode, xFileName, accNo);
+                                InsertStagingTable(st);
                             }
                             catch(Exception ex)
                             {
-                                throw new Exception(ex.Message + billcode);
+                                throw new Exception(ex.Message + st.Billid);
                             }
 
-                            trandate = null;
-                            polisTran = "";
-                            accNo = "";
-                            fileamount = 0;
-                            Billqoute = 0;
-                            BillOthers = "";
-                            policyNo = "";
-                            approvalCode = null;
-                            TranDesc = null;
-                            isApprove = false;
                         }// END for (row=ws.Dimension.Start.Row; row <= ws.Dimension.End.Row; row++)
 
                         if (UploadBill.TranCode == "bnicc") break; // BNI cma 1 Sheet (1x loop langsung break)
@@ -1558,27 +1633,29 @@ namespace CAF.JBS.Controllers
                 } // END using (ExcelPackage package = new ExcelPackage(new FileInfo(xFileName)))
             }
         }
-        
+
         #endregion
 
-        private void InsertStagingTable(int id, string polisno,string billcode,DateTime? tgl,decimal amount,Boolean isSukses,
-            string appcode,string desc, string trancode, string filename, string accNo)
+        //private void InsertStagingTable(int id, string polisno,string billcode,DateTime? tgl,decimal amount,Boolean isSukses,
+        //    string appcode,string desc, string trancode, string filename, string accNo)
+        private void InsertStagingTable(StagingUpload st)
         {
             var cmd = _jbsDB.Database.GetDbConnection().CreateCommand();
             cmd.Parameters.Clear();
             cmd.CommandType = CommandType.StoredProcedure;
             cmd.CommandText = @"InsertStagingUpload";
-            cmd.Parameters.Add(new MySqlParameter("@id", MySqlDbType.Int32) { Value = id });
-            cmd.Parameters.Add(new MySqlParameter("@polis", MySqlDbType.VarChar) { Value = polisno });
-            cmd.Parameters.Add(new MySqlParameter("@billCode", MySqlDbType.VarChar) { Value = billcode });
-            cmd.Parameters.Add(new MySqlParameter("@tgl", MySqlDbType.DateTime) { Value = tgl });
-            cmd.Parameters.Add(new MySqlParameter("@amt", MySqlDbType.Decimal) { Value = amount });
-            cmd.Parameters.Add(new MySqlParameter("@IsSukses", MySqlDbType.Bit) { Value = isSukses });
-            cmd.Parameters.Add(new MySqlParameter("@appcode", MySqlDbType.VarChar) { Value = appcode.Trim()});
-            cmd.Parameters.Add(new MySqlParameter("@description", MySqlDbType.VarChar) { Value = desc});
-            cmd.Parameters.Add(new MySqlParameter("@trancode", MySqlDbType.VarChar) { Value = trancode});
-            cmd.Parameters.Add(new MySqlParameter("@filename", MySqlDbType.VarChar) { Value = filename});
-            cmd.Parameters.Add(new MySqlParameter("@AccNo", MySqlDbType.VarChar) { Value = accNo});
+            cmd.Parameters.Add(new MySqlParameter("@id", MySqlDbType.Int32) { Value = st.id });
+            cmd.Parameters.Add(new MySqlParameter("@polis", MySqlDbType.VarChar) { Value = st.polisNo });
+            cmd.Parameters.Add(new MySqlParameter("@billCode", MySqlDbType.VarChar) { Value = st.BillCode });
+            cmd.Parameters.Add(new MySqlParameter("@tgl", MySqlDbType.DateTime) { Value = st.tgl });
+            cmd.Parameters.Add(new MySqlParameter("@amt", MySqlDbType.Decimal) { Value = st.amount });
+            cmd.Parameters.Add(new MySqlParameter("@IsSukses", MySqlDbType.Bit) { Value = st.IsSuccess });
+            cmd.Parameters.Add(new MySqlParameter("@appcode", MySqlDbType.VarChar) { Value = st.ApprovalCode});
+            cmd.Parameters.Add(new MySqlParameter("@description", MySqlDbType.VarChar) { Value = st.Description});
+            cmd.Parameters.Add(new MySqlParameter("@trancode", MySqlDbType.VarChar) { Value = st.trancode});
+            cmd.Parameters.Add(new MySqlParameter("@filename", MySqlDbType.VarChar) { Value = st.filename});
+            cmd.Parameters.Add(new MySqlParameter("@AccNo", MySqlDbType.VarChar) { Value = st.ACCno});
+            cmd.Parameters.Add(new MySqlParameter("@AccNama", MySqlDbType.VarChar) { Value = st.ACCname });
 
             try
             {
@@ -1587,7 +1664,8 @@ namespace CAF.JBS.Controllers
             }
             catch(Exception ex)
             {
-                throw new Exception(ex.Message);
+                //throw new Exception(ex.Message);
+                throw new Exception("InsertStagingTable => (BillingID = " + st.Billid + ") " + ex.Message);
             }
             finally
             {
@@ -1610,6 +1688,7 @@ namespace CAF.JBS.Controllers
             cm.Parameters.Add(new MySqlParameter("@approvalCode", MySqlDbType.VarChar) { Value = tb.ApprovalCode });
             cm.Parameters.Add(new MySqlParameter("@ErrCode", MySqlDbType.VarChar) { Value = tb.Description });
             cm.Parameters.Add(new MySqlParameter("@AccNo", MySqlDbType.VarChar) { Value = tb.ACCno });
+            cm.Parameters.Add(new MySqlParameter("@AccNama", MySqlDbType.VarChar) { Value = tb.ACCno });
             var idTran = 0;
             try
             {
@@ -2099,21 +2178,6 @@ namespace CAF.JBS.Controllers
             }
             catch (Exception ex) { throw new Exception(ex.Message); }
             finally { cmd.Connection.Close(); }
-
-
-            //try
-            //{
-            //    cmd.Connection.Open();
-            //}
-            //catch (Exception ex)
-            //{
-            //    throw new Exception(ex.Message);
-            //}
-            //finally
-            //{
-            //    cmd.Connection.Close();
-            //}
-
-        }
+}
     }
 }
