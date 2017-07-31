@@ -713,6 +713,7 @@ namespace CAF.JBS.Controllers
                                         b.paid_date=null,
                                         b.ReceiptID=null,
                                         b.PaymentTransactionID=null,
+                                        b.`Life21TranID`=null,
                                         b.`AccName`=null,
                                         b.`AccNo`=null,
                                         b.`cc_expiry`=null,
@@ -737,6 +738,7 @@ namespace CAF.JBS.Controllers
                                         b.`BankIdDownload`=null,
                                         b.BankID_Source=null,
                                         b.LastUploadDate=null,
+                                        b.`Life21TranID`=null,
                                         b.IsClosed=0,
                                         b.status_billing='A',
                                         b.paid_date=null,
@@ -1145,44 +1147,40 @@ namespace CAF.JBS.Controllers
                 int? IDLife21Tran;
 
                 Rcpt = new Receipt();
-                
 
+                lst.PaymentSource = "CC";
                 switch (lst.trancode)
                 {
                     case "bcacc":
                         BankID = 1;
-                        Rcpt.receipt_source = "CC";
                         break;
                     case "mandiricc":
                         BankID = 2;
-                        Rcpt.receipt_source = "CC";
                         break;
                     case "megaonus":
                     case "megaoffus":
                         BankID = 12;
-                        Rcpt.receipt_source = "CC";
                         break;
                     case "bnicc":
                         BankID = 3;
-                        Rcpt.receipt_source = "CC";
                         break;
 
                     case "bcaac":
                         BankID = 1;
-                        Rcpt.receipt_source = "AC";
+                        lst.PaymentSource = "AC";
                         break;
                     case "mandiriac":
                         BankID = 2;
-                        Rcpt.receipt_source = "AC";
+                        lst.PaymentSource = "AC";
                         break;
 
                     case "varealtime":
                     case "vadaily":
                         BankID = 1;
-                        Rcpt.receipt_source = "VA";
+                        lst.PaymentSource = "VA";
                         break;
                 }
-
+                Rcpt.receipt_source = lst.PaymentSource;
                 Life21Tran = new PolicyTransaction();
                 if (Rcpt.receipt_source=="CC")
                 {
@@ -1972,9 +1970,11 @@ namespace CAF.JBS.Controllers
             cm.CommandText = @"UPDATE `quote_billing` SET `IsDownload`=0,
 			                                            `IsClosed`=1,
 			                                            `status`='P',
+                                                        `PaymentSource`=@PaymentSource,
 			                                            `LastUploadDate`=@tgl,
 			                                            `PaymentTransactionID`=@uid
 		                                            WHERE `quote_id`=@idBill;";
+            cm.Parameters.Add(new MySqlParameter("@PaymentSource", MySqlDbType.VarChar) { Value = bm.PaymentSource });
             cm.Parameters.Add(new MySqlParameter("@idBill", MySqlDbType.Int32) { Value = Convert.ToInt32(bm.Billid) });
             cm.Parameters.Add(new MySqlParameter("@tgl", MySqlDbType.DateTime) { Value = bm.TglSkrg });
             cm.Parameters.Add(new MySqlParameter("@uid", MySqlDbType.Int32) { Value = bm.PaymentTransactionID });
@@ -1995,12 +1995,14 @@ namespace CAF.JBS.Controllers
             cm.CommandText = @"UPDATE `billing_others` SET `IsDownload`=0,
 			                                            `IsClosed`=1,
 			                                            `status_billing`='P',
+                                                        `PaymentSource`=@PaymentSource,
 			                                            `LastUploadDate`=@tgl,
                                                         Life21TranID=@TransactionID,
 			                                            `ReceiptOtherID`=@receiptID,
 			                                            `PaymentTransactionID`=@uid
 		                                            WHERE `BillingID`=@idBill;";
             cm.Parameters.Add(new MySqlParameter("@idBill", MySqlDbType.VarChar) { Value = bm.Billid });
+            cm.Parameters.Add(new MySqlParameter("@PaymentSource", MySqlDbType.VarChar) { Value = bm.PaymentSource });
             cm.Parameters.Add(new MySqlParameter("@tgl", MySqlDbType.DateTime) { Value = bm.TglSkrg });
             cm.Parameters.Add(new MySqlParameter("@TransactionID", MySqlDbType.Int32) { Value = bm.life21TranID });
             cm.Parameters.Add(new MySqlParameter("@receiptID", MySqlDbType.Int32) { Value = bm.receipt_other_id });
@@ -2024,8 +2026,8 @@ namespace CAF.JBS.Controllers
                 cm.CommandText = @"UPDATE `billing` SET `IsDownload`=0,
 			                                        `IsClosed`=1,
 			                                        `status_billing`='P',
-                                                    `BillingDate`=`paid_date`,
-                                                    `Source_download`='VA',
+                                                    `BillingDate`=@tglPaid,
+                                                    `PaymentSource`=@PaymentSource,
 			                                        `LastUploadDate`=@tgl,
                                                     `paid_date`=@tglPaid,
                                                     `Life21TranID`=@TransactionID,
@@ -2038,6 +2040,7 @@ namespace CAF.JBS.Controllers
                 cm.CommandText = @"UPDATE `billing` SET `IsDownload`=0,
 			                                        `IsClosed`=1,
 			                                        `status_billing`='P',
+                                                    `PaymentSource`=@PaymentSource,
 			                                        `LastUploadDate`=@tgl,
                                                     `paid_date`=@tglPaid,
                                                     `Life21TranID`=@TransactionID,
@@ -2046,6 +2049,7 @@ namespace CAF.JBS.Controllers
 		                                        WHERE `BillingID`=@idBill;";
             }
             cm.Parameters.Add(new MySqlParameter("@idBill", MySqlDbType.Int32) { Value = bm.Billid });
+            cm.Parameters.Add(new MySqlParameter("@PaymentSource", MySqlDbType.VarChar) { Value = bm.PaymentSource });
             cm.Parameters.Add(new MySqlParameter("@tgl", MySqlDbType.DateTime) { Value = bm.TglSkrg });
             cm.Parameters.Add(new MySqlParameter("@tglPaid", MySqlDbType.DateTime) { Value = bm.tgl });
             cm.Parameters.Add(new MySqlParameter("@TransactionID", MySqlDbType.Int32) { Value = bm.life21TranID });

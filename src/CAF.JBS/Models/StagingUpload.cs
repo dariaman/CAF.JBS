@@ -19,6 +19,7 @@ namespace CAF.JBS.Models
         public Decimal amount { get; set; }
         public Boolean IsSuccess { get; set; }
         public string ApprovalCode { get; set; }
+        public string PaymentSource { get; set; }
         public string Description { get; set; }
         public string ACCno { get; set; }
         public string ACCname { get; set; }
