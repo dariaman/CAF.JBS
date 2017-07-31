@@ -713,6 +713,9 @@ namespace CAF.JBS.Controllers
                                         b.paid_date=null,
                                         b.ReceiptID=null,
                                         b.PaymentTransactionID=null,
+                                        b.`AccName`=null,
+                                        b.`AccNo`=null,
+                                        b.`cc_expiry`=null,
                                         b.`BillingDate`= null,
                                         b.Source_download=null; ";
             try
@@ -738,6 +741,9 @@ namespace CAF.JBS.Controllers
                                         b.status_billing='A',
                                         b.paid_date=null,
                                         b.ReceiptOtherID=null,
+                                        b.`AccNo`=null,
+                                        b.`AccName`=null,
+                                        b.`cc_expiry`=null,
                                         b.PaymentTransactionID=null,
                                         b.`BillingDate`= null,
                                         b.Source_download=null; ";
@@ -1136,7 +1142,7 @@ namespace CAF.JBS.Controllers
                 var BankID = 0;
                 var ReciptID = 0;
                 var ReciptOtherID = 0;
-                var IDLife21Tran = 0;
+                int? IDLife21Tran;
 
                 Rcpt = new Receipt();
                 
@@ -1160,6 +1166,21 @@ namespace CAF.JBS.Controllers
                         BankID = 3;
                         Rcpt.receipt_source = "CC";
                         break;
+
+                    case "bcaac":
+                        BankID = 1;
+                        Rcpt.receipt_source = "AC";
+                        break;
+                    case "mandiriac":
+                        BankID = 2;
+                        Rcpt.receipt_source = "AC";
+                        break;
+
+                    case "varealtime":
+                    case "vadaily":
+                        BankID = 1;
+                        Rcpt.receipt_source = "VA";
+                        break;
                 }
 
                 Life21Tran = new PolicyTransaction();
@@ -1179,7 +1200,30 @@ namespace CAF.JBS.Controllers
                     Life21Tran.Due_Date_Pre = lst.due_dt_pre;
                     Life21Tran.BankID = BankID;
                     Life21Tran.ACC_No = lst.ACCno;
-                    
+                    Life21Tran.ACC_Name = lst.ACCname;
+
+                    Life21Tran.idTran = lst.life21TranID;
+                    Life21Tran.result_status = lst.ApprovalCode;
+                    Life21Tran.Remark = lst.Description;
+                }
+                else if (Rcpt.receipt_source == "AC")
+                {
+                    Rcpt.receipt_date = tglSekarang;
+                    Rcpt.receipt_policy_id = lst.PolicyId;
+                    Rcpt.receipt_amount = lst.amount;
+                    Rcpt.receipt_seq = lst.recurring_seq;
+                    Rcpt.bank_acc_id = BankID;
+                    Rcpt.due_date_pre = lst.due_dt_pre;
+
+                    Life21Tran.policy_id = lst.PolicyId;
+                    Life21Tran.transaction_dt = tglSekarang;
+                    Life21Tran.recurring_seq = lst.recurring_seq;
+                    Life21Tran.amount = lst.amount;
+                    Life21Tran.Due_Date_Pre = lst.due_dt_pre;
+                    Life21Tran.BankID = BankID;
+                    Life21Tran.ACC_No = lst.ACCno;
+                    Life21Tran.ACC_Name = lst.ACCname;
+
                     Life21Tran.idTran = lst.life21TranID;
                     Life21Tran.result_status = lst.ApprovalCode;
                     Life21Tran.Remark = lst.Description;
@@ -1208,7 +1252,14 @@ namespace CAF.JBS.Controllers
                                 ReciptID=InsertReceipt(ref cmd2,Rcpt);
                                 Life21Tran.receipt_id = ReciptID;
                                 Life21Tran.transaction_type = "R";
-                                IDLife21Tran = InsertCCTransaction(ref cmd2, Life21Tran);
+                                if (Rcpt.receipt_source == "AC")
+                                {
+                                    IDLife21Tran=InsertACTransaction(ref cmd2, Life21Tran);
+                                }else if (Rcpt.receipt_source == "CC")
+                                {
+                                    IDLife21Tran=InsertCCTransaction(ref cmd2, Life21Tran);
+                                }else IDLife21Tran =null;
+                                    //IDLife21Tran = (Rcpt.receipt_source=="AC")? InsertCCTransaction(ref cmd2, Life21Tran) : InsertACTransaction(ref cmd2, Life21Tran);
                                 lst.receipt_id = ReciptID;
                                 lst.life21TranID = IDLife21Tran;
 
@@ -1236,11 +1287,20 @@ namespace CAF.JBS.Controllers
                     else // transaksi Gagal
                     {
                         BukaFlagDownloadBilling(ref cmd,lst.BillCode,lst.Billid,tglSekarang);
+                        if (Rcpt.receipt_source == "AC")
+                        { // Untuk AC, billing akan masuk hold 15 hari
+                            InsertPolisHold(ref cmd,lst.BillCode, lst.polisNo, DateTime.Now.AddDays(15));
+
+                        }
                     }
 
                     cmdx.CommitTransaction();
                     cmdx2.CommitTransaction();
                     cmdx3.CommitTransaction();
+
+                    //cmdx.RollbackTransaction();
+                    //cmdx2.RollbackTransaction();
+                    //cmdx3.RollbackTransaction();
                 }
                 catch(Exception ex)
                 {
@@ -1521,10 +1581,7 @@ namespace CAF.JBS.Controllers
                                     st.ApprovalCode = ws.Cells[row, 4].Value.ToString().Trim();
                                     st.Description = ws.Cells[row, 5].Value.ToString().Trim();
                                     st.IsSuccess = true;
-                                    //policyNo = ws.Cells[row, 6].Value.ToString().Trim();
-                                    //approvalCode = ws.Cells[row, 4].Value.ToString().Trim();
-                                    //TranDesc = ws.Cells[row, 5].Value.ToString().Trim();
-                                    //isApprove = true;
+
                                 }
                                 else // Sheet REJECT
                                 {
@@ -1536,13 +1593,11 @@ namespace CAF.JBS.Controllers
                                     st.Description = ws.Cells[row, 6].Value.ToString().Trim();
                                     st.IsSuccess = false;
 
-                                    //policyNo = ws.Cells[row, 4].Value.ToString().Trim();
-                                    //approvalCode = ws.Cells[row, 5].Value.ToString().Trim();
-                                    //TranDesc = ws.Cells[row, 6].Value.ToString().Trim();
-                                    //isApprove = false;
                                 }
                                 if (! decimal.TryParse(ws.Cells[row, 3].Value.ToString().Trim(), out fileamount)) continue;
+                                st.amount = fileamount;
                                 st.ACCno = ws.Cells[row, 7].Value.ToString().Trim();
+                                st.ACCname = ws.Cells[row, 2].Value.ToString().Trim();
                             }
                             else if (UploadBill.TranCode == "megaonus" || UploadBill.TranCode == "megaoffus")
                             {
@@ -1586,13 +1641,14 @@ namespace CAF.JBS.Controllers
                                 if (!long.TryParse(ws.Cells[row, 7].Value.ToString().Trim().Substring(1), out tmpa)) continue;
                                 // amount
                                 if (!decimal.TryParse(ws.Cells[row, 8].Value.ToString().Trim(), out fileamount)) continue;
-
+                                st.amount = fileamount;
                                 st.polisNo = ws.Cells[row, 7].Value.ToString().Trim();
                                 st.ApprovalCode= ws.Cells[row, 9].Value.ToString().Trim();
                                 st.Description = ws.Cells[row, 10].Value.ToString().Trim();
                                 st.IsSuccess = (st.ApprovalCode == "") ? false : true;
                                 st.ACCno = ws.Cells[row, 4].Value.ToString().Trim();
-                                
+                                st.ACCname = ws.Cells[row, 5].Value.ToString().Trim();
+
                             } // END UploadBill.TranCode ==
                             else
                             {
@@ -1603,22 +1659,18 @@ namespace CAF.JBS.Controllers
                             {
                                 st.Billid = st.polisNo;
                                 st.BillCode = "A";
-                                st.polisNo = "";
                             }
                             else if (st.polisNo.Substring(0, 1) == "X")
                             {
                                 st.Billid = st.polisNo.Substring(1);
                                 st.BillCode = "Q";
-                                st.polisNo = "";
                             }
-                            else
-                            {
-                                st.BillCode = "Q";
-                            }
+                            else st.BillCode = "B";
 
                             try
                             {
                                 var baris ="0000" + row.ToString();
+                                st.id = Convert.ToInt32(sht.ToString() + baris.Substring(baris.Length - 5));
                                 InsertStagingTable(st);
                             }
                             catch(Exception ex)
@@ -1680,7 +1732,7 @@ namespace CAF.JBS.Controllers
             cm.CommandText = @"InsertTransactionBank;";
             cm.Parameters.Add(new MySqlParameter("@FileName", MySqlDbType.VarChar) { Value = tb.filename });
             cm.Parameters.Add(new MySqlParameter("@Trancode", MySqlDbType.VarChar) { Value = tb.trancode });
-            cm.Parameters.Add(new MySqlParameter("@TranDate", MySqlDbType.VarChar) { Value = tb.tgl });
+            cm.Parameters.Add(new MySqlParameter("@TranDate", MySqlDbType.DateTime) { Value = tb.tgl });
             cm.Parameters.Add(new MySqlParameter("@IsApprove", MySqlDbType.Bit) { Value = tb.IsSuccess });
             cm.Parameters.Add(new MySqlParameter("@policyID", MySqlDbType.Int32) { Value = tb.PolicyId});
             cm.Parameters.Add(new MySqlParameter("@IDBill", MySqlDbType.VarChar) { Value = tb.Billid});
@@ -1746,7 +1798,7 @@ namespace CAF.JBS.Controllers
             cm.Parameters.Add(new MySqlParameter("@BankID", MySqlDbType.Int32) { Value = pt.BankID });
             cm.Parameters.Add(new MySqlParameter("@CCno", MySqlDbType.VarChar) { Value = pt.ACC_No });
             cm.Parameters.Add(new MySqlParameter("@CCExpiry", MySqlDbType.VarChar) { Value = "" });
-            cm.Parameters.Add(new MySqlParameter("@CCName", MySqlDbType.VarChar) { Value = "" });
+            cm.Parameters.Add(new MySqlParameter("@CCName", MySqlDbType.VarChar) { Value = pt.ACC_Name });
             cm.Parameters.Add(new MySqlParameter("@CCAddrs", MySqlDbType.VarChar) { Value = "" });
             cm.Parameters.Add(new MySqlParameter("@CCtelp", MySqlDbType.VarChar) { Value = "" });
             cm.Parameters.Add(new MySqlParameter("@receiptID", MySqlDbType.Int32) { Value = pt.receipt_id });
@@ -1763,6 +1815,37 @@ namespace CAF.JBS.Controllers
             }
 
             return CCTransID;
+        }
+
+        private int InsertACTransaction(ref System.Data.Common.DbCommand cm, PolicyTransaction pt)
+        {
+            cm.Parameters.Clear();
+            cm.CommandType = CommandType.StoredProcedure;
+            cm.CommandText = @"InsertPolistransAC";
+            cm.Parameters.Add(new MySqlParameter("@PolisID", MySqlDbType.Int32) { Value = pt.policy_id });
+            cm.Parameters.Add(new MySqlParameter("@Transdate", MySqlDbType.Date) { Value = pt.transaction_dt });
+            cm.Parameters.Add(new MySqlParameter("@TransType", MySqlDbType.VarChar) { Value = pt.transaction_type });
+            cm.Parameters.Add(new MySqlParameter("@Seq", MySqlDbType.Int32) { Value = pt.recurring_seq });
+            cm.Parameters.Add(new MySqlParameter("@Amount", MySqlDbType.Decimal) { Value = pt.amount });
+            cm.Parameters.Add(new MySqlParameter("@DueDatePre", MySqlDbType.Date) { Value = pt.Due_Date_Pre });
+            cm.Parameters.Add(new MySqlParameter("@Period", MySqlDbType.VarChar) { Value = String.Format("{0:MMMdd}", pt.Due_Date_Pre) });
+            cm.Parameters.Add(new MySqlParameter("@CycleDate", MySqlDbType.Int32) { Value = String.Format("{0:dd}", pt.Due_Date_Pre) });
+            cm.Parameters.Add(new MySqlParameter("@BankID", MySqlDbType.Int32) { Value = pt.BankID });
+            cm.Parameters.Add(new MySqlParameter("@ACno", MySqlDbType.VarChar) { Value = pt.ACC_No });
+            cm.Parameters.Add(new MySqlParameter("@ACName", MySqlDbType.VarChar) { Value = pt.ACC_Name });
+            cm.Parameters.Add(new MySqlParameter("@receiptID", MySqlDbType.Int32) { Value = pt.receipt_id });
+
+            var ACTransID = 0;
+            try
+            {
+                ACTransID = Convert.ToInt32(cm.ExecuteScalar());
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("InsertACTransaction => (policyid = " + pt.policy_id.ToString() + ") " + ex.Message);
+            }
+
+            return ACTransID;
         }
 
         private int InsertReceipt(ref System.Data.Common.DbCommand cm,Receipt rc)
@@ -1936,16 +2019,35 @@ namespace CAF.JBS.Controllers
         {/// update billing jadi closed
             cm.Parameters.Clear();
             cm.CommandType = CommandType.Text;
-            cm.CommandText = @"UPDATE `billing` SET `IsDownload`=0,
+            if ((bm.trancode == "varealtime") || (bm.trancode == "vadaily"))
+            {
+                cm.CommandText = @"UPDATE `billing` SET `IsDownload`=0,
 			                                        `IsClosed`=1,
 			                                        `status_billing`='P',
+                                                    `BillingDate`=`paid_date`,
+                                                    `Source_download`='VA',
 			                                        `LastUploadDate`=@tgl,
-                                                    Life21TranID=@TransactionID,
+                                                    `paid_date`=@tglPaid,
+                                                    `Life21TranID`=@TransactionID,
 			                                        `ReceiptID`=@receiptID,
 			                                        `PaymentTransactionID`=@uid
 		                                        WHERE `BillingID`=@idBill;";
+            }
+            else
+            {
+                cm.CommandText = @"UPDATE `billing` SET `IsDownload`=0,
+			                                        `IsClosed`=1,
+			                                        `status_billing`='P',
+			                                        `LastUploadDate`=@tgl,
+                                                    `paid_date`=@tglPaid,
+                                                    `Life21TranID`=@TransactionID,
+			                                        `ReceiptID`=@receiptID,
+			                                        `PaymentTransactionID`=@uid
+		                                        WHERE `BillingID`=@idBill;";
+            }
             cm.Parameters.Add(new MySqlParameter("@idBill", MySqlDbType.Int32) { Value = bm.Billid });
             cm.Parameters.Add(new MySqlParameter("@tgl", MySqlDbType.DateTime) { Value = bm.TglSkrg });
+            cm.Parameters.Add(new MySqlParameter("@tglPaid", MySqlDbType.DateTime) { Value = bm.tgl });
             cm.Parameters.Add(new MySqlParameter("@TransactionID", MySqlDbType.Int32) { Value = bm.life21TranID });
             cm.Parameters.Add(new MySqlParameter("@receiptID", MySqlDbType.Int32) { Value = bm.receipt_id });
             cm.Parameters.Add(new MySqlParameter("@uid", MySqlDbType.Int32) { Value = bm.PaymentTransactionID });
@@ -1983,6 +2085,25 @@ namespace CAF.JBS.Controllers
             catch (Exception ex)
             {
                 throw new Exception("UpdateLastTransJBS => (BillingID = " + bm.Billid.ToString() + ") " + ex.Message);
+            }
+        }
+
+        private void InsertPolisHold(ref System.Data.Common.DbCommand cmd,string billCode, string polisNo,DateTime releaseDate)
+        {
+            cmd.Parameters.Clear();
+            cmd.CommandType = CommandType.StoredProcedure;
+            cmd.CommandText = @"InsertPolisHold";
+            cmd.Parameters.Add(new MySqlParameter("@Billcode", MySqlDbType.VarChar) { Value = billCode });
+            cmd.Parameters.Add(new MySqlParameter("@polisno", MySqlDbType.VarChar) { Value = polisNo });
+            cmd.Parameters.Add(new MySqlParameter("@realeaseDate", MySqlDbType.DateTime) { Value = releaseDate });
+
+            try
+            {
+                cmd.ExecuteNonQuery();
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("InsertPolisHold => (polisNo = " + polisNo + ") " + ex.Message);
             }
         }
 

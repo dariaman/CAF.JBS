@@ -13,6 +13,7 @@ namespace CAF.JBS.ViewModels
         public Nullable<DateTime> Due_Date_Pre { get; set; }
         public int BankID { get; set; }
         public string ACC_No { get; set; }
+        public string ACC_Name { get; set; }
         public string result_status { get; set; }
         public string Remark { get; set; }
         public int receipt_id { get; set; }
