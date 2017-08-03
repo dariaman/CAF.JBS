@@ -31,8 +31,9 @@ namespace CAF.JBS.Data
             builder.Entity<Product>().ToTable("product");
 
             builder.Entity<StagingUpload>().ToTable("stagingupload");
-            builder.Entity<StagingUpload>().HasKey(c => new { c.Billid, c.PolicyId});
-            //builder.Entity<LogErrorUploadResult>().ToTable("log_error_upload_result");
+            builder.Entity<BillingSumMonthly>().ToTable("billing_sum_monthly");
+            builder.Entity<BillingSumMonthly>().HasKey(T => new { T.TranCode, T.Periode });
+            builder.Entity<TrancodeDashboard>().ToTable("trancode_dashboard");
         }
 
         public DbSet<cctypeModel> cctypeModel { get; set; }
@@ -49,6 +50,8 @@ namespace CAF.JBS.Data
         public DbSet<BillingSummary> BillingSummary { get; set; }
         public DbSet<Product> Product { get; set; }
         public DbSet<StagingUpload> StagingUpload { get; set; }
+        public DbSet<BillingSumMonthly> BillingSumMonthly { get; set; }
+        public DbSet<TrancodeDashboard> TrancodeDashboard { get; set; }
         //public DbSet<LogErrorUploadResult> LogErrorUploadResult { get; set; }
     }
 }

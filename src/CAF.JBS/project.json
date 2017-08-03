@@ -4,6 +4,7 @@
   "dependencies": {
     "BundlerMinifier.Core": "2.4.337",
     "EPPlus.Core": "1.5.1",
+    "MailKit": "1.16.2",
     "Microsoft.AspNetCore.Authentication.Cookies": "1.1.2",
     "Microsoft.AspNetCore.Diagnostics": "1.1.2",
     "Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore": "1.1.2",

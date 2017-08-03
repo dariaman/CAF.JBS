@@ -12,6 +12,10 @@ using MySql.Data.MySqlClient;
 using System.Collections.Generic;
 using OfficeOpenXml;
 using System.Globalization;
+using System.Threading.Tasks;
+using MimeKit;
+using MailKit.Net.Smtp;
+using MailKit.Security;
 
 namespace CAF.JBS.Controllers
 {
@@ -721,7 +725,7 @@ namespace CAF.JBS.Controllers
                                         b.Source_download=null; ";
             try
             {
-                cmd.Connection.Open();
+                _jbsDB.Database.OpenConnection();
                 cmd.ExecuteNonQuery();
                 cmd.CommandText = @"UPDATE `billing_download_summary` AS bs
                                     SET bs.`BillingCountDWD`=0,
@@ -777,7 +781,7 @@ namespace CAF.JBS.Controllers
             finally
             {
                 cmd.Dispose();
-                cmd.Connection.Close();
+                _jbsDB.Database.CloseConnection();
             }
 
             return RedirectToAction("Index");
@@ -788,7 +792,7 @@ namespace CAF.JBS.Controllers
             return RedirectToAction("Index");
         }
 
-        public void hitungUlang()
+        public async void hitungUlang()
         {
             // Proses Hitung Ulang summary billing yang di Download
             // efeknya ketika upload result, apakah sudah semua data yg di download dikasi result
@@ -799,6 +803,7 @@ namespace CAF.JBS.Controllers
             {
                 cmd.Connection.Open();
                 cmd.ExecuteNonQuery();
+                await SendEmailAsync("dariaman.siagian@jagadiri.co.id", "test Subject", "tes Body");
             }
             catch (Exception ex)
             {
@@ -878,7 +883,7 @@ namespace CAF.JBS.Controllers
 
             try
             {
-                cmd.Connection.Open();
+                _jbsDB.Database.OpenConnection();
                 var rd = cmd.ExecuteReader();
                 if (!rd.HasRows)
                 {// Jika Data kosong
@@ -892,7 +897,7 @@ namespace CAF.JBS.Controllers
             finally
             {
                 cmd.Dispose();
-                cmd.Connection.Close();
+                _jbsDB.Database.CloseConnection();
             }
             return pesan;
         }
@@ -1147,7 +1152,7 @@ namespace CAF.JBS.Controllers
                 int? IDLife21Tran;
 
                 Rcpt = new Receipt();
-
+                lst.TglSkrg = tglSekarang;
                 lst.PaymentSource = "CC";
                 switch (lst.trancode)
                 {
@@ -1243,7 +1248,7 @@ namespace CAF.JBS.Controllers
                         }
                         else
                         {// transaksi sudah pasti bukan Quote
-                            lst.TglSkrg = tglSekarang;
+                            
 
                             if (lst.BillCode == "B")
                             { // Recurring >> insert Receipt
@@ -1284,7 +1289,7 @@ namespace CAF.JBS.Controllers
                     }
                     else // transaksi Gagal
                     {
-                        BukaFlagDownloadBilling(ref cmd,lst.BillCode,lst.Billid,tglSekarang);
+                        BukaFlagDownloadBilling(ref cmd,lst);
                         if (Rcpt.receipt_source == "AC")
                         { // Untuk AC, billing akan masuk hold 15 hari
                             InsertPolisHold(ref cmd,lst.BillCode, lst.polisNo, DateTime.Now.AddDays(15));
@@ -1893,34 +1898,31 @@ namespace CAF.JBS.Controllers
             return receiptOther;
         }
 
-        private void BukaFlagDownloadBilling(ref System.Data.Common.DbCommand cm, string billCode, string BillingID,DateTime tgl)
+        private void BukaFlagDownloadBilling(ref System.Data.Common.DbCommand cm, StagingUpload st)
         { // hanya buka flag download, untuk transaksi Reject
             cm.Parameters.Clear();
             cm.CommandType = CommandType.Text;
-            if (billCode == "B")
+            if (st.BillCode == "B")
             {// Transaksi Billing Rucurring
-                cm.CommandText = @"UPDATE `billing` SET IsDownload=0, LastUploadDate=@uploadDate WHERE `BillingID`=@billid";
-                cm.Parameters.Add(new MySqlParameter("@billid", MySqlDbType.Int32) { Value = Convert.ToInt32(BillingID) });
-                cm.Parameters.Add(new MySqlParameter("@uploadDate", MySqlDbType.DateTime) { Value = tgl });
+                cm.CommandText = @"UPDATE `billing` SET IsDownload=0, LastUploadDate=@uploadDate,PaymentTransactionID=@ptd WHERE `BillingID`=@billid";
             }
-            else if (billCode == "Q")
+            else if (st.BillCode == "Q")
             {// Transaksi Billing Quote
-                cm.CommandText = @"UPDATE `quote_billing` SET IsDownload=0, LastUploadDate=@uploadDate WHERE `quote_id`=@billid";
-                cm.Parameters.Add(new MySqlParameter("@billid", MySqlDbType.Int32) { Value = Convert.ToInt32(BillingID) });
-                cm.Parameters.Add(new MySqlParameter("@uploadDate", MySqlDbType.DateTime) { Value = tgl });
+                cm.CommandText = @"UPDATE `quote_billing` SET IsDownload=0, LastUploadDate=@uploadDate,PaymentTransactionID=@ptd WHERE `quote_id`=@billid";
             }
             else
             {// transaksi Billing Others
-                cm.CommandText = @"UPDATE `billing_others` SET IsDownload=0, LastUploadDate=@uploadDate WHERE `BillingID`=@billid";
-                cm.Parameters.Add(new MySqlParameter("@billid", MySqlDbType.VarChar) { Value = BillingID });
-                cm.Parameters.Add(new MySqlParameter("@uploadDate", MySqlDbType.DateTime) { Value = tgl });
+                cm.CommandText = @"UPDATE `billing_others` SET IsDownload=0, LastUploadDate=@uploadDate,PaymentTransactionID=@ptd WHERE `BillingID`=@billid";
             }
+            cm.Parameters.Add(new MySqlParameter("@billid", MySqlDbType.Int32) { Value = Convert.ToInt32(st.Billid) });
+            cm.Parameters.Add(new MySqlParameter("@uploadDate", MySqlDbType.DateTime) { Value = st.TglSkrg });
+            cm.Parameters.Add(new MySqlParameter("@ptd", MySqlDbType.Int32) { Value = st.PaymentTransactionID });
             try
             {
                 cm.ExecuteNonQuery();
             }catch(Exception ex)
             {
-                throw new Exception("BukaFlagDownloadBilling => (BillingID = "+ BillingID+") " + ex.Message);
+                throw new Exception("BukaFlagDownloadBilling => (BillingID = "+ st.Billid+") " + ex.Message);
             }
         }
 
@@ -2018,7 +2020,9 @@ namespace CAF.JBS.Controllers
         }
 
         private void UpdateBillingJBS(ref System.Data.Common.DbCommand cm, StagingUpload bm)
-        {/// update billing jadi closed
+        {
+            /// update billing jadi closed 
+            /// untuk payment sukses aja
             cm.Parameters.Clear();
             cm.CommandType = CommandType.Text;
             if ((bm.trancode == "varealtime") || (bm.trancode == "vadaily"))
@@ -2304,5 +2308,23 @@ namespace CAF.JBS.Controllers
             catch (Exception ex) { throw new Exception(ex.Message); }
             finally { cmd.Connection.Close(); }
 }
+
+        public async Task SendEmailAsync(string email, string subject, string message)
+        {
+            var emailMessage = new MimeMessage();
+
+            emailMessage.From.Add(new MailboxAddress("JAGADIRI", "dariaman.siagian@jagadiri.co.id"));
+            emailMessage.To.Add(new MailboxAddress("Dariaman Siagian", email));
+            emailMessage.Subject = subject;
+            emailMessage.Body = new TextPart("plain") { Text = message };
+
+            using (var client = new SmtpClient())
+            {
+                //client.LocalDomain = "some.domain.com";
+                await client.ConnectAsync("mail.jagadiri.co.id", 25, SecureSocketOptions.None).ConfigureAwait(false);
+                await client.SendAsync(emailMessage).ConfigureAwait(false);
+                await client.DisconnectAsync(true).ConfigureAwait(false);
+            }
+        }
     }
 }
