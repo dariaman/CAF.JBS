@@ -725,7 +725,7 @@ namespace CAF.JBS.Controllers
                                         b.Source_download=null; ";
             try
             {
-                _jbsDB.Database.OpenConnection();
+                cmd.Connection.Open();
                 cmd.ExecuteNonQuery();
                 cmd.CommandText = @"UPDATE `billing_download_summary` AS bs
                                     SET bs.`BillingCountDWD`=0,
@@ -780,8 +780,9 @@ namespace CAF.JBS.Controllers
             }
             finally
             {
-                cmd.Dispose();
-                _jbsDB.Database.CloseConnection();
+                //cmd.Dispose();
+                cmd.Connection.Close();
+                //_jbsDB.Database.CloseConnection();
             }
 
             return RedirectToAction("Index");
@@ -801,7 +802,7 @@ namespace CAF.JBS.Controllers
             cmd.CommandText = @"UpdateBillSum";
             try
             {
-                cmd.Connection.Open();
+                if (cmd.Connection.State == ConnectionState.Closed) cmd.Connection.Open();
                 cmd.ExecuteNonQuery();
                 await SendEmailAsync("dariaman.siagian@jagadiri.co.id", "test Subject", "tes Body");
             }
@@ -811,7 +812,6 @@ namespace CAF.JBS.Controllers
             }
             finally
             {
-                cmd.Dispose();
                 cmd.Connection.Close();
             }
         }   
@@ -883,7 +883,7 @@ namespace CAF.JBS.Controllers
 
             try
             {
-                _jbsDB.Database.OpenConnection();
+                if (cmd.Connection.State == ConnectionState.Closed) cmd.Connection.Open();
                 var rd = cmd.ExecuteReader();
                 if (!rd.HasRows)
                 {// Jika Data kosong
@@ -896,8 +896,7 @@ namespace CAF.JBS.Controllers
             }
             finally
             {
-                cmd.Dispose();
-                _jbsDB.Database.CloseConnection();
+                cmd.Connection.Close();
             }
             return pesan;
         }
@@ -1327,6 +1326,9 @@ namespace CAF.JBS.Controllers
                     cmdx.CloseConnection();
                     cmdx2.CloseConnection();
                     cmdx3.CloseConnection();
+                    //_jbsDB.Database.CloseConnection();
+                    //_life21.Database.CloseConnection();
+                    //_life21p.Database.CloseConnection();
                 }
 
             } // end foreach (var lst in StagingUploadx)
@@ -1524,7 +1526,7 @@ namespace CAF.JBS.Controllers
             cmd.CommandText = @"DELETE FROM `stagingupload`;";
             try
             {
-                _jbsDB.Database.OpenConnection();
+                if (cmd.Connection.State == ConnectionState.Closed) cmd.Connection.Open();
                 cmd.ExecuteNonQuery();
             }
             catch (Exception ex)
@@ -1534,7 +1536,7 @@ namespace CAF.JBS.Controllers
             finally
             {
                 cmd.Dispose();
-                _jbsDB.Database.CloseConnection();
+                cmd.Connection.Close();
             }
 
             string txfilename;
@@ -2024,9 +2026,9 @@ namespace CAF.JBS.Controllers
             /// update billing jadi closed 
             /// untuk payment sukses aja
             cm.Parameters.Clear();
-            cm.CommandType = CommandType.Text;
             if ((bm.trancode == "varealtime") || (bm.trancode == "vadaily"))
             {
+                cm.CommandType = CommandType.Text;
                 cm.CommandText = @"UPDATE `billing` SET `IsDownload`=0,
 			                                        `IsClosed`=1,
 			                                        `status_billing`='P',
@@ -2038,27 +2040,27 @@ namespace CAF.JBS.Controllers
 			                                        `ReceiptID`=@receiptID,
 			                                        `PaymentTransactionID`=@uid
 		                                        WHERE `BillingID`=@idBill;";
+                cm.Parameters.Add(new MySqlParameter("@idBill", MySqlDbType.Int32) { Value = bm.Billid });
+                cm.Parameters.Add(new MySqlParameter("@PaymentSource", MySqlDbType.VarChar) { Value = bm.PaymentSource });
+                cm.Parameters.Add(new MySqlParameter("@tgl", MySqlDbType.DateTime) { Value = bm.TglSkrg });
+                cm.Parameters.Add(new MySqlParameter("@tglPaid", MySqlDbType.DateTime) { Value = bm.tgl });
+                cm.Parameters.Add(new MySqlParameter("@TransactionID", MySqlDbType.Int32) { Value = bm.life21TranID });
+                cm.Parameters.Add(new MySqlParameter("@receiptID", MySqlDbType.Int32) { Value = bm.receipt_id });
+                cm.Parameters.Add(new MySqlParameter("@uid", MySqlDbType.Int32) { Value = bm.PaymentTransactionID });
             }
             else
             {
-                cm.CommandText = @"UPDATE `billing` SET `IsDownload`=0,
-			                                        `IsClosed`=1,
-			                                        `status_billing`='P',
-                                                    `PaymentSource`=@PaymentSource,
-			                                        `LastUploadDate`=@tgl,
-                                                    `paid_date`=@tglPaid,
-                                                    `Life21TranID`=@TransactionID,
-			                                        `ReceiptID`=@receiptID,
-			                                        `PaymentTransactionID`=@uid
-		                                        WHERE `BillingID`=@idBill;";
+                cm.CommandType = CommandType.StoredProcedure;
+                cm.CommandText = @"PaidBilling";
+                cm.Parameters.Add(new MySqlParameter("@PaySource", MySqlDbType.VarChar) { Value = bm.PaymentSource });
+                cm.Parameters.Add(new MySqlParameter("@tglUpload", MySqlDbType.DateTime) { Value = bm.TglSkrg });
+                cm.Parameters.Add(new MySqlParameter("@tglPaid", MySqlDbType.DateTime) { Value = bm.tgl });
+                cm.Parameters.Add(new MySqlParameter("@Life21Tran", MySqlDbType.Int32) { Value = bm.life21TranID });
+                cm.Parameters.Add(new MySqlParameter("@Recptid", MySqlDbType.Int32) { Value = bm.receipt_id });
+                cm.Parameters.Add(new MySqlParameter("@PTranJbsID", MySqlDbType.Int32) { Value = bm.PaymentTransactionID });
+                cm.Parameters.Add(new MySqlParameter("@billid", MySqlDbType.Int32) { Value = bm.Billid });
             }
-            cm.Parameters.Add(new MySqlParameter("@idBill", MySqlDbType.Int32) { Value = bm.Billid });
-            cm.Parameters.Add(new MySqlParameter("@PaymentSource", MySqlDbType.VarChar) { Value = bm.PaymentSource });
-            cm.Parameters.Add(new MySqlParameter("@tgl", MySqlDbType.DateTime) { Value = bm.TglSkrg });
-            cm.Parameters.Add(new MySqlParameter("@tglPaid", MySqlDbType.DateTime) { Value = bm.tgl });
-            cm.Parameters.Add(new MySqlParameter("@TransactionID", MySqlDbType.Int32) { Value = bm.life21TranID });
-            cm.Parameters.Add(new MySqlParameter("@receiptID", MySqlDbType.Int32) { Value = bm.receipt_id });
-            cm.Parameters.Add(new MySqlParameter("@uid", MySqlDbType.Int32) { Value = bm.PaymentTransactionID });
+            
             try
             {
                 cm.ExecuteNonQuery();
@@ -2326,5 +2328,37 @@ namespace CAF.JBS.Controllers
                 await client.DisconnectAsync(true).ConfigureAwait(false);
             }
         }
+
+        //public bool CheckConnection( int db)
+        //{
+        //    // 1 = JBS
+        //    // 2 = Life21
+        //    // 3 = Life21P
+        //    try
+        //    {
+        //        if (db == 1)
+        //        {
+        //            _jbsDB.Database.OpenConnection();
+        //            _jbsDB.Database.CloseConnection();
+        //        }else if (db ==2)
+        //        {
+        //            _life21.Database.OpenConnection();
+        //            _life21.Database.CloseConnection();
+        //        }else if (db == 3)
+        //        {
+        //            _life21p.Database.OpenConnection();
+        //            _life21p.Database.CloseConnection();
+        //        }
+        //        else
+        //        {
+        //            return false;
+        //        }
+        //    }
+        //    catch (MySqlException)
+        //    {
+        //        return false;
+        //    }
+        //    return true;
+        //}
     }
 }
