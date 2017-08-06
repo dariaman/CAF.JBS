@@ -1,7 +1,7 @@
 @model CAF.JBS.Models.prefixcardModel
 
 @{
-    ViewData["Title"] = "Delete";
+    ViewData["Title"] = "Delete Card Issuer Bank";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -34,8 +34,8 @@
     
     <form asp-action="Delete">
         <div class="form-actions no-color">
-            <input type="submit" value="Delete" class="btn btn-default" /> |
-            <a asp-action="Index">Back to List</a>
+            <input type="submit" value="Delete" class="btn btn-danger" /> 
+            <a asp-action="Index" class="btn btn-primary">Back to List</a>
         </div>
     </form>
 </div>
