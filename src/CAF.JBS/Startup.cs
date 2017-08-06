@@ -18,6 +18,8 @@ using NonFactors.Mvc.Grid;
 using System.Reflection;
 using MySQL.Data.Entity.Extensions;
 using CAF.JBS.Auth;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc.Authorization;
 
 namespace CAF.JBS
 {
@@ -75,6 +77,13 @@ namespace CAF.JBS
                 .AddDefaultTokenProviders();
             
             services.AddMvcCore().AddViewLocalization();
+            services.AddMvc(config =>
+            {
+                var policy = new AuthorizationPolicyBuilder()
+                                 .RequireAuthenticatedUser()
+                                 .Build();
+                config.Filters.Add(new AuthorizeFilter(policy));
+            });
             //services.AddMvc();
             services.AddMvcGrid();
 
