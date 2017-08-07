@@ -94,10 +94,7 @@ namespace CAF.JBS.Controllers
 
             using (ExcelPackage package = new ExcelPackage(new FileInfo(fullePath)))
             {
-                //var worksheet = package.Workbook.Worksheets.FirstOrDefault(x => x.Name == "Attempts");
-                //var ws = package.Workbook.Worksheets.Add("Sample1");
                 var sheet = package.Workbook.Worksheets.Add("sheet1");
-                //worksheet = package.Workbook.Worksheets.Add("Assessment Attempts");
 
                 try
                 {
@@ -125,6 +122,7 @@ namespace CAF.JBS.Controllers
                         sheet.Cells[1, 19].Value = result.GetName(18);
                         sheet.Cells[1, 20].Value = result.GetName(19);
                         sheet.Cells[1, 21].Value = result.GetName(20);
+                        sheet.Cells[1, 22].Value = result.GetName(21);
 
                         var i = 2;
                         while (result.Read())
@@ -150,6 +148,7 @@ namespace CAF.JBS.Controllers
                             sheet.Cells[i, 19].Value = result[18];
                             sheet.Cells[i, 20].Value = result[19];
                             sheet.Cells[i, 21].Value = result[20];
+                            sheet.Cells[i, 22].Value = result[21];
                             i++;
                         }
                         sheet.Column(1).AutoFit();
@@ -173,6 +172,7 @@ namespace CAF.JBS.Controllers
                         sheet.Column(19).AutoFit();
                         sheet.Column(20).AutoFit();
                         sheet.Column(21).AutoFit();
+                        sheet.Column(22).AutoFit();
                     }
                 }
                 catch (Exception ex)

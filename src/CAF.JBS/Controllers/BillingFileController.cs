@@ -16,6 +16,7 @@ using System.Threading.Tasks;
 using MimeKit;
 using MailKit.Net.Smtp;
 using MailKit.Security;
+using Microsoft.Extensions.Configuration;
 
 namespace CAF.JBS.Controllers
 {
@@ -46,6 +47,9 @@ namespace CAF.JBS.Controllers
         private readonly string TempBCAacFile;
 
         private readonly string GenerateXls;
+
+        private readonly string EmailCAF;
+        private readonly string EmailPHS;
 
         private FileSettings filesettings;
         //private IConfigurationRoot Configuration { get; set; }
@@ -81,24 +85,14 @@ namespace CAF.JBS.Controllers
             TempMandiriFile = filesettings.TempMandiriCC;
             TempBCAacFile = filesettings.TempBCAac;
 
-            // Move(backup) existing file BCA => dilakukan pada saat upload result
-            // file tidak akan hilang jika data result tidak hilang
-            //var files = Directory.GetFiles(TempFile);
-            //foreach (string file in files)
-            //{
-            //    FileInfo FileName = new FileInfo(file);
-            //    if ((FileName.ToString() == TempFile + BCAFile) ||      // File BCA
-            //        (FileName.ToString() == TempFile + MandiriFile) ||  // File Mandiri
-            //        (FileName.ToString() == TempFile + MegaOnUsFile) || // File MegaOnUs
-            //        (FileName.ToString() == TempFile + MegaOfUsFile) || // File MegaOffUs
-            //        (FileName.ToString() == TempFile + BNIFile)         // File BNI
-            //        )
-            //    { continue; }
+            var builder = new ConfigurationBuilder()
+                     .SetBasePath(Directory.GetCurrentDirectory())
+                    .AddJsonFile("appsettings.json");
+            var Configuration = builder.Build();
 
-            //    FileInfo filex = new FileInfo(BackupFile + FileName.Name);
-            //    if (filex.Exists) System.IO.File.Delete(filex.ToString());
-            //    FileName.MoveTo(BackupFile + FileName.Name);
-            //}
+            EmailCAF = Configuration.GetValue<string>("Email:EmailCAF");
+            EmailPHS = Configuration.GetValue<string>("Email:EmailPHS");
+
         }
 
         [HttpGet]
@@ -793,7 +787,7 @@ namespace CAF.JBS.Controllers
             return RedirectToAction("Index");
         }
 
-        public async void hitungUlang()
+        public void hitungUlang()
         {
             // Proses Hitung Ulang summary billing yang di Download
             // efeknya ketika upload result, apakah sudah semua data yg di download dikasi result
@@ -804,7 +798,6 @@ namespace CAF.JBS.Controllers
             {
                 if (cmd.Connection.State == ConnectionState.Closed) cmd.Connection.Open();
                 cmd.ExecuteNonQuery();
-                await SendEmailAsync("dariaman.siagian@jagadiri.co.id", "test Subject", "tes Body");
             }
             catch (Exception ex)
             {
@@ -1060,7 +1053,7 @@ namespace CAF.JBS.Controllers
         }
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult SubmitUpload([Bind("trancode")] SubmitUploadVM SubmitUpload)
+        public async Task<IActionResult> SubmitUpload([Bind("trancode")] SubmitUploadVM SubmitUpload)
         {
             var tglSekarang = DateTime.Now;
             var cmdT = _jbsDB.Database.GetDbConnection().CreateCommand();
@@ -1186,7 +1179,7 @@ namespace CAF.JBS.Controllers
                 }
                 Rcpt.receipt_source = lst.PaymentSource;
                 Life21Tran = new PolicyTransaction();
-                if (Rcpt.receipt_source=="CC")
+                if (Rcpt.receipt_source=="CC" || Rcpt.receipt_source == "VA")
                 {
                     Rcpt.receipt_date = tglSekarang;
                     Rcpt.receipt_policy_id = lst.PolicyId;
@@ -1267,6 +1260,7 @@ namespace CAF.JBS.Controllers
 
                                 UpdateBillingJBS(ref cmd, lst);
                                 UpdateLastTransJBS(ref cmd, lst);
+                                await AsyncSendEmailThanksRecurring(Convert.ToInt32(lst.Billid));
                             }
                             else
                             { // Billing Others >> insert Receipt Other (pasti CC)
@@ -1299,10 +1293,6 @@ namespace CAF.JBS.Controllers
                     cmdx.CommitTransaction();
                     cmdx2.CommitTransaction();
                     cmdx3.CommitTransaction();
-
-                    //cmdx.RollbackTransaction();
-                    //cmdx2.RollbackTransaction();
-                    //cmdx3.RollbackTransaction();
                 }
                 catch(Exception ex)
                 {
@@ -1326,13 +1316,14 @@ namespace CAF.JBS.Controllers
                     cmdx.CloseConnection();
                     cmdx2.CloseConnection();
                     cmdx3.CloseConnection();
-                    //_jbsDB.Database.CloseConnection();
-                    //_life21.Database.CloseConnection();
-                    //_life21p.Database.CloseConnection();
                 }
 
             } // end foreach (var lst in StagingUploadx)
             hitungUlang();
+            if (!((SubmitUpload.trancode == "varealtime") || (SubmitUpload.trancode == "vadaily"))){
+                PindahFileDownload(SubmitUpload.trancode);
+            }
+
             TempData["pesanSukses"] = "Upload File Sukses";
             return RedirectToAction("Index");
         }
@@ -1975,11 +1966,13 @@ namespace CAF.JBS.Controllers
 			                                            `IsClosed`=1,
 			                                            `status`='P',
                                                         `PaymentSource`=@PaymentSource,
+                                                        `PaidAmount`=@PaidAmount,
 			                                            `LastUploadDate`=@tgl,
 			                                            `PaymentTransactionID`=@uid
 		                                            WHERE `quote_id`=@idBill;";
             cm.Parameters.Add(new MySqlParameter("@PaymentSource", MySqlDbType.VarChar) { Value = bm.PaymentSource });
             cm.Parameters.Add(new MySqlParameter("@idBill", MySqlDbType.Int32) { Value = Convert.ToInt32(bm.Billid) });
+            cm.Parameters.Add(new MySqlParameter("@PaidAmount", MySqlDbType.Decimal) { Value = bm.amount });
             cm.Parameters.Add(new MySqlParameter("@tgl", MySqlDbType.DateTime) { Value = bm.TglSkrg });
             cm.Parameters.Add(new MySqlParameter("@uid", MySqlDbType.Int32) { Value = bm.PaymentTransactionID });
             try
@@ -2001,6 +1994,7 @@ namespace CAF.JBS.Controllers
 			                                            `status_billing`='P',
                                                         `PaymentSource`=@PaymentSource,
 			                                            `LastUploadDate`=@tgl,
+                                                        `PaidAmount`=@PaidAmount,
                                                         Life21TranID=@TransactionID,
 			                                            `ReceiptOtherID`=@receiptID,
 			                                            `PaymentTransactionID`=@uid
@@ -2008,6 +2002,7 @@ namespace CAF.JBS.Controllers
             cm.Parameters.Add(new MySqlParameter("@idBill", MySqlDbType.VarChar) { Value = bm.Billid });
             cm.Parameters.Add(new MySqlParameter("@PaymentSource", MySqlDbType.VarChar) { Value = bm.PaymentSource });
             cm.Parameters.Add(new MySqlParameter("@tgl", MySqlDbType.DateTime) { Value = bm.TglSkrg });
+            cm.Parameters.Add(new MySqlParameter("@PaidAmount", MySqlDbType.Decimal) { Value = bm.amount });
             cm.Parameters.Add(new MySqlParameter("@TransactionID", MySqlDbType.Int32) { Value = bm.life21TranID });
             cm.Parameters.Add(new MySqlParameter("@receiptID", MySqlDbType.Int32) { Value = bm.receipt_other_id });
             cm.Parameters.Add(new MySqlParameter("@uid", MySqlDbType.Int32) { Value = bm.PaymentTransactionID });
@@ -2017,7 +2012,7 @@ namespace CAF.JBS.Controllers
             }
             catch (Exception ex)
             {
-                throw new Exception("UpdateBillingJBS => (BillingID = " + bm.Billid.ToString() + ") " + ex.Message);
+                throw new Exception("UpdateBillingOthersJBS => (BillingID = " + bm.Billid.ToString() + ") " + ex.Message);
             }
         }
 
@@ -2036,6 +2031,7 @@ namespace CAF.JBS.Controllers
                                                     `PaymentSource`=@PaymentSource,
 			                                        `LastUploadDate`=@tgl,
                                                     `paid_date`=@tglPaid,
+                                                    `PaidAmount`=@PaidAmount,
                                                     `Life21TranID`=@TransactionID,
 			                                        `ReceiptID`=@receiptID,
 			                                        `PaymentTransactionID`=@uid
@@ -2044,6 +2040,7 @@ namespace CAF.JBS.Controllers
                 cm.Parameters.Add(new MySqlParameter("@PaymentSource", MySqlDbType.VarChar) { Value = bm.PaymentSource });
                 cm.Parameters.Add(new MySqlParameter("@tgl", MySqlDbType.DateTime) { Value = bm.TglSkrg });
                 cm.Parameters.Add(new MySqlParameter("@tglPaid", MySqlDbType.DateTime) { Value = bm.tgl });
+                cm.Parameters.Add(new MySqlParameter("@PaidAmount", MySqlDbType.Decimal) { Value = bm.amount });
                 cm.Parameters.Add(new MySqlParameter("@TransactionID", MySqlDbType.Int32) { Value = bm.life21TranID });
                 cm.Parameters.Add(new MySqlParameter("@receiptID", MySqlDbType.Int32) { Value = bm.receipt_id });
                 cm.Parameters.Add(new MySqlParameter("@uid", MySqlDbType.Int32) { Value = bm.PaymentTransactionID });
@@ -2055,6 +2052,7 @@ namespace CAF.JBS.Controllers
                 cm.Parameters.Add(new MySqlParameter("@PaySource", MySqlDbType.VarChar) { Value = bm.PaymentSource });
                 cm.Parameters.Add(new MySqlParameter("@tglUpload", MySqlDbType.DateTime) { Value = bm.TglSkrg });
                 cm.Parameters.Add(new MySqlParameter("@tglPaid", MySqlDbType.DateTime) { Value = bm.tgl });
+                cm.Parameters.Add(new MySqlParameter("@PaidAmount", MySqlDbType.Decimal) { Value = bm.amount });
                 cm.Parameters.Add(new MySqlParameter("@Life21Tran", MySqlDbType.Int32) { Value = bm.life21TranID });
                 cm.Parameters.Add(new MySqlParameter("@Recptid", MySqlDbType.Int32) { Value = bm.receipt_id });
                 cm.Parameters.Add(new MySqlParameter("@PTranJbsID", MySqlDbType.Int32) { Value = bm.PaymentTransactionID });
@@ -2315,10 +2313,15 @@ namespace CAF.JBS.Controllers
         {
             var emailMessage = new MimeMessage();
 
-            emailMessage.From.Add(new MailboxAddress("JAGADIRI", "dariaman.siagian@jagadiri.co.id"));
-            emailMessage.To.Add(new MailboxAddress("Dariaman Siagian", email));
+            emailMessage.From.Add(new MailboxAddress("JAGADIRI", EmailCAF));
+            emailMessage.To.Add(new MailboxAddress(email));
             emailMessage.Subject = subject;
-            emailMessage.Body = new TextPart("plain") { Text = message };
+
+            var bodyBuilder = new BodyBuilder();
+            bodyBuilder.HtmlBody = message;
+            //bodyBuilder.TextBody = "This is some plain text";
+
+            emailMessage.Body = bodyBuilder.ToMessageBody();
 
             using (var client = new SmtpClient())
             {
@@ -2329,36 +2332,116 @@ namespace CAF.JBS.Controllers
             }
         }
 
-        //public bool CheckConnection( int db)
-        //{
-        //    // 1 = JBS
-        //    // 2 = Life21
-        //    // 3 = Life21P
-        //    try
-        //    {
-        //        if (db == 1)
-        //        {
-        //            _jbsDB.Database.OpenConnection();
-        //            _jbsDB.Database.CloseConnection();
-        //        }else if (db ==2)
-        //        {
-        //            _life21.Database.OpenConnection();
-        //            _life21.Database.CloseConnection();
-        //        }else if (db == 3)
-        //        {
-        //            _life21p.Database.OpenConnection();
-        //            _life21p.Database.CloseConnection();
-        //        }
-        //        else
-        //        {
-        //            return false;
-        //        }
-        //    }
-        //    catch (MySqlException)
-        //    {
-        //        return false;
-        //    }
-        //    return true;
-        //}
+        public async Task SendEmailAsync(string email, string subject, string message,string bcc)
+        {
+            var emailMessage = new MimeMessage();
+
+            emailMessage.From.Add(new MailboxAddress("JAGADIRI", EmailCAF));
+            emailMessage.To.Add(new MailboxAddress(email));
+            emailMessage.Bcc.Add(new MailboxAddress(bcc));
+            emailMessage.Subject = subject;
+
+            var bodyBuilder = new BodyBuilder();
+            bodyBuilder.HtmlBody = message;
+            //bodyBuilder.TextBody = "This is some plain text";
+
+            emailMessage.Body = bodyBuilder.ToMessageBody();
+
+            using (var client = new SmtpClient())
+            {
+                //client.LocalDomain = "some.domain.com";
+                await client.ConnectAsync("mail.jagadiri.co.id", 25, SecureSocketOptions.None).ConfigureAwait(false);
+                await client.SendAsync(emailMessage).ConfigureAwait(false);
+                await client.DisconnectAsync(true).ConfigureAwait(false);
+            }
+        }
+
+        public async Task AsyncSendEmailThanksRecurring(int BillID)
+        {
+            EmailThanksRecurringVM EmailThanks;
+            EmailThanks = await (from b in _jbsDB.BillingModel
+                            join pb in _jbsDB.PolicyBillingModel on b.policy_id equals pb.policy_Id
+                            join ci in _jbsDB.CustomerInfo on pb.holder_id equals ci.CustomerId
+                            join pd in _jbsDB.Product on pb.product_id equals pd.product_id
+                            where b.BillingID == BillID
+                            select new EmailThanksRecurringVM()
+                           {
+                               PolicyNo = pb.policy_no,
+                               CustomerName=ci.CustomerName,
+                               CustomerEmail=ci.Email,
+                               ProductName=pd.product_description,
+                               PremiAmount=b.TotalAmount                               
+                           }).SingleOrDefaultAsync();
+            string SubjectEmail =string.Format(@"JAGADIRI: Penerimaan Premi Regular {0} {1} {2}",EmailThanks.ProductName,EmailThanks.PolicyNo,EmailThanks.CustomerName);
+            string BodyMessage = string.Format(@"<p style='text-align:justify'>Bersama surat ini kami ingin mengucapkan terima kasih atas pembayaran Premi Regular untuk Polis <b>{0}</b> dengan nomor polis <b>{1}</b> sejumlah IDR <b>{2}</b> yang telah kami terima. Pembayaran Premi tersebut secara otomatis akan membuat Polis Asuransi Anda tetap aktif dan memberikan manfaat perlindungan maksimal bagi Anda dan keluarga.</p>
+                                    <br><br>Sukses selalu,
+                                <br>JAGADIRI ", EmailThanks.ProductName,EmailThanks.PolicyNo,EmailThanks.PremiAmount.ToString("#,###"));
+            await SendEmailAsync(EmailThanks.CustomerEmail, SubjectEmail, BodyMessage, EmailPHS);
+        }
+
+        private void PindahFileDownload(string trancode)
+        {
+            string fileSearch = "";
+            string payMeth = "";
+            int bankid=0;
+
+            if (trancode == "bcacc")
+            {
+                fileSearch = "CAF*.prn";
+                bankid = 1;
+                payMeth = "CC";
+            }
+            else if (trancode == "mandiricc")
+            {
+                fileSearch = "Mandiri_*.xls";
+                bankid = 2;
+                payMeth = "CC";
+            }
+            else if (trancode == "megaonus")
+            {
+                fileSearch = "CAF*_MegaOnUs.bpmt";
+                bankid = 3;
+                payMeth = "CC";
+            }
+            else if (trancode == "megaoffus")
+            {
+                fileSearch = "CAF*_MegaOffUs.bpmt";
+                bankid = 4;
+                payMeth = "CC";
+            }
+            else if (trancode == "bnicc")
+            {
+                fileSearch = "BNI_*.xlsx";
+                bankid = 5;
+                payMeth = "CC";
+            }
+            else if (trancode == "bcaac")
+            {
+                fileSearch = "BCAac*.xls";
+                bankid = 1;
+                payMeth = "AC";
+            }
+            else if (trancode == "mandiriac")
+            {
+                fileSearch = "MandiriAc*.csv";
+                bankid = 2;
+                payMeth = "AC";
+            }
+
+
+            string[] files = Directory.GetFiles(DirBilling, fileSearch, SearchOption.TopDirectoryOnly);
+
+            var validasi = CekDataDownload(bankid, payMeth);
+            if (validasi != "")
+            {
+                foreach (string file in files)
+                {
+                    FileInfo filex = new FileInfo(file);
+                    filex.CopyTo(BackupFile + filex.Name);
+                    if (filex.Exists) System.IO.File.Delete(filex.ToString());
+                }
+
+            }
+        }
     }
 }
