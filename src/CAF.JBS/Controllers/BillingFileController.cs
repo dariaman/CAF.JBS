@@ -1084,7 +1084,10 @@ namespace CAF.JBS.Controllers
             //if((SubmitUpload.trancode== "varealtime") || (SubmitUpload.trancode == "vadaily"))
             //    cmdT.CommandText = @"SELECT * FROM `stagingupload` su WHERE su.`trancode`=@trcode;";
             //else
-                cmdT.CommandText = @"SELECT * FROM `stagingupload` su WHERE su.`Billid` IS NOT NULL AND su.`trancode`=@trcode;";
+            cmdT.CommandText = @"SELECT * FROM `stagingupload` su WHERE su.`BillCode`='B' AND su.`trancode`=@trcode
+                            UNION ALL
+                            SELECT * FROM `stagingupload` su WHERE su.`BillCode`<>'B' AND su.`Billid` IS NOT NULL AND su.`trancode`=@trcode;";
+//SELECT * FROM `stagingupload` su WHERE su.`Billid` IS NOT NULL AND su.`trancode`=@trcode;";
             cmdT.Parameters.Add(new MySqlParameter("@trcode", MySqlDbType.VarChar) { Value = SubmitUpload.trancode });
             try
             {
@@ -2441,6 +2444,30 @@ namespace CAF.JBS.Controllers
                     if (filex.Exists) System.IO.File.Delete(filex.ToString());
                 }
 
+            }
+        }
+
+        public void CreateBilling(ref System.Data.Common.DbCommand cmd,int PolicyID)
+        {
+            string sql = @"INSERT INTO `billing`(`recurring_seq`,`due_dt_pre`,`policy_regular_premium`,`cashless_fee_amount`,`TotalAmount`)
+                            SELECT b.`recurring_seq` +1,DATE_ADD(b.`due_dt_pre`,INTERVAL pb.`premium_mode` MONTH),b.`policy_regular_premium`,
+                            b.`cashless_fee_amount`,b.`policy_regular_premium`+b.`cashless_fee_amount`
+                            FROM `billing` b 
+                            INNER JOIN `policy_billing` pb ON pb.`policy_Id`=b.`policy_id`
+                            WHERE b.`policy_id`=@polisid
+                            ORDER BY b.`recurring_seq` DESC
+                            LIMIT 1;";
+            cmd.CommandType = CommandType.Text;
+            cmd.Parameters.Add(new MySqlParameter("@polisid", MySqlDbType.Int32) { Value = PolicyID });
+            cmd.CommandText = sql;
+
+            ///// Data download
+            try
+            {
+                cmd.ExecuteNonQuery();
+            }
+            catch (Exception ex) {
+                throw new Exception("CreateBilling => (polisID = " + PolicyID + ") " + ex.Message);
             }
         }
     }
