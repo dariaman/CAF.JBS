@@ -10,6 +10,7 @@ namespace CAF.JBS.ViewModels
         public String PolicyNo { get; set; }
         public String ProductName { get; set; }
         public String CustomerName { get; set; }
+        public String Salam { get; set; }
         public String CustomerEmail { get; set; }
         public Decimal PremiAmount { get; set; }
     }

@@ -14,6 +14,7 @@ namespace CAF.JBS.Models
         public int CustomerId { get; set; }
         public string CustomerName { get; set; }
         public DateTime dob { get; set; }
+        public Boolean IsLaki { get; set; }
         public string Phone { get; set; }
         public string Email { get; set; }
         public string UserCrt { get; set; }

@@ -1236,6 +1236,7 @@ namespace CAF.JBS.Controllers
                     lst.PaymentTransactionID = InsertTransactionBank(ref cmd, lst); // transaksi histori di JBS
                     if (lst.IsSuccess) // transaksi sukses
                     {
+                        if ((lst.BillCode != "B") && (lst.Billid == string.Empty)) continue;
                         if (lst.BillCode == "Q")
                         { // untuk Billing Quote 
                             UpdateQuote(ref cmd3,tglSekarang,BankID,Convert.ToInt32(lst.Billid));
@@ -1243,21 +1244,19 @@ namespace CAF.JBS.Controllers
                         }
                         else
                         {// transaksi sudah pasti bukan Quote
-                            
-
                             if (lst.BillCode == "B")
                             { // Recurring >> insert Receipt
+                                if (lst.polisNo == null) continue;
+                                if (string.IsNullOrEmpty(lst.Billid)) CreateBilling(ref cmd, ref lst);
+
                                 ReciptID=InsertReceipt(ref cmd2,Rcpt);
                                 Life21Tran.receipt_id = ReciptID;
                                 Life21Tran.transaction_type = "R";
-                                if (Rcpt.receipt_source == "AC")
-                                {
-                                    IDLife21Tran=InsertACTransaction(ref cmd2, Life21Tran);
-                                }else if (Rcpt.receipt_source == "CC")
-                                {
-                                    IDLife21Tran=InsertCCTransaction(ref cmd2, Life21Tran);
-                                }else IDLife21Tran =null;
-                                    //IDLife21Tran = (Rcpt.receipt_source=="AC")? InsertCCTransaction(ref cmd2, Life21Tran) : InsertACTransaction(ref cmd2, Life21Tran);
+
+                                if (Rcpt.receipt_source == "AC") IDLife21Tran=InsertACTransaction(ref cmd2, Life21Tran);
+                                else if (Rcpt.receipt_source == "CC") IDLife21Tran=InsertCCTransaction(ref cmd2, Life21Tran);
+                                else IDLife21Tran =null;
+
                                 lst.receipt_id = ReciptID;
                                 lst.life21TranID = IDLife21Tran;
 
@@ -1286,11 +1285,7 @@ namespace CAF.JBS.Controllers
                     else // transaksi Gagal
                     {
                         BukaFlagDownloadBilling(ref cmd,lst);
-                        if (Rcpt.receipt_source == "AC")
-                        { // Untuk AC, billing akan masuk hold 15 hari
-                            InsertPolisHold(ref cmd,lst.BillCode, lst.polisNo, DateTime.Now.AddDays(15));
-
-                        }
+                        if (Rcpt.receipt_source == "AC") InsertPolisHold(ref cmd,lst.BillCode, lst.polisNo, DateTime.Now.AddDays(15));
                     }
 
                     cmdx.CommitTransaction();
@@ -1316,6 +1311,10 @@ namespace CAF.JBS.Controllers
                 }
                 finally
                 {
+                    if(cmdx.CurrentTransaction != null) cmdx.RollbackTransaction();
+                    if (cmdx2.CurrentTransaction != null) cmdx2.RollbackTransaction();
+                    if (cmdx3.CurrentTransaction != null) cmdx3.RollbackTransaction();
+
                     cmdx.CloseConnection();
                     cmdx2.CloseConnection();
                     cmdx3.CloseConnection();
@@ -1662,6 +1661,7 @@ namespace CAF.JBS.Controllers
                             else if (st.polisNo.Substring(0, 1) == "X")
                             {
                                 st.Billid = st.polisNo.Substring(1);
+                                st.polisNo = st.Billid;
                                 st.BillCode = "Q";
                             }
                             else st.BillCode = "B";
@@ -1901,16 +1901,18 @@ namespace CAF.JBS.Controllers
             if (st.BillCode == "B")
             {// Transaksi Billing Rucurring
                 cm.CommandText = @"UPDATE `billing` SET IsDownload=0, LastUploadDate=@uploadDate,PaymentTransactionID=@ptd WHERE `BillingID`=@billid";
+                cm.Parameters.Add(new MySqlParameter("@billid", MySqlDbType.Int32) { Value = Convert.ToInt32(st.Billid) });
             }
             else if (st.BillCode == "Q")
             {// Transaksi Billing Quote
                 cm.CommandText = @"UPDATE `quote_billing` SET IsDownload=0, LastUploadDate=@uploadDate,PaymentTransactionID=@ptd WHERE `quote_id`=@billid";
+                cm.Parameters.Add(new MySqlParameter("@billid", MySqlDbType.Int32) { Value = Convert.ToInt32(st.Billid) });
             }
             else
             {// transaksi Billing Others
                 cm.CommandText = @"UPDATE `billing_others` SET IsDownload=0, LastUploadDate=@uploadDate,PaymentTransactionID=@ptd WHERE `BillingID`=@billid";
+                cm.Parameters.Add(new MySqlParameter("@billid", MySqlDbType.VarChar) { Value = st.Billid });
             }
-            cm.Parameters.Add(new MySqlParameter("@billid", MySqlDbType.Int32) { Value = Convert.ToInt32(st.Billid) });
             cm.Parameters.Add(new MySqlParameter("@uploadDate", MySqlDbType.DateTime) { Value = st.TglSkrg });
             cm.Parameters.Add(new MySqlParameter("@ptd", MySqlDbType.Int32) { Value = st.PaymentTransactionID });
             try
@@ -2362,7 +2364,7 @@ namespace CAF.JBS.Controllers
         public async Task AsyncSendEmailThanksRecurring(int BillID)
         {
             EmailThanksRecurringVM EmailThanks;
-            EmailThanks = await (from b in _jbsDB.BillingModel
+            EmailThanks = (from b in _jbsDB.BillingModel
                             join pb in _jbsDB.PolicyBillingModel on b.policy_id equals pb.policy_Id
                             join ci in _jbsDB.CustomerInfo on pb.holder_id equals ci.CustomerId
                             join pd in _jbsDB.Product on pb.product_id equals pd.product_id
@@ -2371,14 +2373,16 @@ namespace CAF.JBS.Controllers
                            {
                                PolicyNo = pb.policy_no,
                                CustomerName=ci.CustomerName,
+                               Salam = (ci.IsLaki==true) ? "Bapak" : "Ibu",
                                CustomerEmail=ci.Email,
                                ProductName=pd.product_description,
                                PremiAmount=b.TotalAmount                               
-                           }).SingleOrDefaultAsync();
-            string SubjectEmail =string.Format(@"JAGADIRI: Penerimaan Premi Regular {0} {1} {2}",EmailThanks.ProductName,EmailThanks.PolicyNo,EmailThanks.CustomerName);
-            string BodyMessage = string.Format(@"<p style='text-align:justify'>Bersama surat ini kami ingin mengucapkan terima kasih atas pembayaran Premi Regular untuk Polis <b>{0}</b> dengan nomor polis <b>{1}</b> sejumlah IDR <b>{2}</b> yang telah kami terima. Pembayaran Premi tersebut secara otomatis akan membuat Polis Asuransi Anda tetap aktif dan memberikan manfaat perlindungan maksimal bagi Anda dan keluarga.</p>
-                                    <br><br>Sukses selalu,
-                                <br>JAGADIRI ", EmailThanks.ProductName,EmailThanks.PolicyNo,EmailThanks.PremiAmount.ToString("#,###"));
+                           }).SingleOrDefault();
+            string SubjectEmail =string.Format(@"JAGADIRI: Penerimaan Premi Regular {0} {1} {2}",EmailThanks.ProductName,EmailThanks.PolicyNo,EmailThanks.CustomerName.ToUpper());
+            string BodyMessage = string.Format(@"Salam hangat {0} {1},<br>
+<p style='text-align:justify'>Bersama surat ini kami ingin mengucapkan terima kasih atas pembayaran Premi Regular untuk Polis <b>{2}</b> dengan nomor polis <b>{3}</b> sejumlah IDR <b>{4}</b> yang telah kami terima. Pembayaran Premi tersebut secara otomatis akan membuat Polis Asuransi Anda tetap aktif dan memberikan manfaat perlindungan maksimal bagi Anda dan keluarga.</p>
+<br>Sukses selalu,
+<br>JAGADIRI ", EmailThanks.Salam, EmailThanks.CustomerName.ToUpper(), EmailThanks.ProductName,EmailThanks.PolicyNo,EmailThanks.PremiAmount.ToString("#,###"));
             await SendEmailAsync(EmailThanks.CustomerEmail, SubjectEmail, BodyMessage, EmailPHS);
         }
 
@@ -2440,35 +2444,43 @@ namespace CAF.JBS.Controllers
                 foreach (string file in files)
                 {
                     FileInfo filex = new FileInfo(file);
-                    filex.CopyTo(BackupFile + filex.Name);
+                    //filex.CopyTo(BackupFile + filex.Name);
                     if (filex.Exists) System.IO.File.Delete(filex.ToString());
                 }
 
             }
         }
 
-        public void CreateBilling(ref System.Data.Common.DbCommand cmd,int PolicyID)
+        public string CreateBilling(ref System.Data.Common.DbCommand cmd, ref PolicyTransaction pt)
         {
-            string sql = @"INSERT INTO `billing`(`recurring_seq`,`due_dt_pre`,`policy_regular_premium`,`cashless_fee_amount`,`TotalAmount`)
-                            SELECT b.`recurring_seq` +1,DATE_ADD(b.`due_dt_pre`,INTERVAL pb.`premium_mode` MONTH),b.`policy_regular_premium`,
+            string billing;
+            string sql = @"INSERT INTO `billing`(`BillingID`,`policy_id`,`recurring_seq`,`due_dt_pre`,`policy_regular_premium`,`cashless_fee_amount`,`TotalAmount`)
+                            SELECT 1,pb.`policy_Id`,b.`recurring_seq` +1,DATE_ADD(b.`due_dt_pre`,INTERVAL pb.`premium_mode` MONTH),b.`policy_regular_premium`,
                             b.`cashless_fee_amount`,b.`policy_regular_premium`+b.`cashless_fee_amount`
                             FROM `billing` b 
                             INNER JOIN `policy_billing` pb ON pb.`policy_Id`=b.`policy_id`
-                            WHERE b.`policy_id`=@polisid
+                            WHERE pb.`policy_no`=@polisno
                             ORDER BY b.`recurring_seq` DESC
-                            LIMIT 1;";
+                            LIMIT 1; 
+                            SELECT b.`BillingID` FROM `billing` b
+                            INNER JOIN `policy_billing` pb ON pb.`policy_Id`=b.`policy_id`
+                            WHERE pb.`policy_no`=@polisno
+                            ORDER BY b.`recurring_seq` DESC
+                            LIMIT 1; ";
+            cmd.Parameters.Clear();
             cmd.CommandType = CommandType.Text;
-            cmd.Parameters.Add(new MySqlParameter("@polisid", MySqlDbType.Int32) { Value = PolicyID });
+            cmd.Parameters.Add(new MySqlParameter("@polisno", MySqlDbType.VarChar) { Value = PolicyNo });
             cmd.CommandText = sql;
 
             ///// Data download
             try
             {
-                cmd.ExecuteNonQuery();
+                billing = cmd.ExecuteScalar().ToString();
             }
             catch (Exception ex) {
-                throw new Exception("CreateBilling => (polisID = " + PolicyID + ") " + ex.Message);
+                throw new Exception("CreateBilling => (PolicyNo = " + PolicyNo + ") " + ex.Message);
             }
+            return billing;
         }
     }
 }
