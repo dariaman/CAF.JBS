@@ -1247,7 +1247,16 @@ namespace CAF.JBS.Controllers
                             if (lst.BillCode == "B")
                             { // Recurring >> insert Receipt
                                 if (lst.polisNo == null) continue;
-                                if (string.IsNullOrEmpty(lst.Billid)) CreateBilling(ref cmd, ref lst);
+                                if (string.IsNullOrEmpty(lst.Billid))
+                                {
+                                    lst.Billid = CreateBilling(ref cmd, lst.polisNo,lst.PaymentSource,BankID);
+                                    var bl = _jbsDB.BillingModel.FirstOrDefaultAsync(c => c.BillingID == Convert.ToInt32(lst.Billid));
+                                    if (bl.Result == null) continue;
+                                    lst.recurring_seq = bl.Result.recurring_seq;
+                                    lst.due_dt_pre = bl.Result.due_dt_pre;
+                                    Life21Tran.Due_Date_Pre = lst.due_dt_pre;
+                                    Life21Tran.recurring_seq = lst.recurring_seq;
+                                }
 
                                 ReciptID=InsertReceipt(ref cmd2,Rcpt);
                                 Life21Tran.receipt_id = ReciptID;
@@ -1973,13 +1982,14 @@ namespace CAF.JBS.Controllers
                                                         `PaymentSource`=@PaymentSource,
                                                         `PaidAmount`=@PaidAmount,
 			                                            `LastUploadDate`=@tgl,
-			                                            `PaymentTransactionID`=@uid
+			                                            `PaymentTransactionID`=@uid,UserUpload=@user
 		                                            WHERE `quote_id`=@idBill;";
             cm.Parameters.Add(new MySqlParameter("@PaymentSource", MySqlDbType.VarChar) { Value = bm.PaymentSource });
             cm.Parameters.Add(new MySqlParameter("@idBill", MySqlDbType.Int32) { Value = Convert.ToInt32(bm.Billid) });
             cm.Parameters.Add(new MySqlParameter("@PaidAmount", MySqlDbType.Decimal) { Value = bm.amount });
             cm.Parameters.Add(new MySqlParameter("@tgl", MySqlDbType.DateTime) { Value = bm.TglSkrg });
             cm.Parameters.Add(new MySqlParameter("@uid", MySqlDbType.Int32) { Value = bm.PaymentTransactionID });
+            cm.Parameters.Add(new MySqlParameter("@user", MySqlDbType.VarChar) { Value = User.Identity.Name });
             try
             {
                 cm.ExecuteNonQuery();
@@ -2002,7 +2012,7 @@ namespace CAF.JBS.Controllers
                                                         `PaidAmount`=@PaidAmount,
                                                         Life21TranID=@TransactionID,
 			                                            `ReceiptOtherID`=@receiptID,
-			                                            `PaymentTransactionID`=@uid
+			                                            `PaymentTransactionID`=@uid,UserUpload=@user
 		                                            WHERE `BillingID`=@idBill;";
             cm.Parameters.Add(new MySqlParameter("@idBill", MySqlDbType.VarChar) { Value = bm.Billid });
             cm.Parameters.Add(new MySqlParameter("@PaymentSource", MySqlDbType.VarChar) { Value = bm.PaymentSource });
@@ -2011,6 +2021,7 @@ namespace CAF.JBS.Controllers
             cm.Parameters.Add(new MySqlParameter("@TransactionID", MySqlDbType.Int32) { Value = bm.life21TranID });
             cm.Parameters.Add(new MySqlParameter("@receiptID", MySqlDbType.Int32) { Value = bm.receipt_other_id });
             cm.Parameters.Add(new MySqlParameter("@uid", MySqlDbType.Int32) { Value = bm.PaymentTransactionID });
+            cm.Parameters.Add(new MySqlParameter("@user", MySqlDbType.VarChar) { Value = User.Identity.Name });
             try
             {
                 cm.ExecuteNonQuery();
@@ -2039,16 +2050,18 @@ namespace CAF.JBS.Controllers
                                                     `PaidAmount`=@PaidAmount,
                                                     `Life21TranID`=@TransactionID,
 			                                        `ReceiptID`=@receiptID,
-			                                        `PaymentTransactionID`=@uid
+			                                        `PaymentTransactionID`=@uid,UserUpload=@userupload
 		                                        WHERE `BillingID`=@idBill;";
-                cm.Parameters.Add(new MySqlParameter("@idBill", MySqlDbType.Int32) { Value = bm.Billid });
                 cm.Parameters.Add(new MySqlParameter("@PaymentSource", MySqlDbType.VarChar) { Value = bm.PaymentSource });
                 cm.Parameters.Add(new MySqlParameter("@tgl", MySqlDbType.DateTime) { Value = bm.TglSkrg });
+                cm.Parameters.Add(new MySqlParameter("@TransactionID", MySqlDbType.Int32) { Value = bm.life21TranID });
+                cm.Parameters.Add(new MySqlParameter("@uid", MySqlDbType.Int32) { Value = bm.PaymentTransactionID });
+
                 cm.Parameters.Add(new MySqlParameter("@tglPaid", MySqlDbType.DateTime) { Value = bm.tgl });
                 cm.Parameters.Add(new MySqlParameter("@PaidAmount", MySqlDbType.Decimal) { Value = bm.amount });
-                cm.Parameters.Add(new MySqlParameter("@TransactionID", MySqlDbType.Int32) { Value = bm.life21TranID });
                 cm.Parameters.Add(new MySqlParameter("@receiptID", MySqlDbType.Int32) { Value = bm.receipt_id });
-                cm.Parameters.Add(new MySqlParameter("@uid", MySqlDbType.Int32) { Value = bm.PaymentTransactionID });
+                cm.Parameters.Add(new MySqlParameter("@idBill", MySqlDbType.Int32) { Value = bm.Billid });
+                cm.Parameters.Add(new MySqlParameter("@userupload", MySqlDbType.VarChar) { Value = User.Identity.Name });
             }
             else
             {
@@ -2056,14 +2069,16 @@ namespace CAF.JBS.Controllers
                 cm.CommandText = @"PaidBilling";
                 cm.Parameters.Add(new MySqlParameter("@PaySource", MySqlDbType.VarChar) { Value = bm.PaymentSource });
                 cm.Parameters.Add(new MySqlParameter("@tglUpload", MySqlDbType.DateTime) { Value = bm.TglSkrg });
+                cm.Parameters.Add(new MySqlParameter("@Life21Tran", MySqlDbType.Int32) { Value = bm.life21TranID });
+                cm.Parameters.Add(new MySqlParameter("@PTranJbsID", MySqlDbType.Int32) { Value = bm.PaymentTransactionID });
+
                 cm.Parameters.Add(new MySqlParameter("@tglPaid", MySqlDbType.DateTime) { Value = bm.tgl });
                 cm.Parameters.Add(new MySqlParameter("@PaidAmount", MySqlDbType.Decimal) { Value = bm.amount });
-                cm.Parameters.Add(new MySqlParameter("@Life21Tran", MySqlDbType.Int32) { Value = bm.life21TranID });
                 cm.Parameters.Add(new MySqlParameter("@Recptid", MySqlDbType.Int32) { Value = bm.receipt_id });
-                cm.Parameters.Add(new MySqlParameter("@PTranJbsID", MySqlDbType.Int32) { Value = bm.PaymentTransactionID });
                 cm.Parameters.Add(new MySqlParameter("@billid", MySqlDbType.Int32) { Value = bm.Billid });
+                cm.Parameters.Add(new MySqlParameter("@userupload", MySqlDbType.VarChar) { Value = User.Identity.Name });
             }
-            
+
             try
             {
                 cm.ExecuteNonQuery();
@@ -2444,43 +2459,67 @@ namespace CAF.JBS.Controllers
                 foreach (string file in files)
                 {
                     FileInfo filex = new FileInfo(file);
-                    //filex.CopyTo(BackupFile + filex.Name);
-                    if (filex.Exists) System.IO.File.Delete(filex.ToString());
+                    string xFileName = Path.GetFileNameWithoutExtension(filex.Name) + Guid.NewGuid().ToString().Substring(0, 8) + Path.GetExtension(filex.Name);
+                    if (filex.Exists) filex.MoveTo(BackupFile + xFileName);
+                    //if (filex.Exists) System.IO.File.Delete(filex.ToString());
                 }
-
             }
         }
 
-        public string CreateBilling(ref System.Data.Common.DbCommand cmd, ref PolicyTransaction pt)
+        private string CreateBilling(ref System.Data.Common.DbCommand cmd, string polisNo, string payMeth, int bankid)
         {
-            string billing;
-            string sql = @"INSERT INTO `billing`(`BillingID`,`policy_id`,`recurring_seq`,`due_dt_pre`,`policy_regular_premium`,`cashless_fee_amount`,`TotalAmount`)
-                            SELECT 1,pb.`policy_Id`,b.`recurring_seq` +1,DATE_ADD(b.`due_dt_pre`,INTERVAL pb.`premium_mode` MONTH),b.`policy_regular_premium`,
-                            b.`cashless_fee_amount`,b.`policy_regular_premium`+b.`cashless_fee_amount`
-                            FROM `billing` b 
+            if (payMeth == string.Empty) return null;
+            var query = QureyCreateBilling(payMeth);
+            string sql = query+ @"SELECT b.`BillingID` FROM `billing` b
                             INNER JOIN `policy_billing` pb ON pb.`policy_Id`=b.`policy_id`
-                            WHERE pb.`policy_no`=@polisno
-                            ORDER BY b.`recurring_seq` DESC
-                            LIMIT 1; 
-                            SELECT b.`BillingID` FROM `billing` b
-                            INNER JOIN `policy_billing` pb ON pb.`policy_Id`=b.`policy_id`
-                            WHERE pb.`policy_no`=@polisno
+                            WHERE pb.`policy_no`=@polisNo
                             ORDER BY b.`recurring_seq` DESC
                             LIMIT 1; ";
             cmd.Parameters.Clear();
             cmd.CommandType = CommandType.Text;
-            cmd.Parameters.Add(new MySqlParameter("@polisno", MySqlDbType.VarChar) { Value = PolicyNo });
+            cmd.Parameters.Add(new MySqlParameter("@polisNo", MySqlDbType.VarChar) { Value = polisNo });
+            cmd.Parameters.Add(new MySqlParameter("@bankid", MySqlDbType.Int32) { Value = bankid });
             cmd.CommandText = sql;
 
-            ///// Data download
+
             try
             {
-                billing = cmd.ExecuteScalar().ToString();
+                return cmd.ExecuteScalar().ToString();
             }
             catch (Exception ex) {
-                throw new Exception("CreateBilling => (PolicyNo = " + PolicyNo + ") " + ex.Message);
+                throw new Exception("CreateBilling => (polisNo = " + polisNo + ") " + ex.Message);
             }
-            return billing;
+        }
+
+        private string QureyCreateBilling(string paymentType)
+        {
+            // CC atau AC
+            string query = "";
+            if (paymentType == "CC")
+            {
+                query = @"INSERT INTO `billing`(`BillingDate`,`policy_id`,`recurring_seq`,`due_dt_pre`,`policy_regular_premium`,`cashless_fee_amount`,`TotalAmount`,`BankIdDownload`,`AccNo`,`AccName`,`cc_expiry`)
+                            SELECT CURDATE(),pb.`policy_Id`,b.`recurring_seq` +1,DATE_ADD(b.`due_dt_pre`,INTERVAL pb.`premium_mode` MONTH),b.`policy_regular_premium`,
+                            b.`cashless_fee_amount`,b.`policy_regular_premium`+b.`cashless_fee_amount`,@bankid,pc.`cc_no`,pc.`cc_name`,pc.`cc_expiry`
+                            FROM `billing` b 
+                            INNER JOIN `policy_billing` pb ON pb.`policy_Id`=b.`policy_id`
+                            LEFT JOIN `policy_cc` pc ON pc.`PolicyId`=pb.`policy_Id`
+                            WHERE pb.`policy_no`=@polisNo
+                            ORDER BY b.`recurring_seq` DESC
+                            LIMIT 1; ";
+            }
+            else if (paymentType == "AC")
+            {
+                query = @"INSERT INTO `billing`(`BillingDate`,`policy_id`,`recurring_seq`,`due_dt_pre`,`policy_regular_premium`,`cashless_fee_amount`,`TotalAmount`,`BankIdDownload`,`AccNo`,`AccName`)
+                            SELECT CURDATE(),pb.`policy_Id`,b.`recurring_seq` +1,DATE_ADD(b.`due_dt_pre`,INTERVAL pb.`premium_mode` MONTH),b.`policy_regular_premium`,
+                            b.`cashless_fee_amount`,b.`policy_regular_premium`+b.`cashless_fee_amount`,@bankid,pa.`acc_no`,pa.`acc_name`
+                            FROM `billing` b 
+                            INNER JOIN `policy_billing` pb ON pb.`policy_Id`=b.`policy_id`
+                            LEFT JOIN `policy_ac` pa ON pa.`PolicyId`=pb.`policy_Id`
+                            WHERE pb.`policy_no`=@polisNo
+                            ORDER BY b.`recurring_seq` DESC
+                            LIMIT 1; ";
+            }
+            return query;
         }
     }
 }
