@@ -12,5 +12,8 @@ namespace CAF.JBS.ViewModels
         public Decimal? receipt_amount { get; set; }
         public string receipt_source { get; set; }
         public int? bank_acc_id { get; set; }
+        public int? type_id { get; set; }
+        public int? seq { get; set; }
+        public int acquirer_bank_id { get; set; }
     }
 }

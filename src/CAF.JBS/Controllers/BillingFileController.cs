@@ -1158,44 +1158,44 @@ namespace CAF.JBS.Controllers
                 {
                     case "bcacc":
                         lst.BankidPaid = 1;
+                        Rcpt.bank_acc_id = 2;
                         break;
                     case "mandiricc":
                         lst.BankidPaid = 2;
+                        Rcpt.bank_acc_id = 8;
                         break;
                     case "megaonus":
                     case "megaoffus":
                         lst.BankidPaid = 12;
+                        Rcpt.bank_acc_id = 10;
                         break;
                     case "bnicc":
                         lst.BankidPaid = 3;
+                        Rcpt.bank_acc_id = 11;
                         break;
 
                     case "bcaac":
                         lst.BankidPaid = 1;
                         lst.PaymentSource = "AC";
+                        Rcpt.bank_acc_id = 2;
                         break;
                     case "mandiriac":
                         lst.BankidPaid = 2;
                         lst.PaymentSource = "AC";
+                        Rcpt.bank_acc_id = 8;
                         break;
 
                     case "varealtime":
                     case "vadaily":
                         lst.BankidPaid = 1;
-                        lst.PaymentSource = "VA";
+                        lst.PaymentSource = "BT";
                         break;
                 }
-                Rcpt.receipt_source = lst.PaymentSource;
+                
+
                 Life21Tran = new PolicyTransaction();
                 if (Rcpt.receipt_source=="CC" || Rcpt.receipt_source == "VA")
                 {
-                    Rcpt.receipt_date = tglSekarang;
-                    Rcpt.receipt_policy_id = lst.PolicyId;
-                    Rcpt.receipt_amount = lst.amount;
-                    Rcpt.receipt_seq = lst.recurring_seq;
-                    Rcpt.bank_acc_id = lst.BankidPaid;
-                    Rcpt.due_date_pre = lst.due_dt_pre;
-
                     Life21Tran.policy_id = lst.PolicyId;
                     Life21Tran.transaction_dt = tglSekarang;
                     Life21Tran.recurring_seq = lst.recurring_seq;
@@ -1211,13 +1211,6 @@ namespace CAF.JBS.Controllers
                 }
                 else if (Rcpt.receipt_source == "AC")
                 {
-                    Rcpt.receipt_date = tglSekarang;
-                    Rcpt.receipt_policy_id = lst.PolicyId;
-                    Rcpt.receipt_amount = lst.amount;
-                    Rcpt.receipt_seq = lst.recurring_seq;
-                    Rcpt.bank_acc_id = lst.BankidPaid;
-                    Rcpt.due_date_pre = lst.due_dt_pre;
-
                     Life21Tran.policy_id = lst.PolicyId;
                     Life21Tran.transaction_dt = tglSekarang;
                     Life21Tran.recurring_seq = lst.recurring_seq;
@@ -1253,7 +1246,7 @@ namespace CAF.JBS.Controllers
                         {// transaksi sudah pasti bukan Quote
                             if (lst.BillCode == "B")
                             { // Recurring >> insert Receipt
-                                
+                                Rcpt.transaction_code = "RP";
                                 if (string.IsNullOrEmpty(lst.Billid))
                                 {
                                     lst.Billid = CreateBilling(ref cmd, lst.polisNo,lst.PaymentSource, lst.BankidPaid);
@@ -1269,7 +1262,17 @@ namespace CAF.JBS.Controllers
                                     lst.PaymentTransactionID = InsertTransactionBank(ref cmd, lst);
                                 }
 
-                                ReciptID=InsertReceipt(ref cmd2,Rcpt);
+                                Rcpt.receipt_source = lst.PaymentSource;
+                                Rcpt.receipt_date = tglSekarang;
+                                Rcpt.receipt_policy_id = lst.PolicyId;
+                                Rcpt.receipt_amount = lst.amount;
+                                Rcpt.receipt_seq = lst.recurring_seq;
+                                Rcpt.fund_type_id = 0;
+                                Rcpt.status = "P";
+                                Rcpt.acquirer_bank_id = lst.BankidPaid;
+                                Rcpt.due_date_pre = lst.due_dt_pre;
+
+                                ReciptID =InsertReceipt(ref cmd2,Rcpt);
                                 Life21Tran.receipt_id = ReciptID;
                                 Life21Tran.transaction_type = "R";
 
@@ -1290,8 +1293,10 @@ namespace CAF.JBS.Controllers
                                 Rcpto.policy_id = lst.PolicyId;
                                 Rcpto.receipt_amount = lst.amount;
                                 Rcpto.receipt_date = tglSekarang;
-                                Rcpto.bank_acc_id = lst.BankidPaid;
-                                Rcpto.receipt_source = "CC";
+                                Rcpto.bank_acc_id = Rcpt.bank_acc_id;
+                                Rcpto.receipt_source = lst.PaymentSource;
+                                Rcpto.type_id = 1;
+                                Rcpto.acquirer_bank_id = lst.BankidPaid;
 
                                 ReciptOtherID = InsertReceiptOther(ref cmd2, Rcpto);
                                 Life21Tran.receipt_other_id = ReciptOtherID;
@@ -1870,15 +1875,41 @@ namespace CAF.JBS.Controllers
         private int InsertReceipt(ref System.Data.Common.DbCommand cm,Receipt rc)
         {
             cm.Parameters.Clear();
-            cm.CommandType = CommandType.StoredProcedure;
-            cm.CommandText = @"ReceiptInsert";
-            cm.Parameters.Add(new MySqlParameter("@BillingDate", MySqlDbType.Date) { Value = rc.receipt_date });
-            cm.Parameters.Add(new MySqlParameter("@policy_id", MySqlDbType.Int32) { Value = rc.receipt_policy_id });
-            cm.Parameters.Add(new MySqlParameter("@receipt_amount", MySqlDbType.Decimal) { Value = rc.receipt_amount });
-            cm.Parameters.Add(new MySqlParameter("@Source_download", MySqlDbType.VarChar) { Value = rc.receipt_source });
-            cm.Parameters.Add(new MySqlParameter("@recurring_seq", MySqlDbType.Int32) { Value = rc.receipt_seq });
-            cm.Parameters.Add(new MySqlParameter("@bank_acc_id", MySqlDbType.Int32) { Value = rc.bank_acc_id });
-            cm.Parameters.Add(new MySqlParameter("@due_dt_pre", MySqlDbType.Date) { Value = rc.due_date_pre });
+            cm.CommandType = CommandType.Text;
+            cm.CommandText = @"INSERT INTO `receipt`(
+                                `receipt_date`,
+                                `receipt_policy_id`, 
+                                `receipt_fund_type_id`, 
+                                `receipt_transaction_code`, 
+                                `receipt_amount`,
+                                `receipt_source`, 
+                                `receipt_status`, 
+                                `receipt_payment_date_time`, 
+                                `receipt_seq`, 
+                                `bank_acc_id`, 
+                                `due_date_pre`,`acquirer_bank_id`)
+                            SELECT @receiptdate,
+                                @policyId,@fundTypeId,
+                                @transactionCode,
+                                @amount,@source,
+                                @paymentDate,
+                                @seq,
+                                @bankAccId,
+                                @due_date_pre,
+                                @AcquirerBankId;
+                        SELECT LAST_INSERT_ID();";
+            cm.Parameters.Add(new MySqlParameter("@receiptdate", MySqlDbType.Date) { Value = rc.receipt_date });
+            cm.Parameters.Add(new MySqlParameter("@policyId", MySqlDbType.Int32) { Value = rc.receipt_policy_id });
+            cm.Parameters.Add(new MySqlParameter("@fundTypeId", MySqlDbType.Int32) { Value = rc.fund_type_id });
+            cm.Parameters.Add(new MySqlParameter("@transactionCode", MySqlDbType.VarChar) { Value = rc.receipt_source });
+            cm.Parameters.Add(new MySqlParameter("@amount", MySqlDbType.Decimal) { Value = rc.receipt_amount });
+            cm.Parameters.Add(new MySqlParameter("@source", MySqlDbType.VarChar) { Value = rc.receipt_source });
+            cm.Parameters.Add(new MySqlParameter("@paymentDate", MySqlDbType.DateTime) { Value = rc.receipt_date });
+            cm.Parameters.Add(new MySqlParameter("@seq", MySqlDbType.Int32) { Value = rc.receipt_seq });
+            cm.Parameters.Add(new MySqlParameter("@bankAccId", MySqlDbType.Int32) { Value = rc.bank_acc_id });
+            cm.Parameters.Add(new MySqlParameter("@due_date_pre", MySqlDbType.Date) { Value = rc.due_date_pre });
+            cm.Parameters.Add(new MySqlParameter("@AcquirerBankId", MySqlDbType.Int32) { Value = rc.acquirer_bank_id });
+
             var receiptID = 0;
             try
             {
@@ -1894,13 +1925,36 @@ namespace CAF.JBS.Controllers
         private int InsertReceiptOther(ref System.Data.Common.DbCommand cm, ReceiptOther ro)
         {
             cm.Parameters.Clear();
-            cm.CommandType = CommandType.StoredProcedure;
-            cm.CommandText = @"ReceiptOtherInsert_sp";
-            cm.Parameters.Add(new MySqlParameter("@tgl", MySqlDbType.DateTime) { Value = ro.receipt_date });
-            cm.Parameters.Add(new MySqlParameter("@policy_id", MySqlDbType.Int32) { Value = ro.policy_id });
-            cm.Parameters.Add(new MySqlParameter("@receipt_amount", MySqlDbType.Decimal) { Value = ro.receipt_amount });
-            cm.Parameters.Add(new MySqlParameter("@Source_download", MySqlDbType.VarChar) { Value = ro.receipt_source });
-            cm.Parameters.Add(new MySqlParameter("@bankid", MySqlDbType.Int32) { Value = ro.bank_acc_id });
+            cm.CommandType = CommandType.Text;
+            cm.CommandText = @"INSERT INTO `receipt_other`(
+                                `receipt_date`,
+                                `policy_id`,
+                                `receipt_type_id`,
+                                `receipt_amount`,
+                                `receipt_source`,
+                                `receipt_payment_date`,
+                                `receipt_seq`,
+                                `bank_acc_id`,
+                                `acquirer_bank_id`) 
+                            SELECT @receiptdate,
+                                @policyId,
+                                @receiptTypeId,
+                                @amount,
+                                @source,
+                                @paymentDate,
+                                @seq,
+                                @bankAccId,
+                                @AcquirerBankId;
+                            SELECT LAST_INSERT_ID();";
+            cm.Parameters.Add(new MySqlParameter("@receiptdate", MySqlDbType.DateTime) { Value = ro.receipt_date });
+            cm.Parameters.Add(new MySqlParameter("@policyId", MySqlDbType.Int32) { Value = ro.policy_id });
+            cm.Parameters.Add(new MySqlParameter("@receiptTypeId", MySqlDbType.Int32) { Value = ro.type_id });
+            cm.Parameters.Add(new MySqlParameter("@amount", MySqlDbType.Decimal) { Value = ro.receipt_amount });
+            cm.Parameters.Add(new MySqlParameter("@source", MySqlDbType.VarChar) { Value = ro.receipt_source });
+            cm.Parameters.Add(new MySqlParameter("@paymentDate", MySqlDbType.DateTime) { Value = ro.receipt_date });
+            cm.Parameters.Add(new MySqlParameter("@seq", MySqlDbType.Int32) { Value = ro.seq });
+            cm.Parameters.Add(new MySqlParameter("@bankAccId", MySqlDbType.Int32) { Value = ro.bank_acc_id });
+            cm.Parameters.Add(new MySqlParameter("@AcquirerBankId", MySqlDbType.Int32) { Value = ro.acquirer_bank_id });
 
             var receiptOther = 0;
             try
