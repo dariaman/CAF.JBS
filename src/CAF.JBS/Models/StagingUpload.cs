@@ -20,6 +20,7 @@ namespace CAF.JBS.Models
         public Boolean IsSuccess { get; set; }
         public string ApprovalCode { get; set; }
         public string PaymentSource { get; set; }
+        public int BankidPaid { get; set; }
         public string Description { get; set; }
         public string ACCno { get; set; }
         public string ACCname { get; set; }
