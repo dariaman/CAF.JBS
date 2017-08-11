@@ -1188,13 +1188,14 @@ namespace CAF.JBS.Controllers
                     case "varealtime":
                     case "vadaily":
                         lst.BankidPaid = 1;
-                        lst.PaymentSource = "BT";
+                        Rcpt.bank_acc_id = 2;
+                        lst.PaymentSource = "VA";
                         break;
                 }
                 
 
                 Life21Tran = new PolicyTransaction();
-                if (Rcpt.receipt_source=="CC" || Rcpt.receipt_source == "VA")
+                if (lst.PaymentSource == "CC" || lst.PaymentSource == "VA")
                 {
                     Life21Tran.policy_id = lst.PolicyId;
                     Life21Tran.transaction_dt = tglSekarang;
@@ -1209,7 +1210,7 @@ namespace CAF.JBS.Controllers
                     Life21Tran.result_status = lst.ApprovalCode;
                     Life21Tran.Remark = lst.Description;
                 }
-                else if (Rcpt.receipt_source == "AC")
+                else if (lst.PaymentSource == "AC")
                 {
                     Life21Tran.policy_id = lst.PolicyId;
                     Life21Tran.transaction_dt = tglSekarang;
@@ -1276,13 +1277,18 @@ namespace CAF.JBS.Controllers
                                 Life21Tran.receipt_id = ReciptID;
                                 Life21Tran.transaction_type = "R";
 
-                                if (Rcpt.receipt_source == "AC") IDLife21Tran=InsertACTransaction(ref cmd2, Life21Tran);
-                                else if (Rcpt.receipt_source == "CC") IDLife21Tran=InsertCCTransaction(ref cmd2, Life21Tran);
+                                if (lst.PaymentSource == "AC") IDLife21Tran=InsertACTransaction(ref cmd2, Life21Tran);
+                                else if (lst.PaymentSource == "CC") IDLife21Tran=InsertCCTransaction(ref cmd2, Life21Tran);
                                 else IDLife21Tran =null;
 
                                 lst.receipt_id = ReciptID;
                                 lst.life21TranID = IDLife21Tran;
-
+                                if(lst.PaymentSource == "VA")
+                                {
+                                    lst.ACCname = string.Empty;
+                                    lst.ACCno = string.Empty;
+                                    lst.CC_Expiry = string.Empty;
+                                }
                                 UpdateBillingJBS(ref cmd, lst);
                                 UpdateLastTransJBS(ref cmd, lst);
                                 await AsyncSendEmailThanksRecurring(Convert.ToInt32(lst.Billid));
@@ -1887,11 +1893,15 @@ namespace CAF.JBS.Controllers
                                 `receipt_payment_date_time`, 
                                 `receipt_seq`, 
                                 `bank_acc_id`, 
-                                `due_date_pre`,`acquirer_bank_id`)
+                                `due_date_pre`,
+                                `acquirer_bank_id`)
                             SELECT @receiptdate,
-                                @policyId,@fundTypeId,
+                                @policyId,
+                                @fundTypeId,
                                 @transactionCode,
-                                @amount,@source,
+                                @amount,
+                                @source,
+                                @receiptStatus,
                                 @paymentDate,
                                 @seq,
                                 @bankAccId,
@@ -1903,6 +1913,7 @@ namespace CAF.JBS.Controllers
             cm.Parameters.Add(new MySqlParameter("@fundTypeId", MySqlDbType.Int32) { Value = rc.fund_type_id });
             cm.Parameters.Add(new MySqlParameter("@transactionCode", MySqlDbType.VarChar) { Value = rc.receipt_source });
             cm.Parameters.Add(new MySqlParameter("@amount", MySqlDbType.Decimal) { Value = rc.receipt_amount });
+            cm.Parameters.Add(new MySqlParameter("@receiptStatus", MySqlDbType.VarChar) { Value = rc.status });
             cm.Parameters.Add(new MySqlParameter("@source", MySqlDbType.VarChar) { Value = rc.receipt_source });
             cm.Parameters.Add(new MySqlParameter("@paymentDate", MySqlDbType.DateTime) { Value = rc.receipt_date });
             cm.Parameters.Add(new MySqlParameter("@seq", MySqlDbType.Int32) { Value = rc.receipt_seq });
@@ -2110,18 +2121,22 @@ namespace CAF.JBS.Controllers
             {
                 cm.CommandType = CommandType.Text;
                 cm.CommandText = @"UPDATE `billing` SET `IsDownload`=0,
-			                                        `IsClosed`=1,
-			                                        `status_billing`='P',
-                                                    `BillingDate`=@tglPaid,
-                                                    `PaymentSource`=@PaymentSource,
-			                                        `LastUploadDate`=@tgl,
-                                                    `BankIdPaid`=@bankid,
-                                                    `paid_date`=@tglPaid,
-                                                    `PaidAmount`=@PaidAmount,
-                                                    `Life21TranID`=@TransactionID,
-			                                        `ReceiptID`=@receiptID,
-			                                        `PaymentTransactionID`=@uid,UserUpload=@userupload
-		                                        WHERE `BillingID`=@idBill;";
+                                        `IsClosed`=1,
+                                        `status_billing`='P',
+                                        `BillingDate`=@tglPaid,
+                                        `PaymentSource`=@PaymentSource,
+                                        `LastUploadDate`=@tgl,
+                                        `BankIdPaid`=@bankid,
+                                        `paid_date`=@tglPaid,
+                                        `PaidAmount`=@PaidAmount,
+                                        `Life21TranID`=@TransactionID,
+                                        `ReceiptID`=@receiptID,
+                                        `PaymentTransactionID`=@uid,
+                                        `ACCname`=@ACCname,
+                                        `ACCno`=@ACCno,
+                                        `cc_expiry`=@CCexpiry,
+                                        `UserUpload`=@userupload
+                                    WHERE `BillingID`=@idBill;";
                 cm.Parameters.Add(new MySqlParameter("@PaymentSource", MySqlDbType.VarChar) { Value = bm.PaymentSource });
                 cm.Parameters.Add(new MySqlParameter("@tgl", MySqlDbType.DateTime) { Value = bm.TglSkrg });
                 cm.Parameters.Add(new MySqlParameter("@TransactionID", MySqlDbType.Int32) { Value = bm.life21TranID });
@@ -2130,23 +2145,47 @@ namespace CAF.JBS.Controllers
                 cm.Parameters.Add(new MySqlParameter("@tglPaid", MySqlDbType.DateTime) { Value = bm.tgl });
                 cm.Parameters.Add(new MySqlParameter("@PaidAmount", MySqlDbType.Decimal) { Value = bm.amount });
                 cm.Parameters.Add(new MySqlParameter("@receiptID", MySqlDbType.Int32) { Value = bm.receipt_id });
-                cm.Parameters.Add(new MySqlParameter("@idBill", MySqlDbType.Int32) { Value = bm.Billid });
+                cm.Parameters.Add(new MySqlParameter("@ACCname", MySqlDbType.VarChar) { Value = bm.ACCname });
+                cm.Parameters.Add(new MySqlParameter("@ACCno", MySqlDbType.VarChar) { Value = bm.ACCno });
+                cm.Parameters.Add(new MySqlParameter("@CCexpiry", MySqlDbType.VarChar) { Value = bm.CC_Expiry });
                 cm.Parameters.Add(new MySqlParameter("@userupload", MySqlDbType.VarChar) { Value = User.Identity.Name });
+                cm.Parameters.Add(new MySqlParameter("@idBill", MySqlDbType.Int32) { Value = bm.Billid });
             }
             else
             {
-                cm.CommandType = CommandType.StoredProcedure;
-                cm.CommandText = @"PaidBilling";
+                cm.CommandType = CommandType.Text;
+                cm.CommandText = @"UPDATE `billing` b
+                                    INNER JOIN `policy_billing` pb ON pb.`policy_Id`=b.`policy_id`
+                                    LEFT JOIN `policy_cc` pc ON pc.`PolicyId`=b.`policy_id`
+                                    LEFT JOIN `policy_ac` pa ON pa.`PolicyId`=b.`policy_id`
+                                    SET b.`IsDownload`=0,
+                                        b.`IsClosed`=1,
+                                        b.`status_billing`='P',
+                                        b.`PaymentSource`=@PaySource,
+                                        b.`LastUploadDate`=@tglUpload,
+                                        b.`paid_date`=@tglPaid,
+                                        b.`PaidAmount`=@PaidAmount,
+                                        b.`BankIdPaid`=@bankid,
+                                        b.`Life21TranID`=@Life21Tran,
+                                        b.`ReceiptID`=@Recptid,
+                                        b.`PaymentTransactionID`=@PTranJbsID,
+                                        b.`AccName`=CASE WHEN pb.`payment_method`='CC' AND b.`AccName` IS NULL THEN pc.`cc_name`
+		                                    WHEN pb.`payment_method`='AC' AND b.`AccName` IS NULL THEN pa.`acc_name` END,
+                                        b.`AccNo`=CASE WHEN pb.`payment_method`='CC' AND b.`AccNo` IS NULL THEN pc.`cc_no`
+		                                    WHEN pb.`payment_method`='AC' AND b.`AccNo` IS NULL THEN pa.`acc_no` END,
+                                        b.`cc_expiry`=CASE WHEN pb.`payment_method`='CC' AND b.`cc_expiry` IS NULL THEN pc.`cc_expiry` END,
+                                        b.`UserUpload`=@userupload
+                                    WHERE `BillingID`=@billid;";
                 cm.Parameters.Add(new MySqlParameter("@PaySource", MySqlDbType.VarChar) { Value = bm.PaymentSource });
                 cm.Parameters.Add(new MySqlParameter("@tglUpload", MySqlDbType.DateTime) { Value = bm.TglSkrg });
-                cm.Parameters.Add(new MySqlParameter("@Life21Tran", MySqlDbType.Int32) { Value = bm.life21TranID });
-                cm.Parameters.Add(new MySqlParameter("@PTranJbsID", MySqlDbType.Int32) { Value = bm.PaymentTransactionID });
-                cm.Parameters.Add(new MySqlParameter("@bankid", MySqlDbType.Int32) { Value = bm.BankidPaid });
                 cm.Parameters.Add(new MySqlParameter("@tglPaid", MySqlDbType.DateTime) { Value = bm.tgl });
                 cm.Parameters.Add(new MySqlParameter("@PaidAmount", MySqlDbType.Decimal) { Value = bm.amount });
+                cm.Parameters.Add(new MySqlParameter("@bankid", MySqlDbType.Int32) { Value = bm.BankidPaid });
+                cm.Parameters.Add(new MySqlParameter("@Life21Tran", MySqlDbType.Int32) { Value = bm.life21TranID });
                 cm.Parameters.Add(new MySqlParameter("@Recptid", MySqlDbType.Int32) { Value = bm.receipt_id });
-                cm.Parameters.Add(new MySqlParameter("@billid", MySqlDbType.Int32) { Value = bm.Billid });
+                cm.Parameters.Add(new MySqlParameter("@PTranJbsID", MySqlDbType.Int32) { Value = bm.PaymentTransactionID });
                 cm.Parameters.Add(new MySqlParameter("@userupload", MySqlDbType.VarChar) { Value = User.Identity.Name });
+                cm.Parameters.Add(new MySqlParameter("@billid", MySqlDbType.Int32) { Value = Convert.ToInt32(bm.Billid) });
             }
 
             try
