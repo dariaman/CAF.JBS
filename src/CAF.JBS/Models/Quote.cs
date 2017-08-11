@@ -20,6 +20,7 @@ namespace CAF.JBS.Models
         public Decimal quote_paper_print_fee { get; set; }
         public int quote_prospect_id { get; set; }
         public int quote_holder_id { get; set; }
+        public int quote_product_id { get; set; }
         public int quote_main_coverage_id { get; set; }
     }
 }

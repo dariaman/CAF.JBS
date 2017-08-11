@@ -1192,9 +1192,18 @@ namespace CAF.JBS.Controllers
                         lst.PaymentSource = "VA";
                         break;
                 }
-                
 
-                Life21Tran = new PolicyTransaction();
+                if (lst.PaymentSource == "VA")
+                {
+                    var billing = (from b in _jbsDB.BillingModel
+                                   join pb in _jbsDB.PolicyBillingModel on b.policy_id equals pb.policy_Id
+                                   where pb.policy_no == lst.polisNo && b.PaymentSource==lst.PaymentSource &&
+                                   b.paid_date==lst.tgl
+                                   select b
+                                   ).SingleOrDefault(); 
+                    if (billing != null) continue;
+                }
+                    Life21Tran = new PolicyTransaction();
                 if (lst.PaymentSource == "CC" || lst.PaymentSource == "VA")
                 {
                     Life21Tran.policy_id = lst.PolicyId;
@@ -2132,9 +2141,9 @@ namespace CAF.JBS.Controllers
                                         `Life21TranID`=@TransactionID,
                                         `ReceiptID`=@receiptID,
                                         `PaymentTransactionID`=@uid,
-                                        `ACCname`=@ACCname,
-                                        `ACCno`=@ACCno,
-                                        `cc_expiry`=@CCexpiry,
+                                        `ACCname`=NULL,
+                                        `ACCno`=NULL,
+                                        `cc_expiry`=NULL,
                                         `UserUpload`=@userupload
                                     WHERE `BillingID`=@idBill;";
                 cm.Parameters.Add(new MySqlParameter("@PaymentSource", MySqlDbType.VarChar) { Value = bm.PaymentSource });
@@ -2145,47 +2154,23 @@ namespace CAF.JBS.Controllers
                 cm.Parameters.Add(new MySqlParameter("@tglPaid", MySqlDbType.DateTime) { Value = bm.tgl });
                 cm.Parameters.Add(new MySqlParameter("@PaidAmount", MySqlDbType.Decimal) { Value = bm.amount });
                 cm.Parameters.Add(new MySqlParameter("@receiptID", MySqlDbType.Int32) { Value = bm.receipt_id });
-                cm.Parameters.Add(new MySqlParameter("@ACCname", MySqlDbType.VarChar) { Value = bm.ACCname });
-                cm.Parameters.Add(new MySqlParameter("@ACCno", MySqlDbType.VarChar) { Value = bm.ACCno });
-                cm.Parameters.Add(new MySqlParameter("@CCexpiry", MySqlDbType.VarChar) { Value = bm.CC_Expiry });
                 cm.Parameters.Add(new MySqlParameter("@userupload", MySqlDbType.VarChar) { Value = User.Identity.Name });
                 cm.Parameters.Add(new MySqlParameter("@idBill", MySqlDbType.Int32) { Value = bm.Billid });
             }
             else
             {
-                cm.CommandType = CommandType.Text;
-                cm.CommandText = @"UPDATE `billing` b
-                                    INNER JOIN `policy_billing` pb ON pb.`policy_Id`=b.`policy_id`
-                                    LEFT JOIN `policy_cc` pc ON pc.`PolicyId`=b.`policy_id`
-                                    LEFT JOIN `policy_ac` pa ON pa.`PolicyId`=b.`policy_id`
-                                    SET b.`IsDownload`=0,
-                                        b.`IsClosed`=1,
-                                        b.`status_billing`='P',
-                                        b.`PaymentSource`=@PaySource,
-                                        b.`LastUploadDate`=@tglUpload,
-                                        b.`paid_date`=@tglPaid,
-                                        b.`PaidAmount`=@PaidAmount,
-                                        b.`BankIdPaid`=@bankid,
-                                        b.`Life21TranID`=@Life21Tran,
-                                        b.`ReceiptID`=@Recptid,
-                                        b.`PaymentTransactionID`=@PTranJbsID,
-                                        b.`AccName`=CASE WHEN pb.`payment_method`='CC' AND b.`AccName` IS NULL THEN pc.`cc_name`
-		                                    WHEN pb.`payment_method`='AC' AND b.`AccName` IS NULL THEN pa.`acc_name` END,
-                                        b.`AccNo`=CASE WHEN pb.`payment_method`='CC' AND b.`AccNo` IS NULL THEN pc.`cc_no`
-		                                    WHEN pb.`payment_method`='AC' AND b.`AccNo` IS NULL THEN pa.`acc_no` END,
-                                        b.`cc_expiry`=CASE WHEN pb.`payment_method`='CC' AND b.`cc_expiry` IS NULL THEN pc.`cc_expiry` END,
-                                        b.`UserUpload`=@userupload
-                                    WHERE `BillingID`=@billid;";
+                cm.CommandType = CommandType.StoredProcedure;
+                cm.CommandText = @"PaidBilling";
                 cm.Parameters.Add(new MySqlParameter("@PaySource", MySqlDbType.VarChar) { Value = bm.PaymentSource });
                 cm.Parameters.Add(new MySqlParameter("@tglUpload", MySqlDbType.DateTime) { Value = bm.TglSkrg });
+                cm.Parameters.Add(new MySqlParameter("@Life21Tran", MySqlDbType.Int32) { Value = bm.life21TranID });
+                cm.Parameters.Add(new MySqlParameter("@PTranJbsID", MySqlDbType.Int32) { Value = bm.PaymentTransactionID });
+                cm.Parameters.Add(new MySqlParameter("@bankid", MySqlDbType.Int32) { Value = bm.BankidPaid });
                 cm.Parameters.Add(new MySqlParameter("@tglPaid", MySqlDbType.DateTime) { Value = bm.tgl });
                 cm.Parameters.Add(new MySqlParameter("@PaidAmount", MySqlDbType.Decimal) { Value = bm.amount });
-                cm.Parameters.Add(new MySqlParameter("@bankid", MySqlDbType.Int32) { Value = bm.BankidPaid });
-                cm.Parameters.Add(new MySqlParameter("@Life21Tran", MySqlDbType.Int32) { Value = bm.life21TranID });
                 cm.Parameters.Add(new MySqlParameter("@Recptid", MySqlDbType.Int32) { Value = bm.receipt_id });
-                cm.Parameters.Add(new MySqlParameter("@PTranJbsID", MySqlDbType.Int32) { Value = bm.PaymentTransactionID });
-                cm.Parameters.Add(new MySqlParameter("@userupload", MySqlDbType.VarChar) { Value = User.Identity.Name });
                 cm.Parameters.Add(new MySqlParameter("@billid", MySqlDbType.Int32) { Value = Convert.ToInt32(bm.Billid) });
+                cm.Parameters.Add(new MySqlParameter("@userupload", MySqlDbType.VarChar) { Value = User.Identity.Name });
             }
 
             try
@@ -2650,101 +2635,34 @@ namespace CAF.JBS.Controllers
 
         public async Task AsyncSendEmailThanksQuote(int Quoteid,Decimal jlhBayar)
         {
-            EmailThanksQuoteVM emailQ = new EmailThanksQuoteVM();
-            var cmd = _life21p.Database.GetDbConnection().CreateCommand();
-            string sql = @"SELECT 
-q.`quote_id`,
-q.`quote_ref_no`,
-c.`prospect_name`,
-c.prospect_birth_place AS 'POB',
-c.prospect_dob AS 'DOB',
-c.prospect_gender, 
-c.prospect_mobile_phone, 
-c.prospect_email,
-c3.sum_insured ,
-pd.`product_description`,
-q.`quote_premium_mode`,
-q.`quote_payment_method`,
-(q.`quote_regular_premium` + q.`quote_single_premium`) AS 'Premi',
-q.`quote_duration`,
-q.`quote_duration_days`,
-q.`quote_paper_print_fee`,
-q.`quote_premium_mode`
-                         FROM `quote` q 
-                         LEFT OUTER JOIN prospect c ON q.quote_holder_id = c.prospect_id  
-                         LEFT OUTER JOIN prospect c2 ON q.quote_prospect_id = c2.prospect_id 
-                         LEFT OUTER JOIN quote_coverage c3 ON q.quote_id = c3.quote_id AND q.quote_main_coverage_id = c3.coverage_type_id 
-                         LEFT JOIN `prod_life21`.`product` pd ON pd.`product_id`=q.`quote_product_id`
-                         WHERE q.`quote_id`=@QuoteID; ";
-                                    cmd.Parameters.Clear();
-            cmd.CommandType = CommandType.Text;
-            cmd.Parameters.Add(new MySqlParameter("@QuoteID", MySqlDbType.Int32) { Value = Quoteid });
-            cmd.CommandText = sql;
-            try
-            {
-                if (cmd.Connection.State == ConnectionState.Closed) cmd.Connection.Open();
-                using (var rd = cmd.ExecuteReader())
-                {
-                    while (rd.Read())
-                    {
-                        emailQ.QuoteID = Convert.ToInt32(rd["quote_id"]);
-                        emailQ.RefNo = rd["quote_ref_no"].ToString();
-                        emailQ.Email = rd["prospect_email"].ToString();
-                        emailQ.Gender = rd["prospect_gender"].ToString();
-                        emailQ.CustName = rd["prospect_name"].ToString();
-                        emailQ.POB = rd["POB"].ToString();
-                        emailQ.DOB = Convert.ToDateTime(rd["DOB"]);
-                        emailQ.MobileNo = rd["prospect_mobile_phone"].ToString();
-                        emailQ.ProductName = rd["product_description"].ToString();
-                        emailQ.Insured = Convert.ToDecimal(rd["sum_insured"]);
-                        emailQ.DurasiTahun = Convert.ToInt32(rd["quote_duration"]);
-                        emailQ.DurasiHari = Convert.ToInt32(rd["quote_duration_days"]);
-                        emailQ.PremiAmount = Convert.ToDecimal(rd["Premi"]);
-                        emailQ.CetakPolisAmount = Convert.ToDecimal(rd["quote_paper_print_fee"]);
-                        emailQ.POB = rd["POB"].ToString();
-                        emailQ.FrekuensiBayar = rd["quote_premium_mode"].ToString();
-                        emailQ.PaymentMeth = rd["quote_payment_method"].ToString();
-                        emailQ.PaymentAmount = jlhBayar;
-
-                    }
-                }
-            }
-            catch(Exception ex)
-            {
-                throw new Exception("AsyncSendEmailThanksQuote (QuoteID = "+ Quoteid.ToString()  + ") " + ex.Message);
-            }
-            finally{ cmd.Connection.Close(); }
-
-            if (emailQ.Gender == "M")
-            {
-                emailQ.Sapaan = "Bapak";
-                emailQ.Gender = "Pria";
-            }
-            else if (emailQ.Gender == "F")
-            {
-                emailQ.Sapaan = "Ibu";
-                emailQ.Gender = "Wanita";
-            }
-            else throw new Exception("Send Email Quote : Jenis Kelamin tidak dapat didefenisikan");
-
-            switch (emailQ.FrekuensiBayar)
-            {
-                case "0":
-                    emailQ.FrekuensiBayar = "Sekaligus";
-                    break;
-                case "1":
-                    emailQ.FrekuensiBayar = "Bulanan";
-                    break;
-                case "3":
-                    emailQ.FrekuensiBayar = "Triwulanan";
-                    break;
-                case "6":
-                    emailQ.FrekuensiBayar = "Semesteran";
-                    break;
-                case "12":
-                    emailQ.FrekuensiBayar = "Tahunan";
-                    break;
-            }
+            var emailQ = (from q in _life21p.Quote
+                          join pd in _jbsDB.Product on q.quote_product_id equals pd.product_id
+                          join p1 in _life21p.Prospect on q.quote_holder_id equals p1.prospect_id into px1 from p1 in px1.DefaultIfEmpty()
+                          join p2 in _life21p.Prospect on q.quote_prospect_id equals p2.prospect_id into px2 from p2 in px2.DefaultIfEmpty()
+                          join c in _life21p.QuoteCoverage on q.quote_id equals c.quote_id into cx2 from c in cx2.DefaultIfEmpty()
+                          where q.quote_id == Quoteid
+                          select new EmailThanksQuoteVM()
+                          {
+                              QuoteID = q.quote_id,
+                              RefNo = q.quote_ref_no,
+                              Email = p1.prospect_email,
+                              Gender = p1.prospect_gender,
+                              Sapaan = (p1.prospect_gender == "M" ? "Bapak" : "Ibu"),
+                              CustName = p1.prospect_name,
+                              POB = p1.prospect_birth_place,
+                              DOB = p1.prospect_dob,
+                              MobileNo = p1.prospect_mobile_phone,
+                              ProductName = pd.product_description,
+                              Insured = c.sum_insured,
+                              DurasiTahun = q.quote_duration,
+                              DurasiHari = q.quote_duration_days,
+                              PremiAmount = q.quote_regular_premium + q.quote_single_premium,
+                              CetakPolisAmount = q.quote_paper_print_fee,
+                              FrekuensiBayar = (q.quote_premium_mode==0 ? "Sekaligus" : (q.quote_premium_mode == 1 ? "Bulanan" : (q.quote_premium_mode == 3 ? "Triwulanan" : (q.quote_premium_mode == 6 ? "Semesteran" : (q.quote_premium_mode == 12 ? "Tahunan" : "-"))))),
+                              PaymentMeth = q.quote_payment_method,
+                              PaymentAmount = jlhBayar
+                          }).SingleOrDefault();
+            if(emailQ == null) throw new Exception("AsyncSendEmailThanksQuote (QuoteID = " + Quoteid.ToString() + ") Email Qoute gagal");
 
             string SubjectEmail = string.Format(@"JAGADIRI: Nomor Quotation: {2} TERBAYAR");
             string BodyMessage = string.Format(@"Dengan Hormat {0} {1},
@@ -2776,7 +2694,7 @@ Terima kasih atas Pembayaran Asuransi Anda. Permohonan Asuransi Anda akan segera
 emailQ.Email, emailQ.MobileNo, emailQ.ProductName, emailQ.Insured.ToString("#,###"), emailQ.DurasiTahun,emailQ.DurasiHari,emailQ.PremiAmount.ToString("#,###"),
 emailQ.CetakPolisAmount.ToString("#,###"), emailQ.FrekuensiBayar,emailQ.PaymentMeth,emailQ.PaymentAmount.ToString("#,###")
 );
-            await SendEmailAsync("dariaman.siagian@jagadiri.co.id", SubjectEmail, BodyMessage, EmailPHS);
+            await SendEmailAsync(emailQ.Email, SubjectEmail, BodyMessage, EmailPHS);
         }
     }
 }

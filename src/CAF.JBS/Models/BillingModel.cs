@@ -29,6 +29,7 @@ namespace CAF.JBS.Models
         public bool IsPending { get; set; }
         public bool IsClosed { get; set; }
         public string Source_download { get; set; }
+        public string PaymentSource { get; set; }
         public int? BankIdDownload { get; set; }
         public int? ReceiptID { get; set; }
         public int? PaymentTransactionID { get; set; } // id transaction_bank di JBS
