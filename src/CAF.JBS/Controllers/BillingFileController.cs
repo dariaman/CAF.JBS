@@ -1250,13 +1250,13 @@ namespace CAF.JBS.Controllers
                         { // untuk Billing Quote 
                             UpdateQuote(ref cmd3,tglSekarang, lst.BankidPaid, Convert.ToInt32(lst.Billid));
                             UpdateBillingQuoteJBS(ref cmd, lst);
-                            //await AsyncSendEmailThanksQuote(Convert.ToInt32(lst.Billid), lst.amount);
+                            await AsyncSendEmailThanksQuote(Convert.ToInt32(lst.Billid), lst.amount);
                         }
                         else
                         {// transaksi sudah pasti bukan Quote
                             if (lst.BillCode == "B")
                             { // Recurring >> insert Receipt
-                                Rcpt.transaction_code = "RP";
+                                Rcpt.transaction_code = "RP"; // buat recurring
                                 if (string.IsNullOrEmpty(lst.Billid))
                                 {
                                     lst.Billid = CreateBilling(ref cmd, lst.polisNo,lst.PaymentSource, lst.BankidPaid);
@@ -2635,39 +2635,37 @@ namespace CAF.JBS.Controllers
 
         public async Task AsyncSendEmailThanksQuote(int Quoteid,Decimal jlhBayar)
         {
-            var emailQ = (from q in _life21p.Quote
-                          join pd in _jbsDB.Product on q.quote_product_id equals pd.product_id
-                          join p1 in _life21p.Prospect on q.quote_holder_id equals p1.prospect_id into px1 from p1 in px1.DefaultIfEmpty()
-                          join p2 in _life21p.Prospect on q.quote_prospect_id equals p2.prospect_id into px2 from p2 in px2.DefaultIfEmpty()
-                          join c in _life21p.QuoteCoverage on q.quote_id equals c.quote_id into cx2 from c in cx2.DefaultIfEmpty()
-                          where q.quote_id == Quoteid
+            var emailQ = (from qb in _jbsDB.QuoteBilling
+                          join q in _jbsDB.Quote on qb.quote_id equals q.quote_id
+                          join pd in _jbsDB.Product on qb.product_id equals pd.product_id
+                          where q.quote_id == Quoteid 
                           select new EmailThanksQuoteVM()
                           {
                               QuoteID = q.quote_id,
-                              RefNo = q.quote_ref_no,
-                              Email = p1.prospect_email,
-                              Gender = p1.prospect_gender,
-                              Sapaan = (p1.prospect_gender == "M" ? "Bapak" : "Ibu"),
-                              CustName = p1.prospect_name,
-                              POB = p1.prospect_birth_place,
-                              DOB = p1.prospect_dob,
-                              MobileNo = p1.prospect_mobile_phone,
-                              ProductName = pd.product_description,
-                              Insured = c.sum_insured,
-                              DurasiTahun = q.quote_duration,
-                              DurasiHari = q.quote_duration_days,
-                              PremiAmount = q.quote_regular_premium + q.quote_single_premium,
-                              CetakPolisAmount = q.quote_paper_print_fee,
-                              FrekuensiBayar = (q.quote_premium_mode==0 ? "Sekaligus" : (q.quote_premium_mode == 1 ? "Bulanan" : (q.quote_premium_mode == 3 ? "Triwulanan" : (q.quote_premium_mode == 6 ? "Semesteran" : (q.quote_premium_mode == 12 ? "Tahunan" : "-"))))),
-                              PaymentMeth = q.quote_payment_method,
+                              RefNo = qb.ref_no,
+                              Email = q.email,
+                              Gender = (q.IsLaki ? "Pria" : "Wanita"),
+                              Sapaan = (q.IsLaki ? "Bapak" : "Ibu"),
+                              CustName = q.prospect_name,
+                              POB = q.POB,
+                              DOB = q.DOB,
+                              MobileNo = q.mobile_phone,
+                              ProductName=pd.product_description,
+                              Insured = q.sum_insured,
+                              DurasiTahun = q.duration,
+                              DurasiHari = q.duration_days,
+                              PremiAmount = q.regular_premium + q.single_premium,
+                              CetakPolisAmount = q.paper_print_fee,
+                              FrekuensiBayar = (q.premium_mode==0 ? "Sekaligus" : (q.premium_mode == 1 ? "Bulanan" : (q.premium_mode == 3 ? "Triwulanan" : (q.premium_mode == 6 ? "Semesteran" : (q.premium_mode == 12 ? "Tahunan" : "-"))))),
+                              PaymentMeth = q.payment_method,
                               PaymentAmount = jlhBayar
                           }).SingleOrDefault();
             if(emailQ == null) throw new Exception("AsyncSendEmailThanksQuote (QuoteID = " + Quoteid.ToString() + ") Email Qoute gagal");
 
-            string SubjectEmail = string.Format(@"JAGADIRI: Nomor Quotation: {2} TERBAYAR");
+            string SubjectEmail = string.Format(@"JAGADIRI: Nomor Quotation: {0} TERBAYAR", emailQ.RefNo);
             string BodyMessage = string.Format(@"Dengan Hormat {0} {1},
-Terima kasih atas Pembayaran Asuransi Anda. Permohonan Asuransi Anda akan segera kami proses dan kami akan informasikan Anda kembali via email 
-<table>
+<p style='text-align:justify'>Terima kasih atas Pembayaran Asuransi Anda. Permohonan Asuransi Anda akan segera kami proses dan kami akan informasikan Anda kembali via email </p>
+<br><table>
 <tr><td></td><td></td></tr>
     <tr><td>No Quote</td>               <td>: {2}</td></tr>
     <tr><td>Nama</td>                   <td>: {1}</td></tr>
@@ -2682,17 +2680,30 @@ Terima kasih atas Pembayaran Asuransi Anda. Permohonan Asuransi Anda akan segera
     <tr><td>Total Premi</td>            <td>: IDR {12}</td></tr>
     <tr><td>Biaya Cetak Polis</td>      <td>: IDR {13}</td></tr>
     <tr><td>Frekuensi Bayar</td>        <td>: {14}</td></tr>
-<tr><td></td><td></td></tr>
+<tr><td> </td><td></td></tr>
     <tr><td>Pembayaran</td><td></td></tr>
     <tr><td>Metode Pembayaran</td>      <td>: {15}</td></tr>
     <tr><td>Jumlah Pembayaran</td>      <td>: IDR {16}</td></tr>
     <tr><td>Status</td>                 <td>: TERDAFTAR</td></tr>
 <table>
-
-<br>Sukses selalu,
-<br>JAGADIRI ", emailQ.Sapaan, emailQ.CustName.ToUpper(), emailQ.RefNo,emailQ.Gender,emailQ.POB, emailQ.DOB.ToString("dd MMM yyyy"),
-emailQ.Email, emailQ.MobileNo, emailQ.ProductName, emailQ.Insured.ToString("#,###"), emailQ.DurasiTahun,emailQ.DurasiHari,emailQ.PremiAmount.ToString("#,###"),
-emailQ.CetakPolisAmount.ToString("#,###"), emailQ.FrekuensiBayar,emailQ.PaymentMeth,emailQ.PaymentAmount.ToString("#,###")
+<br><br>Sukses selalu,
+<br>JAGADIRI ", emailQ.Sapaan, 
+emailQ.CustName.ToUpper(), 
+emailQ.RefNo,
+emailQ.Gender,
+emailQ.POB,
+emailQ.DOB== null ? "" :  Convert.ToDateTime(emailQ.DOB).ToString("dd MMM yyyy"),
+emailQ.Email, 
+emailQ.MobileNo, 
+emailQ.ProductID.ToString(),
+emailQ.Insured == null ? "" : Convert.ToDecimal(emailQ.Insured).ToString("#,###"), 
+emailQ.DurasiTahun,
+emailQ.DurasiHari,
+emailQ.PremiAmount == null ? "" : Convert.ToDecimal(emailQ.PremiAmount).ToString("#,###"),
+emailQ.CetakPolisAmount == null ? "" : Convert.ToDecimal(emailQ.CetakPolisAmount).ToString("#,###"), 
+emailQ.FrekuensiBayar,
+emailQ.PaymentMeth,
+emailQ.PaymentAmount == null ? "" : Convert.ToDecimal(emailQ.PaymentAmount).ToString("#,###")
 );
             await SendEmailAsync(emailQ.Email, SubjectEmail, BodyMessage, EmailPHS);
         }

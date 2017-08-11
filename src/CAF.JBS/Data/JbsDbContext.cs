@@ -34,6 +34,8 @@ namespace CAF.JBS.Data
             builder.Entity<BillingSumMonthly>().ToTable("billing_sum_monthly");
             builder.Entity<BillingSumMonthly>().HasKey(T => new { T.TranCode, T.Periode });
             builder.Entity<TrancodeDashboard>().ToTable("trancode_dashboard");
+            builder.Entity<Quote>().ToTable("quote");
+            builder.Entity<QuoteBilling>().ToTable("quote_billing");
         }
 
         public DbSet<cctypeModel> cctypeModel { get; set; }
@@ -52,6 +54,8 @@ namespace CAF.JBS.Data
         public DbSet<StagingUpload> StagingUpload { get; set; }
         public DbSet<BillingSumMonthly> BillingSumMonthly { get; set; }
         public DbSet<TrancodeDashboard> TrancodeDashboard { get; set; }
+        public DbSet<Quote> Quote { get; set; }
+        public DbSet<QuoteBilling> QuoteBilling { get; set; }
         //public DbSet<LogErrorUploadResult> LogErrorUploadResult { get; set; }
     }
 }

@@ -10,17 +10,19 @@ namespace CAF.JBS.Models
         [Key]
         [Required]
         public int quote_id { get; set; }
-        public string quote_ref_no { get; set; }
-        public int quote_premium_mode { get; set; }
-        public string quote_payment_method { get; set; }
-        public Decimal quote_regular_premium { get; set; }
-        public Decimal quote_single_premium { get; set; }
-        public int quote_duration { get; set; }
-        public int quote_duration_days { get; set; }
-        public Decimal quote_paper_print_fee { get; set; }
-        public int quote_prospect_id { get; set; }
-        public int quote_holder_id { get; set; }
-        public int quote_product_id { get; set; }
-        public int quote_main_coverage_id { get; set; }
+        public string prospect_name { get; set; }
+        public string POB { get; set; }
+        public DateTime DOB { get; set; }
+        public Boolean IsLaki { get; set; }
+        public string mobile_phone { get; set; }
+        public string email { get; set; }
+        public Decimal sum_insured { get; set; }
+        public int premium_mode { get; set; }
+        public string payment_method { get; set; }
+        public Decimal? regular_premium { get; set; }
+        public Decimal? single_premium { get; set; }
+        public Decimal? paper_print_fee { get; set; }
+        public int? duration { get; set; }
+        public int? duration_days { get; set; }
     }
 }
