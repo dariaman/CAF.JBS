@@ -21,7 +21,6 @@ namespace CAF.JBS.Data
             builder.Entity<prefixcardModel>().ToTable("prefixcard");
             builder.Entity<BillingHoldModel>().ToTable("billinghold");
             builder.Entity<PolicyBillingModel>().ToTable("policy_billing");
-
             builder.Entity<CustomerInfo>().ToTable("customer_info");
             builder.Entity<PolicyAc>().ToTable("policy_ac");
             builder.Entity<PolicyCc>().ToTable("policy_cc");
@@ -29,13 +28,13 @@ namespace CAF.JBS.Data
             builder.Entity<PolicyLastTrans>().ToTable("policy_last_trans");
             builder.Entity<BillingSummary>().ToTable("billing_download_summary");
             builder.Entity<Product>().ToTable("product");
-
             builder.Entity<StagingUpload>().ToTable("stagingupload");
             builder.Entity<BillingSumMonthly>().ToTable("billing_sum_monthly");
             builder.Entity<BillingSumMonthly>().HasKey(T => new { T.TranCode, T.Periode });
             builder.Entity<TrancodeDashboard>().ToTable("trancode_dashboard");
             builder.Entity<Quote>().ToTable("quote");
             builder.Entity<QuoteBilling>().ToTable("quote_billing");
+            builder.Entity<BillingOtherModel>().ToTable("billing_others");
         }
 
         public DbSet<cctypeModel> cctypeModel { get; set; }
@@ -56,6 +55,7 @@ namespace CAF.JBS.Data
         public DbSet<TrancodeDashboard> TrancodeDashboard { get; set; }
         public DbSet<Quote> Quote { get; set; }
         public DbSet<QuoteBilling> QuoteBilling { get; set; }
+        public DbSet<BillingOtherModel> BillingOtherModel { get; set; }
         //public DbSet<LogErrorUploadResult> LogErrorUploadResult { get; set; }
     }
 }

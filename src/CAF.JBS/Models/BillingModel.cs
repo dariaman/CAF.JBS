@@ -32,9 +32,12 @@ namespace CAF.JBS.Models
         public string PaymentSource { get; set; }
         public int? BankIdDownload { get; set; }
         public int? ReceiptID { get; set; }
+        public int? ReceiptOtherID { get; set; } // untuk transaksi cashless
         public int? PaymentTransactionID { get; set; } // id transaction_bank di JBS
         public int? Life21TranID { get; set; } // id CC/AC transaction di Life21
         public string UserCrt { get; set; }
+        public string AccName { get; set; }
+        public string AccNo { get; set; }
         public DateTime DateCrt { get; set; }
         public string UserUpdate { get; set; }
         public Nullable<DateTime> DateUpdate { get; set; }

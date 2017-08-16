@@ -702,6 +702,7 @@ namespace CAF.JBS.Controllers
             var cmd = _jbsDB.Database.GetDbConnection().CreateCommand();
             cmd.CommandType = CommandType.Text;
             cmd.CommandText = @"UPDATE `billing` AS b 
+INNER JOIN `policy_billing` pb ON b.`policy_id`=pb.`policy_Id`
                                 SET b.`IsDownload`=0,
 	                                b.`Source_download`=NULL,
 	                                b.`BankIdDownload`=NULL,
@@ -719,7 +720,8 @@ namespace CAF.JBS.Controllers
 	                                b.`PaymentTransactionID`=NULL,
 	                                b.`AccName`=NULL,
 	                                b.`AccNo`=NULL,
-	                                b.`cc_expiry`=NULL; ";
+	                                b.`cc_expiry`=NULL
+WHERE pb.`Policy_status` IN ('Inforce','Grace'); ";
             try
             {
                 cmd.Connection.Open();
@@ -1116,6 +1118,7 @@ namespace CAF.JBS.Controllers
                         life21TranID = (rd["Life21TranID"] == DBNull.Value) ? (int?)null : Convert.ToInt32(rd["Life21TranID"]),
                         PolicyId = (rd["PolicyId"] == DBNull.Value) ? (int?)null : Convert.ToInt32(rd["PolicyId"]),
                         Billid = rd["Billid"].ToString(),
+                        BillType = rd["BillType"].ToString(),
                         recurring_seq = (rd["seq"] == DBNull.Value) ? (int?)null : Convert.ToInt32(rd["seq"]),
                         due_dt_pre = (rd["due_date_pre"] == DBNull.Value) ? (DateTime?)null : Convert.ToDateTime(rd["due_date_pre"]),
                         trancode = SubmitUpload.trancode
@@ -1208,12 +1211,12 @@ namespace CAF.JBS.Controllers
                 {
                     Life21Tran.policy_id = lst.PolicyId;
                     Life21Tran.transaction_dt = tglSekarang;
-                    Life21Tran.recurring_seq = lst.recurring_seq;
+                    //Life21Tran.recurring_seq = lst.recurring_seq;
                     Life21Tran.amount = lst.amount;
-                    Life21Tran.Due_Date_Pre = lst.due_dt_pre;
+                    //Life21Tran.Due_Date_Pre = lst.due_dt_pre;
                     Life21Tran.BankID = lst.BankidPaid;
-                    Life21Tran.ACC_No = lst.ACCno;
-                    Life21Tran.ACC_Name = lst.ACCname;
+                    //Life21Tran.ACC_No = lst.ACCno;
+                    //Life21Tran.ACC_Name = lst.ACCname;
 
                     Life21Tran.idTran = lst.life21TranID;
                     Life21Tran.result_status = lst.ApprovalCode;
@@ -1223,12 +1226,13 @@ namespace CAF.JBS.Controllers
                 {
                     Life21Tran.policy_id = lst.PolicyId;
                     Life21Tran.transaction_dt = tglSekarang;
-                    Life21Tran.recurring_seq = lst.recurring_seq;
+                    Life21Tran.update_dt = tglSekarang;
+                    //Life21Tran.recurring_seq = lst.recurring_seq;
                     Life21Tran.amount = lst.amount;
-                    Life21Tran.Due_Date_Pre = lst.due_dt_pre;
+                    //Life21Tran.Due_Date_Pre = lst.due_dt_pre;
                     Life21Tran.BankID = lst.BankidPaid;
-                    Life21Tran.ACC_No = lst.ACCno;
-                    Life21Tran.ACC_Name = lst.ACCname;
+                    //Life21Tran.ACC_No = lst.ACCno;
+                    //Life21Tran.ACC_Name = lst.ACCname;
 
                     Life21Tran.idTran = lst.life21TranID;
                     Life21Tran.result_status = lst.ApprovalCode;
@@ -1254,6 +1258,9 @@ namespace CAF.JBS.Controllers
                         }
                         else
                         {// transaksi sudah pasti bukan Quote
+                            Rcpto = new ReceiptOther();
+                            BillingModel bil;
+
                             if (lst.BillCode == "B")
                             { // Recurring >> insert Receipt
                                 Rcpt.transaction_code = "RP"; // buat recurring
@@ -1262,20 +1269,33 @@ namespace CAF.JBS.Controllers
                                     lst.Billid = CreateBilling(ref cmd, lst.polisNo,lst.PaymentSource, lst.BankidPaid);
                                     if (string.IsNullOrEmpty(lst.Billid)) throw new Exception("Billing Gagal Create");
 
-                                    var bl = _jbsDB.BillingModel.FirstOrDefaultAsync(c => c.BillingID == Convert.ToInt32(lst.Billid));
-                                    if (bl.Result == null) continue;
-                                    lst.PolicyId = bl.Result.policy_id;
-                                    lst.recurring_seq = bl.Result.recurring_seq;
-                                    lst.due_dt_pre = bl.Result.due_dt_pre;
-                                    Life21Tran.Due_Date_Pre = lst.due_dt_pre;
-                                    Life21Tran.recurring_seq = lst.recurring_seq;
+                                    bil = _jbsDB.BillingModel.FirstOrDefault(c => c.BillingID == Convert.ToInt32(lst.Billid));
+
+                                    if (bil == null) continue;
+                                    lst.PolicyId = bil.policy_id;
+                                    lst.recurring_seq = bil.recurring_seq;
+                                    lst.due_dt_pre = bil.due_dt_pre;
+                                    
                                     lst.PaymentTransactionID = InsertTransactionBank(ref cmd, lst);
                                 }
+                                else bil = _jbsDB.BillingModel.FirstOrDefault(c => c.BillingID == Convert.ToInt32(lst.Billid));
 
+                                if (bil.cashless_fee_amount > 0)
+                                { // insert receipt other recurring untuk cashless
+                                    Rcpto.policy_id = lst.PolicyId;
+                                    Rcpto.receipt_amount = bil.cashless_fee_amount;
+                                    Rcpto.receipt_date = tglSekarang;
+                                    Rcpto.bank_acc_id = Rcpt.bank_acc_id;
+                                    Rcpto.receipt_source = lst.PaymentSource;
+                                    Rcpto.type_id = 3; // untuk recurring type harus 3
+                                    Rcpto.acquirer_bank_id = lst.BankidPaid;
+                                    lst.receipt_other_id = InsertReceiptOther(ref cmd2, Rcpto);
+                                }
+
+                                Rcpt.receipt_policy_id = lst.PolicyId;
                                 Rcpt.receipt_source = lst.PaymentSource;
                                 Rcpt.receipt_date = tglSekarang;
-                                Rcpt.receipt_policy_id = lst.PolicyId;
-                                Rcpt.receipt_amount = lst.amount;
+                                Rcpt.receipt_amount = lst.amount - lst.receipt_other_id;
                                 Rcpt.receipt_seq = lst.recurring_seq;
                                 Rcpt.fund_type_id = 0;
                                 Rcpt.status = "P";
@@ -1283,7 +1303,13 @@ namespace CAF.JBS.Controllers
                                 Rcpt.due_date_pre = lst.due_dt_pre;
 
                                 ReciptID =InsertReceipt(ref cmd2,Rcpt);
+
+                                Life21Tran.policy_id = lst.PolicyId;
+                                Life21Tran.ACC_Name = bil.AccName;
+                                Life21Tran.ACC_No = bil.AccNo;
                                 Life21Tran.receipt_id = ReciptID;
+                                Life21Tran.Due_Date_Pre = lst.due_dt_pre;
+                                Life21Tran.recurring_seq = lst.recurring_seq;
                                 Life21Tran.transaction_type = "R";
 
                                 if (lst.PaymentSource == "AC") IDLife21Tran=InsertACTransaction(ref cmd2, Life21Tran);
@@ -1303,14 +1329,16 @@ namespace CAF.JBS.Controllers
                                 await AsyncSendEmailThanksRecurring(Convert.ToInt32(lst.Billid));
                             }
                             else
-                            { // Billing Others >> insert Receipt Other (pasti CC)
-                                Rcpto = new ReceiptOther();
+                            { // Billing Others >> insert Receipt Other (pasti CC) 
+                                // untuk billing other, melakukan UPDATE billing other karena tagihan berasal dari Life21
+                                
                                 Rcpto.policy_id = lst.PolicyId;
                                 Rcpto.receipt_amount = lst.amount;
                                 Rcpto.receipt_date = tglSekarang;
                                 Rcpto.bank_acc_id = Rcpt.bank_acc_id;
                                 Rcpto.receipt_source = lst.PaymentSource;
-                                Rcpto.type_id = 1;
+                                Rcpto.type_id = (lst.BillType=="A2" ? 1 : (lst.BillType == "A3" ? 2 : 0));
+                                if (Rcpto.type_id == 0 || Rcpto.type_id == null) throw new Exception("Billing Type tidak terdefenisi");
                                 Rcpto.acquirer_bank_id = lst.BankidPaid;
 
                                 ReciptOtherID = InsertReceiptOther(ref cmd2, Rcpto);
@@ -1319,6 +1347,7 @@ namespace CAF.JBS.Controllers
 
                                 UpdateCCTransaction(ref cmd2, Life21Tran);
                                 UpdateBillingOthersJBS(ref cmd,lst);
+                                await AsyncSendEmailThanksEndorsemen(lst.Billid);
                             }
                         }
                     }
@@ -1824,24 +1853,22 @@ namespace CAF.JBS.Controllers
         private int InsertCCTransaction(ref System.Data.Common.DbCommand cm,PolicyTransaction pt)
         {
             cm.Parameters.Clear();
-            cm.CommandType = CommandType.StoredProcedure;
-            cm.CommandText = @"InsertPolistransCC";
+            cm.CommandType = CommandType.Text;
+            cm.CommandText = @"INSERT INTO `policy_cc_transaction`(`policy_id`,`transaction_dt`,`transaction_type`,
+		                    `recurring_seq`,`count_times`,`currency`,`total_amount`,`due_date_pre`,`due_date_pre_period`,
+		                    `cycle_date`,`acquirer_bank_id`,`status_id`,`receipt_id`,`created_dt`)
+	                    SELECT @PolisID,@Transdate,@billType,@Seq,1,'IDR',@Amount,@DueDatePre,@Period,@CycleDate,@BankID,2,@receiptID,@Transdate;
+	                    SELECT LAST_INSERT_ID() AS TranId;";
             cm.Parameters.Add(new MySqlParameter("@PolisID", MySqlDbType.Int32) { Value = pt.policy_id });
             cm.Parameters.Add(new MySqlParameter("@Transdate", MySqlDbType.Date) { Value = pt.transaction_dt });
-            cm.Parameters.Add(new MySqlParameter("@Seq", MySqlDbType.Int32) { Value = pt.recurring_seq });
             cm.Parameters.Add(new MySqlParameter("@billType", MySqlDbType.VarChar) { Value = pt.transaction_type });
+            cm.Parameters.Add(new MySqlParameter("@Seq", MySqlDbType.Int32) { Value = pt.recurring_seq });
             cm.Parameters.Add(new MySqlParameter("@Amount", MySqlDbType.Decimal) { Value = pt.amount });
             cm.Parameters.Add(new MySqlParameter("@DueDatePre", MySqlDbType.Date) { Value = pt.Due_Date_Pre });
             cm.Parameters.Add(new MySqlParameter("@Period", MySqlDbType.VarChar) { Value = String.Format("{0:MMMdd}", pt.Due_Date_Pre) });
             cm.Parameters.Add(new MySqlParameter("@CycleDate", MySqlDbType.Int32) { Value = String.Format("{0:dd}", pt.Due_Date_Pre) });
             cm.Parameters.Add(new MySqlParameter("@BankID", MySqlDbType.Int32) { Value = pt.BankID });
-            cm.Parameters.Add(new MySqlParameter("@CCno", MySqlDbType.VarChar) { Value = pt.ACC_No });
-            cm.Parameters.Add(new MySqlParameter("@CCExpiry", MySqlDbType.VarChar) { Value = "" });
-            cm.Parameters.Add(new MySqlParameter("@CCName", MySqlDbType.VarChar) { Value = pt.ACC_Name });
-            cm.Parameters.Add(new MySqlParameter("@CCAddrs", MySqlDbType.VarChar) { Value = "" });
-            cm.Parameters.Add(new MySqlParameter("@CCtelp", MySqlDbType.VarChar) { Value = "" });
             cm.Parameters.Add(new MySqlParameter("@receiptID", MySqlDbType.Int32) { Value = pt.receipt_id });
-            cm.Parameters.Add(new MySqlParameter("@receiptOtherID", MySqlDbType.Int32) { Value = pt.receipt_other_id });
 
             var CCTransID = 0;
             try
@@ -1859,8 +1886,11 @@ namespace CAF.JBS.Controllers
         private int InsertACTransaction(ref System.Data.Common.DbCommand cm, PolicyTransaction pt)
         {
             cm.Parameters.Clear();
-            cm.CommandType = CommandType.StoredProcedure;
-            cm.CommandText = @"InsertPolistransAC";
+            cm.CommandType = CommandType.Text;
+            cm.CommandText = @"INSERT INTO policy_ac_transaction(`policy_id`,`transaction_dt`,`transaction_type`,`recurring_seq`,`count_times`,`currency`,`total_amount`,
+	                        `due_date_pre`,`due_date_pre_period`,`cycle_date`,`bank_id`,`acc_no`,`acc_name`,`status_id`,`receipt_id`,`created_dt`,`update_dt`)
+	                    SELECT @PolisID,@Transdate,@TransType,@Seq,1,'IDR',@Amount,@DueDatePre,@Period,@CycleDate,@BankID,@ACno,@ACName,2,@receiptID,@tgl,@tgl;
+	                    SELECT LAST_INSERT_ID() AS TranId;";
             cm.Parameters.Add(new MySqlParameter("@PolisID", MySqlDbType.Int32) { Value = pt.policy_id });
             cm.Parameters.Add(new MySqlParameter("@Transdate", MySqlDbType.Date) { Value = pt.transaction_dt });
             cm.Parameters.Add(new MySqlParameter("@TransType", MySqlDbType.VarChar) { Value = pt.transaction_type });
@@ -1873,6 +1903,7 @@ namespace CAF.JBS.Controllers
             cm.Parameters.Add(new MySqlParameter("@ACno", MySqlDbType.VarChar) { Value = pt.ACC_No });
             cm.Parameters.Add(new MySqlParameter("@ACName", MySqlDbType.VarChar) { Value = pt.ACC_Name });
             cm.Parameters.Add(new MySqlParameter("@receiptID", MySqlDbType.Int32) { Value = pt.receipt_id });
+            cm.Parameters.Add(new MySqlParameter("@tgl", MySqlDbType.DateTime) { Value = pt.update_dt });
 
             var ACTransID = 0;
             try
@@ -1920,7 +1951,7 @@ namespace CAF.JBS.Controllers
             cm.Parameters.Add(new MySqlParameter("@receiptdate", MySqlDbType.Date) { Value = rc.receipt_date });
             cm.Parameters.Add(new MySqlParameter("@policyId", MySqlDbType.Int32) { Value = rc.receipt_policy_id });
             cm.Parameters.Add(new MySqlParameter("@fundTypeId", MySqlDbType.Int32) { Value = rc.fund_type_id });
-            cm.Parameters.Add(new MySqlParameter("@transactionCode", MySqlDbType.VarChar) { Value = rc.receipt_source });
+            cm.Parameters.Add(new MySqlParameter("@transactionCode", MySqlDbType.VarChar) { Value = rc.transaction_code });
             cm.Parameters.Add(new MySqlParameter("@amount", MySqlDbType.Decimal) { Value = rc.receipt_amount });
             cm.Parameters.Add(new MySqlParameter("@receiptStatus", MySqlDbType.VarChar) { Value = rc.status });
             cm.Parameters.Add(new MySqlParameter("@source", MySqlDbType.VarChar) { Value = rc.receipt_source });
@@ -2140,6 +2171,7 @@ namespace CAF.JBS.Controllers
                                         `PaidAmount`=@PaidAmount,
                                         `Life21TranID`=@TransactionID,
                                         `ReceiptID`=@receiptID,
+                                        `ReceiptOtherID`=@ReceiptOtherID,
                                         `PaymentTransactionID`=@uid,
                                         `ACCname`=NULL,
                                         `ACCno`=NULL,
@@ -2154,6 +2186,7 @@ namespace CAF.JBS.Controllers
                 cm.Parameters.Add(new MySqlParameter("@tglPaid", MySqlDbType.DateTime) { Value = bm.tgl });
                 cm.Parameters.Add(new MySqlParameter("@PaidAmount", MySqlDbType.Decimal) { Value = bm.amount });
                 cm.Parameters.Add(new MySqlParameter("@receiptID", MySqlDbType.Int32) { Value = bm.receipt_id });
+                cm.Parameters.Add(new MySqlParameter("@ReceiptOtherID", MySqlDbType.Int32) { Value = (bm.receipt_other_id > 0 ? bm.receipt_other_id : (int?)null) });
                 cm.Parameters.Add(new MySqlParameter("@userupload", MySqlDbType.VarChar) { Value = User.Identity.Name });
                 cm.Parameters.Add(new MySqlParameter("@idBill", MySqlDbType.Int32) { Value = bm.Billid });
             }
@@ -2456,9 +2489,13 @@ namespace CAF.JBS.Controllers
         {
             var emailMessage = new MimeMessage();
 
+            var ColBcc = bcc.Split(',');
+
+            foreach (string mls in ColBcc) emailMessage.Bcc.Add(new MailboxAddress(mls.Trim()));
+
             emailMessage.From.Add(new MailboxAddress("JAGADIRI", EmailCAF));
             emailMessage.To.Add(new MailboxAddress(email));
-            emailMessage.Bcc.Add(new MailboxAddress(bcc));
+            
             emailMessage.Subject = subject;
 
             var bodyBuilder = new BodyBuilder();
@@ -2495,7 +2532,7 @@ namespace CAF.JBS.Controllers
                            }).SingleOrDefault();
             string SubjectEmail =string.Format(@"JAGADIRI: Penerimaan Premi Regular {0} {1} {2}",EmailThanks.ProductName,EmailThanks.PolicyNo,EmailThanks.CustomerName.ToUpper());
             string BodyMessage = string.Format(@"Salam hangat {0} {1},<br>
-<p style='text-align:justify'>Bersama surat ini kami ingin mengucapkan terima kasih atas pembayaran Premi Regular untuk Polis <b>{2}</b> dengan nomor polis <b>{3}</b> sejumlah IDR <b>{4}</b> yang telah kami terima. Pembayaran Premi tersebut secara otomatis akan membuat Polis Asuransi Anda tetap aktif dan memberikan manfaat perlindungan maksimal bagi Anda dan keluarga.</p>
+<p style='text-align:justify'>Bersama surat ini kami ingin mengucapkan terima kasih atas pembayaran Premi Regular untuk Polis {2} dengan nomor polis {3} sejumlah IDR {4} yang telah kami terima. Pembayaran Premi tersebut secara otomatis akan membuat Polis Asuransi Anda tetap aktif dan memberikan manfaat perlindungan maksimal bagi Anda dan keluarga.</p>
 <br>Sukses selalu,
 <br>JAGADIRI ", EmailThanks.Salam, EmailThanks.CustomerName.ToUpper(), EmailThanks.ProductName,EmailThanks.PolicyNo,EmailThanks.PremiAmount.ToString("#,###"));
             await SendEmailAsync(EmailThanks.CustomerEmail, SubjectEmail, BodyMessage, EmailPHS);
@@ -2663,9 +2700,13 @@ namespace CAF.JBS.Controllers
             if(emailQ == null) throw new Exception("AsyncSendEmailThanksQuote (QuoteID = " + Quoteid.ToString() + ") Email Qoute gagal");
 
             string SubjectEmail = string.Format(@"JAGADIRI: Nomor Quotation: {0} TERBAYAR", emailQ.RefNo);
+            string cetakPolis="";
+            if (emailQ.CetakPolisAmount == null)
+                cetakPolis = string.Format(@"<tr><td>Biaya Cetak Polis</td>  <td>: IDR {0}</td></tr>", Convert.ToDecimal(emailQ.CetakPolisAmount).ToString("#,###"));
+
             string BodyMessage = string.Format(@"Dengan Hormat {0} {1},
 <p style='text-align:justify'>Terima kasih atas Pembayaran Asuransi Anda. Permohonan Asuransi Anda akan segera kami proses dan kami akan informasikan Anda kembali via email </p>
-<br><table>
+<table>
 <tr><td></td><td></td></tr>
     <tr><td>No Quote</td>               <td>: {2}</td></tr>
     <tr><td>Nama</td>                   <td>: {1}</td></tr>
@@ -2677,13 +2718,13 @@ namespace CAF.JBS.Controllers
     <tr><td>Uang Pertanggungan</td>     <td>: IDR {9}</td></tr>
     <tr><td>Durasi (tahun)</td>         <td>: {10} tahun</td></tr>
     <tr><td>Durasi (hari)</td>          <td>: {11} hari</td></tr>
-    <tr><td>Total Premi</td>            <td>: IDR {12}</td></tr>
-    <tr><td>Biaya Cetak Polis</td>      <td>: IDR {13}</td></tr>
-    <tr><td>Frekuensi Bayar</td>        <td>: {14}</td></tr>
-<tr><td> </td><td></td></tr>
+    <tr><td>Total Premi</td>            <td>: IDR {12}</td></tr>" +
+    cetakPolis+
+    @"<tr><td>Frekuensi Bayar</td>        <td>: {13}</td></tr>
+<tr><td><br></td><td></td></tr>
     <tr><td>Pembayaran</td><td></td></tr>
-    <tr><td>Metode Pembayaran</td>      <td>: {15}</td></tr>
-    <tr><td>Jumlah Pembayaran</td>      <td>: IDR {16}</td></tr>
+    <tr><td>Metode Pembayaran</td>      <td>: {14}</td></tr>
+    <tr><td>Jumlah Pembayaran</td>      <td>: IDR {15}</td></tr>
     <tr><td>Status</td>                 <td>: TERDAFTAR</td></tr>
 <table>
 <br><br>Sukses selalu,
@@ -2700,12 +2741,40 @@ emailQ.Insured == null ? "" : Convert.ToDecimal(emailQ.Insured).ToString("#,###"
 emailQ.DurasiTahun,
 emailQ.DurasiHari,
 emailQ.PremiAmount == null ? "" : Convert.ToDecimal(emailQ.PremiAmount).ToString("#,###"),
-emailQ.CetakPolisAmount == null ? "" : Convert.ToDecimal(emailQ.CetakPolisAmount).ToString("#,###"), 
 emailQ.FrekuensiBayar,
 emailQ.PaymentMeth,
 emailQ.PaymentAmount == null ? "" : Convert.ToDecimal(emailQ.PaymentAmount).ToString("#,###")
 );
             await SendEmailAsync(emailQ.Email, SubjectEmail, BodyMessage, EmailPHS);
+        }
+
+        public async Task AsyncSendEmailThanksEndorsemen(string BillID)
+        {
+            EmailThanksBillOthersVM EmailThanks;
+            EmailThanks = (from b in _jbsDB.BillingOtherModel
+                           join pb in _jbsDB.PolicyBillingModel on b.policy_id equals pb.policy_Id
+                           join ci in _jbsDB.CustomerInfo on pb.holder_id equals ci.CustomerId
+                           join pd in _jbsDB.Product on pb.product_id equals pd.product_id
+                           where b.BillingID == BillID.ToString()
+                           select new EmailThanksBillOthersVM()
+                           {
+                               PolicyNo = pb.policy_no,
+                               CustomerName = ci.CustomerName,
+                               Salam = (ci.IsLaki == true) ? "Bapak" : "Ibu",
+                               CustomerEmail = ci.Email,
+                               ProductName = pd.product_description,
+                               ProductType = (b.BillingType== "A2" ? "Endorsemen Cetak Polis Fisik" : (b.BillingType == "A3" ? "Cetak Kartu" : "")),
+                               PremiAmount = b.TotalAmount
+                           }).SingleOrDefault();
+            if (string.IsNullOrEmpty(EmailThanks.ProductType)) return;
+
+            string SubjectEmail = string.Format(@"JAGADIRI: Pembayaran {0}", EmailThanks.ProductType);
+            string BodyMessage = string.Format(@"Salam hangat {0} {1},<br>
+<p style='text-align:justify'>Bersama surat ini kami ingin mengucapkan terima kasih atas pembayaran {2} untuk Polis {3} 
+dengan nomor polis {4} sejumlah {5} yang telah kami terima. Pembayaran Premi tersebut secara otomatis akan membuat Polis Asuransi Anda tetap aktif dan memberikan manfaat perlindungan maksimal bagi Anda dan keluarga.</p>
+<br>Sukses selalu,
+<br>JAGADIRI ", EmailThanks.Salam, EmailThanks.CustomerName.ToUpper(),EmailThanks.ProductType, EmailThanks.ProductName, EmailThanks.PolicyNo, EmailThanks.PremiAmount.ToString("#,###"));
+            await SendEmailAsync(EmailThanks.CustomerEmail, SubjectEmail, BodyMessage, EmailPHS);
         }
     }
 }

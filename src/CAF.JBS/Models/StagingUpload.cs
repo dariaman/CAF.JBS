@@ -16,7 +16,7 @@ namespace CAF.JBS.Models
         public string BillCode { get; set; }
         public Nullable<DateTime> tgl { get; set; } // utk tgl transaksi >> lebih krusial utk VA
         public Nullable<DateTime> due_dt_pre { get; set; }
-        public Decimal amount { get; set; }
+        public Decimal amount { get; set; } // total amount dari file Upload
         public Boolean IsSuccess { get; set; }
         public string ApprovalCode { get; set; }
         public string PaymentSource { get; set; }
@@ -34,8 +34,10 @@ namespace CAF.JBS.Models
 
         // Untuk kebutuhan temporer
         public DateTime TglSkrg { get; set; }
+        public Decimal? CashlessFee { get; set; }
+        public string BillType { get; set; }
         public int receipt_id { get; set; }
-        public int receipt_other_id { get; set; }
+        public int? receipt_other_id { get; set; }
         public int PaymentTransactionID { get; set; } // id di histori
     }
 }

@@ -13,9 +13,10 @@ namespace CAF.JBS.ViewModels
         public Decimal amount { get; set; }
         public Boolean IsSuccess { get; set; }
 
-        // untuk data dari tabel billing/other/quote
+        // untuk data dari tabel billing/other/quote 
         public string policy_id { get; set; }
         public string BillingID { get; set; }
+        public string BillType { get; set; }
         public int? ReqSeq { get; set; }
         public Decimal? billAmount { get; set; }
         public Nullable<DateTime> Due_Date_Pre { get; set; }
