@@ -31,6 +31,7 @@ namespace CAF.JBS.Models
         public int? PolicyId { get; set; }
         public int? recurring_seq { get; set; }
         public string Billid { get; set; }
+        public string StatusPolis { get; set; }
 
         // Untuk kebutuhan temporer
         public DateTime TglSkrg { get; set; }
@@ -38,6 +39,8 @@ namespace CAF.JBS.Models
         public string BillType { get; set; }
         public int receipt_id { get; set; }
         public int? receipt_other_id { get; set; }
+        public int? PolisRefundId { get; set; }
         public int PaymentTransactionID { get; set; } // id di histori
+        public string StatusBilling { get; set; } // status billing nantinya A,P,R
     }
 }

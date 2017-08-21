@@ -12,7 +12,7 @@ namespace CAF.JBS.Models
     {
         [Key]
         public int PolicyId { get; set; }
-        public int acc_no { get; set; }
+        public string acc_no { get; set; }
         public string acc_name { get; set; }
         public int bank_id { get; set; }
         public string bank_branch { get; set; }

@@ -132,6 +132,7 @@
         columns.Add(model => model.tgl).Titled("tgl").Formatted("{0: yyyy-MM-dd HH:mm:ss}").Css("coldate").Filterable(false).Sortable(false);
         columns.Add(model => model.IsSuccess).Titled("IsSuccess").Filterable(false).Sortable(false);
         columns.Add(model => model.amount).Titled("Amount").Formatted("{0:N0}").Filterable(false).Sortable(false);
+        columns.Add(model => model.StatusPolis).Titled("Status Polis").Filterable(false).Sortable(false);
 
         columns.Add(model => "<a class='glyphicon glyphicon-stop'></a>").Titled("||").Encoded(false).Filterable(false).Sortable(false);
 

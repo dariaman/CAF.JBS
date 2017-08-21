@@ -38,12 +38,9 @@ namespace CAF.JBS.Models
         public string UserCrt { get; set; }
         public string AccName { get; set; }
         public string AccNo { get; set; }
+        public string cc_expiry { get; set; }
         public DateTime DateCrt { get; set; }
         public string UserUpdate { get; set; }
         public Nullable<DateTime> DateUpdate { get; set; }
-
-        public BillingModel()
-        {
-        }
     }
 }

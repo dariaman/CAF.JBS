@@ -92,7 +92,7 @@ namespace CAF.JBS.Controllers
             EmailPHS = Configuration.GetValue<string>("Email:EmailPHS");
             EmailFA = Configuration.GetValue<string>("Email:EmailFA");
             EmailCS = Configuration.GetValue<string>("Email:EmailCS");
-            EmailCS = Configuration.GetValue<string>("Email:EmailBilling");
+            EmailBilling = Configuration.GetValue<string>("Email:EmailBilling");
         }
 
         [HttpGet]
@@ -1054,8 +1054,9 @@ WHERE pb.`Policy_status` IN ('Inforce','Grace'); ";
                         BillCode= rd["BillCode"].ToString(),
                         tgl=(rd["tgl"] == DBNull.Value) ? (DateTime?)null : Convert.ToDateTime(rd["tgl"]),
                         amount = Convert.ToDecimal(rd["amount"]),
+                        StatusPolis= rd["StatusPolis"].ToString(),
                         IsSuccess =Convert.ToBoolean(rd["IsSuccess"]),
-                        policy_id= rd["policy_id"].ToString(),
+                        PolicyId= (rd["policy_id"] == DBNull.Value) ? (int?)null : Convert.ToInt32(rd["policy_id"]),
                         BillingID= rd["BillingID"].ToString(),
                         ReqSeq= (rd["recurring_seq"] == DBNull.Value) ? (int?)null : Convert.ToInt32(rd["recurring_seq"]),
                         billAmount= (rd["TotalAmount"] == DBNull.Value) ? (Decimal?)null : Convert.ToInt32(rd["TotalAmount"]),
@@ -1087,8 +1088,10 @@ WHERE pb.`Policy_status` IN ('Inforce','Grace'); ";
             var cmdT = _jbsDB.Database.GetDbConnection().CreateCommand();
 
             ///mulai eksekusi transaksi
-            List<StagingUpload> StagingUploadx = new List<StagingUpload>();
+            List<StagingUploadVM> StagingUploadx = new List<StagingUploadVM>();
             cmdT.CommandType = CommandType.Text;
+            // Data yang diproses semua billing recurring (BillCode=B)
+            // dan semua billing Other dan quote yang billingnya ditemukan
             cmdT.CommandText = @"SELECT * FROM `stagingupload` su WHERE su.`BillCode`='B' AND su.`trancode`=@trcode
                             UNION ALL
                             SELECT * FROM `stagingupload` su WHERE su.`BillCode`<>'B' AND su.`Billid` IS NOT NULL AND su.`trancode`=@trcode;";
@@ -1099,7 +1102,7 @@ WHERE pb.`Policy_status` IN ('Inforce','Grace'); ";
                 var rd = cmdT.ExecuteReader();
                 while (rd.Read())
                 {
-                    StagingUploadx.Add(new StagingUpload()
+                    StagingUploadx.Add(new StagingUploadVM()
                     {
                         id = Convert.ToInt32(rd["id"]),
                         polisNo = rd["polisNo"].ToString(),
@@ -1113,10 +1116,11 @@ WHERE pb.`Policy_status` IN ('Inforce','Grace'); ";
                         filename = rd["filename"].ToString(),
                         life21TranID = (rd["Life21TranID"] == DBNull.Value) ? (int?)null : Convert.ToInt32(rd["Life21TranID"]),
                         PolicyId = (rd["PolicyId"] == DBNull.Value) ? (int?)null : Convert.ToInt32(rd["PolicyId"]),
-                        Billid = rd["Billid"].ToString(),
+                        StatusPolis= rd["StatusPolis"].ToString(),
+                        BillingID = rd["Billid"].ToString(),
                         BillType = rd["BillType"].ToString(),
-                        recurring_seq = (rd["seq"] == DBNull.Value) ? (int?)null : Convert.ToInt32(rd["seq"]),
-                        due_dt_pre = (rd["due_date_pre"] == DBNull.Value) ? (DateTime?)null : Convert.ToDateTime(rd["due_date_pre"]),
+                        ReqSeq = (rd["seq"] == DBNull.Value) ? (int?)null : Convert.ToInt32(rd["seq"]),
+                        Due_Date_Pre = (rd["due_date_pre"] == DBNull.Value) ? (DateTime?)null : Convert.ToDateTime(rd["due_date_pre"]),
                         trancode = SubmitUpload.trancode
                     });
                 }
@@ -1146,11 +1150,10 @@ WHERE pb.`Policy_status` IN ('Inforce','Grace'); ";
             //BillingOthersVM bom;
             foreach (var lst in StagingUploadx)
             {
-                int? IDLife21Tran;
-
                 Rcpt = new Receipt();
                 lst.TglSkrg = tglSekarang;
                 lst.PaymentSource = "CC";
+                lst.StatusBilling = "P";
                 switch (lst.trancode)
                 {
                     case "bcacc":
@@ -1190,17 +1193,7 @@ WHERE pb.`Policy_status` IN ('Inforce','Grace'); ";
                         break;
                 }
 
-                if (lst.PaymentSource == "VA")
-                {
-                    var billing = (from b in _jbsDB.BillingModel
-                                   join pb in _jbsDB.PolicyBillingModel on b.policy_id equals pb.policy_Id
-                                   where pb.policy_no == lst.polisNo && b.PaymentSource==lst.PaymentSource &&
-                                   b.paid_date==lst.tgl
-                                   select b
-                                   ).SingleOrDefault(); 
-                    if (billing != null) continue;
-                }
-                    Life21Tran = new PolicyTransaction();
+                Life21Tran = new PolicyTransaction();
                 if (lst.PaymentSource == "CC" || lst.PaymentSource == "VA")
                 {
                     Life21Tran.policy_id = lst.PolicyId;
@@ -1231,16 +1224,16 @@ WHERE pb.`Policy_status` IN ('Inforce','Grace'); ";
                     cmdx2.OpenConnection(); cmdx2.BeginTransaction(); // life21
                     cmdx3.OpenConnection(); cmdx3.BeginTransaction(); //life21p
 
-                    if (lst.polisNo == null) continue;
-                    if (!((lst.BillCode == "B") && (lst.Billid == string.Empty)))  lst.PaymentTransactionID = InsertTransactionBank(ref cmd, lst); // transaksi histori di JBS
+                    if (lst.polisNo == null) throw new Exception("Submit Upload ==>> PolisNo null");
+                    if (!((lst.BillCode == "B") && (lst.BillingID == string.Empty)))  lst.PaymentTransactionID = InsertTransactionBank(ref cmd, lst); // transaksi histori di JBS
                     if (lst.IsSuccess) // transaksi sukses
                     {
-                        if ((lst.BillCode != "B") && (lst.Billid == string.Empty)) continue;
+                        if ((lst.BillCode != "B") && (lst.BillingID == string.Empty)) throw new Exception("Submit Upload (PolisNo "+ lst.polisNo + ")==>> Billcode null");
                         if (lst.BillCode == "Q")
                         { // untuk Billing Quote 
-                            UpdateQuote(ref cmd3,tglSekarang, lst.BankidPaid, Convert.ToInt32(lst.Billid));
+                            UpdateQuote(ref cmd3,tglSekarang, lst.BankidPaid, Convert.ToInt32(lst.BillingID));
                             UpdateBillingQuoteJBS(ref cmd, lst);
-                            await AsyncSendEmailThanksQuote(Convert.ToInt32(lst.Billid), lst.amount);
+                            await AsyncSendEmailThanksQuote(Convert.ToInt32(lst.BillingID), lst.amount);
                         }
                         else
                         {// transaksi sudah pasti bukan Quote
@@ -1250,21 +1243,25 @@ WHERE pb.`Policy_status` IN ('Inforce','Grace'); ";
                             if (lst.BillCode == "B")
                             { // Recurring >> insert Receipt
                                 Rcpt.transaction_code = "RP"; // buat recurring
-                                if (string.IsNullOrEmpty(lst.Billid))
+                                if (string.IsNullOrEmpty(lst.BillingID))
                                 {
-                                    lst.Billid = CreateBilling(ref cmd, lst.polisNo,lst.PaymentSource, lst.BankidPaid);
-                                    if (string.IsNullOrEmpty(lst.Billid)) throw new Exception("Billing Gagal Create");
+                                    if (! lst.IsSuccess) continue;
 
-                                    bil = _jbsDB.BillingModel.FirstOrDefault(c => c.BillingID == Convert.ToInt32(lst.Billid));
+                                    // Jika proses create billing hanya untuk billing approve
+                                    lst.BillingID = CreateBilling(ref cmd, lst.polisNo,lst.PaymentSource, lst.BankidPaid);
+                                    if (string.IsNullOrEmpty(lst.BillingID)) throw new Exception("Billing Gagal Create");
 
-                                    if (bil == null) continue;
+                                    bil = _jbsDB.BillingModel.FirstOrDefault(c => c.BillingID == Convert.ToInt32(lst.BillingID));
+
+                                    if (bil == null) throw new Exception("Submit Upload (PolisNo " + lst.polisNo + ")==>> row Billing null"); ;
                                     lst.PolicyId = bil.policy_id;
-                                    lst.recurring_seq = bil.recurring_seq;
-                                    lst.due_dt_pre = bil.due_dt_pre;
+                                    lst.ReqSeq = bil.recurring_seq;
+                                    lst.Due_Date_Pre = bil.due_dt_pre;
                                     
                                     lst.PaymentTransactionID = InsertTransactionBank(ref cmd, lst);
                                 }
-                                else bil = _jbsDB.BillingModel.FirstOrDefault(c => c.BillingID == Convert.ToInt32(lst.Billid));
+                                else bil = _jbsDB.BillingModel.FirstOrDefault(c => c.BillingID == Convert.ToInt32(lst.BillingID));
+                                var polis = _jbsDB.PolicyBillingModel.FirstOrDefault(p => p.policy_Id==bil.policy_id);
 
                                 if (bil.cashless_fee_amount > 0)
                                 { // insert receipt other recurring untuk cashless
@@ -1282,11 +1279,11 @@ WHERE pb.`Policy_status` IN ('Inforce','Grace'); ";
                                 Rcpt.receipt_source = lst.PaymentSource;
                                 Rcpt.receipt_date = tglSekarang;
                                 Rcpt.receipt_amount = lst.amount  - bil.cashless_fee_amount;
-                                Rcpt.receipt_seq = lst.recurring_seq;
+                                Rcpt.receipt_seq = lst.ReqSeq;
                                 Rcpt.fund_type_id = 0;
                                 Rcpt.status = "P";
                                 Rcpt.acquirer_bank_id = lst.BankidPaid;
-                                Rcpt.due_date_pre = lst.due_dt_pre;
+                                Rcpt.due_date_pre = lst.Due_Date_Pre;
 
                                 lst.receipt_id =InsertReceipt(ref cmd2,Rcpt);
 
@@ -1294,25 +1291,63 @@ WHERE pb.`Policy_status` IN ('Inforce','Grace'); ";
                                 Life21Tran.ACC_Name = bil.AccName;
                                 Life21Tran.ACC_No = bil.AccNo;
                                 Life21Tran.receipt_id = lst.receipt_id;
-                                Life21Tran.Due_Date_Pre = lst.due_dt_pre;
-                                Life21Tran.recurring_seq = lst.recurring_seq;
+                                Life21Tran.Due_Date_Pre = lst.Due_Date_Pre;
+                                Life21Tran.recurring_seq = lst.ReqSeq;
                                 Life21Tran.transaction_type = "R";
 
                                 if (lst.PaymentSource == "AC") lst.life21TranID=InsertACTransaction(ref cmd2, Life21Tran);
                                 else if (lst.PaymentSource == "CC") lst.life21TranID = InsertCCTransaction(ref cmd2, Life21Tran);
-                                else IDLife21Tran =null;
+                                else lst.life21TranID = null;
 
-                                if(lst.PaymentSource == "VA")
+                                if (lst.PaymentSource == "VA")
                                 {
                                     lst.ACCname = string.Empty;
                                     lst.ACCno = string.Empty;
                                     lst.CC_Expiry = string.Empty;
+                                } else
+                                {
+                                    if (lst.PaymentSource == "CC")
+                                    {
+                                        var polisCC = _jbsDB.PolicyCc.FirstOrDefault(p => p.PolicyId == bil.policy_id);
+                                        if (polisCC != null)
+                                        {
+                                            lst.ACCname = bil.AccName ?? polisCC.cc_name;
+                                            lst.ACCno = bil.AccNo ?? polisCC.cc_no;
+                                            lst.CC_Expiry = bil.cc_expiry ?? polisCC.cc_expiry;
+                                        }
+                                    }else if (lst.PaymentSource == "AC")
+                                    {
+                                        var polisAC = _jbsDB.PolicyAc.FirstOrDefault(p => p.PolicyId == bil.policy_id);
+                                        if (polisAC != null)
+                                        {
+                                            lst.ACCname = bil.AccName ?? polisAC.acc_name;
+                                            lst.ACCno = bil.AccNo ?? polisAC.acc_no;
+                                        }
+                                    }
+                                }
+
+                                if((!(polis.Policy_status.ToLower() == "grace" || polis.Policy_status.ToLower() == "inforce"))
+                                    && (lst.PolicyId != null) && (lst.BillCode == "B"))
+                                {
+                                    PolicyRefundVM pr = new PolicyRefundVM();
+                                    pr.PolicyId = lst.PolicyId ?? 0;
+                                    pr.receiptId = lst.receipt_id;
+                                    pr.receiptOtherId = lst.receipt_other_id ?? 0;
+                                    pr.regularPremium = bil.policy_regular_premium;
+                                    pr.singlePremium = 0;
+                                    pr.refundDate = lst.TglSkrg;
+                                    pr.refundType = 2;
+                                    pr.totalAmount= bil.policy_regular_premium;
+                                    pr.commenceDate = polis.commence_dt;
+                                    lst.PolisRefundId = InsertPolisRefund(ref cmd2, pr);
+                                    await AsyncSendEmailRefundCancelRecurring(Convert.ToInt32(lst.BillingID));
+
+                                    lst.StatusBilling = "R"; // status billing menjadi refund
                                 }
                                 UpdateBillingJBS(ref cmd, lst);
                                 UpdateLastTransJBS(ref cmd, lst);
-                                await AsyncSendEmailThanksRecurring(Convert.ToInt32(lst.Billid));
-
-
+                                await AsyncSendEmailThanksRecurring(Convert.ToInt32(lst.BillingID));
+                                
                             }
                             else
                             { // Billing Others >> insert Receipt Other (pasti CC) 
@@ -1332,12 +1367,13 @@ WHERE pb.`Policy_status` IN ('Inforce','Grace'); ";
 
                                 UpdateCCTransaction(ref cmd2, Life21Tran);
                                 UpdateBillingOthersJBS(ref cmd,lst);
-                                await AsyncSendEmailThanksEndorsemen(lst.Billid);
+                                await AsyncSendEmailThanksEndorsemen(lst.BillingID);
                             }
                         }
                     }
                     else // transaksi Gagal
                     {
+                        if (string.IsNullOrEmpty(lst.BillingID.Trim())) continue;
                         BukaFlagDownloadBilling(ref cmd,lst);
                         if (Rcpt.receipt_source == "AC") InsertPolisHold(ref cmd,lst.BillCode, lst.polisNo, DateTime.Now.AddDays(15));
                     }
@@ -1779,7 +1815,7 @@ WHERE pb.`Policy_status` IN ('Inforce','Grace'); ";
         }
         
         // history JBS Transaksi
-        private int InsertTransactionBank(ref System.Data.Common.DbCommand cm, StagingUpload tb)
+        private int InsertTransactionBank(ref System.Data.Common.DbCommand cm, StagingUploadVM tb)
         {
             cm.Parameters.Clear();
             cm.CommandType = CommandType.StoredProcedure;
@@ -1789,7 +1825,7 @@ WHERE pb.`Policy_status` IN ('Inforce','Grace'); ";
             cm.Parameters.Add(new MySqlParameter("@TranDate", MySqlDbType.DateTime) { Value = tb.tgl });
             cm.Parameters.Add(new MySqlParameter("@IsApprove", MySqlDbType.Bit) { Value = tb.IsSuccess });
             cm.Parameters.Add(new MySqlParameter("@policyID", MySqlDbType.Int32) { Value = tb.PolicyId });
-            cm.Parameters.Add(new MySqlParameter("@IDBill", MySqlDbType.VarChar) { Value = tb.Billid });
+            cm.Parameters.Add(new MySqlParameter("@IDBill", MySqlDbType.VarChar) { Value = tb.BillingID });
             cm.Parameters.Add(new MySqlParameter("@amount", MySqlDbType.Decimal) { Value = tb.amount });
             cm.Parameters.Add(new MySqlParameter("@approvalCode", MySqlDbType.VarChar) { Value = tb.ApprovalCode });
             cm.Parameters.Add(new MySqlParameter("@ErrCode", MySqlDbType.VarChar) { Value = tb.Description });
@@ -1803,7 +1839,7 @@ WHERE pb.`Policy_status` IN ('Inforce','Grace'); ";
             }
             catch (Exception ex)
             {
-                throw new Exception("InsertTransactionBank => (BillingID = " + tb.Billid + ") " + ex.Message);
+                throw new Exception("InsertTransactionBank => (BillingID = " + tb.BillingID + ") " + ex.Message);
             }
             return idTran;
 
@@ -2005,24 +2041,24 @@ WHERE pb.`Policy_status` IN ('Inforce','Grace'); ";
             return receiptOther;
         }
 
-        private void BukaFlagDownloadBilling(ref System.Data.Common.DbCommand cm, StagingUpload st)
+        private void BukaFlagDownloadBilling(ref System.Data.Common.DbCommand cm, StagingUploadVM st)
         { // hanya buka flag download, untuk transaksi Reject
             cm.Parameters.Clear();
             cm.CommandType = CommandType.Text;
             if (st.BillCode == "B")
             {// Transaksi Billing Rucurring
                 cm.CommandText = @"UPDATE `billing` SET IsDownload=0, LastUploadDate=@uploadDate,PaymentTransactionID=@ptd WHERE `BillingID`=@billid";
-                cm.Parameters.Add(new MySqlParameter("@billid", MySqlDbType.Int32) { Value = Convert.ToInt32(st.Billid) });
+                cm.Parameters.Add(new MySqlParameter("@billid", MySqlDbType.Int32) { Value = Convert.ToInt32(st.BillingID) });
             }
             else if (st.BillCode == "Q")
             {// Transaksi Billing Quote
                 cm.CommandText = @"UPDATE `quote_billing` SET IsDownload=0, LastUploadDate=@uploadDate,PaymentTransactionID=@ptd WHERE `quote_id`=@billid";
-                cm.Parameters.Add(new MySqlParameter("@billid", MySqlDbType.Int32) { Value = Convert.ToInt32(st.Billid) });
+                cm.Parameters.Add(new MySqlParameter("@billid", MySqlDbType.Int32) { Value = Convert.ToInt32(st.BillingID) });
             }
             else
             {// transaksi Billing Others
                 cm.CommandText = @"UPDATE `billing_others` SET IsDownload=0, LastUploadDate=@uploadDate,PaymentTransactionID=@ptd WHERE `BillingID`=@billid";
-                cm.Parameters.Add(new MySqlParameter("@billid", MySqlDbType.VarChar) { Value = st.Billid });
+                cm.Parameters.Add(new MySqlParameter("@billid", MySqlDbType.VarChar) { Value = st.BillingID });
             }
             cm.Parameters.Add(new MySqlParameter("@uploadDate", MySqlDbType.DateTime) { Value = st.TglSkrg });
             cm.Parameters.Add(new MySqlParameter("@ptd", MySqlDbType.Int32) { Value = st.PaymentTransactionID });
@@ -2031,7 +2067,7 @@ WHERE pb.`Policy_status` IN ('Inforce','Grace'); ";
                 cm.ExecuteNonQuery();
             }catch(Exception ex)
             {
-                throw new Exception("BukaFlagDownloadBilling => (BillingID = "+ st.Billid+") " + ex.Message);
+                throw new Exception("BukaFlagDownloadBilling => (BillingID = "+ st.BillingID+") " + ex.Message);
             }
         }
 
@@ -2074,7 +2110,7 @@ WHERE pb.`Policy_status` IN ('Inforce','Grace'); ";
             }
         }
 
-        private void UpdateBillingQuoteJBS(ref System.Data.Common.DbCommand cm, StagingUpload bm)
+        private void UpdateBillingQuoteJBS(ref System.Data.Common.DbCommand cm, StagingUploadVM bm)
         {
             cm.Parameters.Clear();
             cm.CommandType = CommandType.Text;
@@ -2088,7 +2124,7 @@ WHERE pb.`Policy_status` IN ('Inforce','Grace'); ";
 			                                            `PaymentTransactionID`=@uid,UserUpload=@user
 		                                            WHERE `quote_id`=@idBill;";
             cm.Parameters.Add(new MySqlParameter("@PaymentSource", MySqlDbType.VarChar) { Value = bm.PaymentSource });
-            cm.Parameters.Add(new MySqlParameter("@idBill", MySqlDbType.Int32) { Value = Convert.ToInt32(bm.Billid) });
+            cm.Parameters.Add(new MySqlParameter("@idBill", MySqlDbType.Int32) { Value = Convert.ToInt32(bm.BillingID) });
             cm.Parameters.Add(new MySqlParameter("@PaidAmount", MySqlDbType.Decimal) { Value = bm.amount });
             cm.Parameters.Add(new MySqlParameter("@bankid", MySqlDbType.Int32) { Value = bm.BankidPaid });
             cm.Parameters.Add(new MySqlParameter("@tgl", MySqlDbType.DateTime) { Value = bm.TglSkrg });
@@ -2100,11 +2136,11 @@ WHERE pb.`Policy_status` IN ('Inforce','Grace'); ";
             }
             catch (Exception ex)
             {
-                throw new Exception("UpdateBillingQuoteJBS => (QuoteID = " + bm.Billid.ToString() + ") " + ex.Message);
+                throw new Exception("UpdateBillingQuoteJBS => (QuoteID = " + bm.BillingID.ToString() + ") " + ex.Message);
             }
         }
 
-        private void UpdateBillingOthersJBS(ref System.Data.Common.DbCommand cm, StagingUpload bm)
+        private void UpdateBillingOthersJBS(ref System.Data.Common.DbCommand cm, StagingUploadVM bm)
         {
             cm.Parameters.Clear();
             cm.CommandType = CommandType.Text;
@@ -2119,7 +2155,7 @@ WHERE pb.`Policy_status` IN ('Inforce','Grace'); ";
 			                                            `ReceiptOtherID`=@receiptID,
 			                                            `PaymentTransactionID`=@uid,UserUpload=@user
 		                                            WHERE `BillingID`=@idBill;";
-            cm.Parameters.Add(new MySqlParameter("@idBill", MySqlDbType.VarChar) { Value = bm.Billid });
+            cm.Parameters.Add(new MySqlParameter("@idBill", MySqlDbType.VarChar) { Value = bm.BillingID });
             cm.Parameters.Add(new MySqlParameter("@PaymentSource", MySqlDbType.VarChar) { Value = bm.PaymentSource });
             cm.Parameters.Add(new MySqlParameter("@tgl", MySqlDbType.DateTime) { Value = bm.TglSkrg });
             cm.Parameters.Add(new MySqlParameter("@PaidAmount", MySqlDbType.Decimal) { Value = bm.amount });
@@ -2134,21 +2170,21 @@ WHERE pb.`Policy_status` IN ('Inforce','Grace'); ";
             }
             catch (Exception ex)
             {
-                throw new Exception("UpdateBillingOthersJBS => (BillingID = " + bm.Billid.ToString() + ") " + ex.Message);
+                throw new Exception("UpdateBillingOthersJBS => (BillingID = " + bm.BillingID.ToString() + ") " + ex.Message);
             }
         }
 
-        private void UpdateBillingJBS(ref System.Data.Common.DbCommand cm, StagingUpload bm)
+        private void UpdateBillingJBS(ref System.Data.Common.DbCommand cm, StagingUploadVM bm)
         {
             /// update billing jadi closed 
             /// untuk payment sukses aja
             cm.Parameters.Clear();
-            if ((bm.trancode == "varealtime") || (bm.trancode == "vadaily"))
-            {
+            //if ((bm.trancode == "varealtime") || (bm.trancode == "vadaily"))
+            //{
                 cm.CommandType = CommandType.Text;
                 cm.CommandText = @"UPDATE `billing` SET `IsDownload`=0,
                                         `IsClosed`=1,
-                                        `status_billing`='P',
+                                        `status_billing`=@statusBil,
                                         `BillingDate`=@tglPaid,
                                         `PaymentSource`=@PaymentSource,
                                         `LastUploadDate`=@tgl,
@@ -2159,38 +2195,47 @@ WHERE pb.`Policy_status` IN ('Inforce','Grace'); ";
                                         `ReceiptID`=@receiptID,
                                         `ReceiptOtherID`=@ReceiptOtherID,
                                         `PaymentTransactionID`=@uid,
-                                        `ACCname`=NULL,
-                                        `ACCno`=NULL,
-                                        `cc_expiry`=NULL,
+                                        `ACCname`=@ACCname,
+                                        `ACCno`=@ACCno,
+                                        `cc_expiry`=@cc_expiry,
+                                        `PolisRefundId`=@RefundId,
                                         `UserUpload`=@userupload
                                     WHERE `BillingID`=@idBill;";
                 cm.Parameters.Add(new MySqlParameter("@PaymentSource", MySqlDbType.VarChar) { Value = bm.PaymentSource });
                 cm.Parameters.Add(new MySqlParameter("@tgl", MySqlDbType.DateTime) { Value = bm.TglSkrg });
+                cm.Parameters.Add(new MySqlParameter("@statusBil", MySqlDbType.VarChar) { Value = bm.StatusBilling });
                 cm.Parameters.Add(new MySqlParameter("@TransactionID", MySqlDbType.Int32) { Value = bm.life21TranID });
                 cm.Parameters.Add(new MySqlParameter("@uid", MySqlDbType.Int32) { Value = bm.PaymentTransactionID });
                 cm.Parameters.Add(new MySqlParameter("@bankid", MySqlDbType.Int32) { Value = bm.BankidPaid });
                 cm.Parameters.Add(new MySqlParameter("@tglPaid", MySqlDbType.DateTime) { Value = bm.tgl });
                 cm.Parameters.Add(new MySqlParameter("@PaidAmount", MySqlDbType.Decimal) { Value = bm.amount });
                 cm.Parameters.Add(new MySqlParameter("@receiptID", MySqlDbType.Int32) { Value = bm.receipt_id });
-                cm.Parameters.Add(new MySqlParameter("@ReceiptOtherID", MySqlDbType.Int32) { Value = (bm.receipt_other_id > 0 ? bm.receipt_other_id : (int?)null) });
+                cm.Parameters.Add(new MySqlParameter("@ReceiptOtherID", MySqlDbType.Int32) { Value = bm.receipt_other_id  });
+
+            cm.Parameters.Add(new MySqlParameter("@ACCname", MySqlDbType.VarChar) { Value = bm.ACCname });
+            cm.Parameters.Add(new MySqlParameter("@ACCno", MySqlDbType.VarChar) { Value = bm.ACCno });
+            cm.Parameters.Add(new MySqlParameter("@cc_expiry", MySqlDbType.VarChar) { Value = bm.CC_Expiry });
+
                 cm.Parameters.Add(new MySqlParameter("@userupload", MySqlDbType.VarChar) { Value = User.Identity.Name });
-                cm.Parameters.Add(new MySqlParameter("@idBill", MySqlDbType.Int32) { Value = bm.Billid });
-            }
-            else
-            {
-                cm.CommandType = CommandType.StoredProcedure;
-                cm.CommandText = @"PaidBilling";
-                cm.Parameters.Add(new MySqlParameter("@PaySource", MySqlDbType.VarChar) { Value = bm.PaymentSource });
-                cm.Parameters.Add(new MySqlParameter("@tglUpload", MySqlDbType.DateTime) { Value = bm.TglSkrg });
-                cm.Parameters.Add(new MySqlParameter("@Life21Tran", MySqlDbType.Int32) { Value = bm.life21TranID });
-                cm.Parameters.Add(new MySqlParameter("@PTranJbsID", MySqlDbType.Int32) { Value = bm.PaymentTransactionID });
-                cm.Parameters.Add(new MySqlParameter("@bankid", MySqlDbType.Int32) { Value = bm.BankidPaid });
-                cm.Parameters.Add(new MySqlParameter("@tglPaid", MySqlDbType.DateTime) { Value = bm.tgl });
-                cm.Parameters.Add(new MySqlParameter("@PaidAmount", MySqlDbType.Decimal) { Value = bm.amount });
-                cm.Parameters.Add(new MySqlParameter("@Recptid", MySqlDbType.Int32) { Value = bm.receipt_id });
-                cm.Parameters.Add(new MySqlParameter("@billid", MySqlDbType.Int32) { Value = Convert.ToInt32(bm.Billid) });
-                cm.Parameters.Add(new MySqlParameter("@userupload", MySqlDbType.VarChar) { Value = User.Identity.Name });
-            }
+                cm.Parameters.Add(new MySqlParameter("@RefundId", MySqlDbType.Int32) { Value = bm.PolisRefundId });
+                cm.Parameters.Add(new MySqlParameter("@idBill", MySqlDbType.Int32) { Value = bm.BillingID });
+            //}
+            //else
+            //{
+            //    cm.CommandType = CommandType.StoredProcedure;
+            //    cm.CommandText = @"PaidBilling";
+            //    cm.Parameters.Add(new MySqlParameter("@PaySource", MySqlDbType.VarChar) { Value = bm.PaymentSource });
+            //    cm.Parameters.Add(new MySqlParameter("@tglUpload", MySqlDbType.DateTime) { Value = bm.TglSkrg });
+            //    cm.Parameters.Add(new MySqlParameter("@Life21Tran", MySqlDbType.Int32) { Value = bm.life21TranID });
+            //    cm.Parameters.Add(new MySqlParameter("@PTranJbsID", MySqlDbType.Int32) { Value = bm.PaymentTransactionID });
+            //    cm.Parameters.Add(new MySqlParameter("@bankid", MySqlDbType.Int32) { Value = bm.BankidPaid });
+            //    cm.Parameters.Add(new MySqlParameter("@tglPaid", MySqlDbType.DateTime) { Value = bm.tgl });
+            //    cm.Parameters.Add(new MySqlParameter("@PaidAmount", MySqlDbType.Decimal) { Value = bm.amount });
+            //    cm.Parameters.Add(new MySqlParameter("@Recptid", MySqlDbType.Int32) { Value = bm.receipt_id });
+            //    cm.Parameters.Add(new MySqlParameter("@billid", MySqlDbType.Int32) { Value = Convert.ToInt32(bm.BillingID) });
+            //    cm.Parameters.Add(new MySqlParameter("@RefundId", MySqlDbType.Int32) { Value = bm.PolisRefundId });
+            //    cm.Parameters.Add(new MySqlParameter("@userupload", MySqlDbType.VarChar) { Value = User.Identity.Name });
+            //}
 
             try
             {
@@ -2198,11 +2243,11 @@ WHERE pb.`Policy_status` IN ('Inforce','Grace'); ";
             }
             catch (Exception ex)
             {
-                throw new Exception("UpdateBillingJBS => (BillingID = " + bm.Billid.ToString() + ") " + ex.Message);
+                throw new Exception("UpdateBillingJBS => (BillingID = " + bm.BillingID.ToString() + ") " + ex.Message);
             }
         }
 
-        private void UpdateLastTransJBS(ref System.Data.Common.DbCommand cm, StagingUpload bm)
+        private void UpdateLastTransJBS(ref System.Data.Common.DbCommand cm, StagingUploadVM bm)
         {
             cm.Parameters.Clear();
             cm.CommandType = CommandType.Text;
@@ -2221,7 +2266,7 @@ WHERE pb.`Policy_status` IN ('Inforce','Grace'); ";
 	                            `bank_id`=bx.`BankIdDownload`,
 	                            `UserCrt`=@usercrt;";
             cm.Parameters.Add(new MySqlParameter("@policyID", MySqlDbType.Int32) { Value = bm.PolicyId });
-            cm.Parameters.Add(new MySqlParameter("@idBill", MySqlDbType.Int32) { Value = bm.Billid });
+            cm.Parameters.Add(new MySqlParameter("@idBill", MySqlDbType.Int32) { Value = bm.BillingID });
             cm.Parameters.Add(new MySqlParameter("@tgl", MySqlDbType.DateTime) { Value = bm.TglSkrg });
             cm.Parameters.Add(new MySqlParameter("@usercrt", MySqlDbType.VarChar) { Value = User.Identity.Name });
 
@@ -2231,7 +2276,7 @@ WHERE pb.`Policy_status` IN ('Inforce','Grace'); ";
             }
             catch (Exception ex)
             {
-                throw new Exception("UpdateLastTransJBS => (BillingID = " + bm.Billid.ToString() + ") " + ex.Message);
+                throw new Exception("UpdateLastTransJBS => (BillingID = " + bm.BillingID.ToString() + ") " + ex.Message);
             }
         }
 
@@ -2448,83 +2493,6 @@ WHERE pb.`Policy_status` IN ('Inforce','Grace'); ";
             finally { cmd.Connection.Close(); }
 }
 
-        public async Task SendEmailAsync(string email, string subject, string message)
-        {
-            var emailMessage = new MimeMessage();
-            var ColReceiver = email.Split(',');
-            foreach (string mls in ColReceiver) emailMessage.Bcc.Add(new MailboxAddress(mls.Trim()));
-
-            emailMessage.From.Add(new MailboxAddress("JAGADIRI", EmailCAF));
-            emailMessage.To.Add(new MailboxAddress(email));
-            emailMessage.Subject = subject;
-
-            var bodyBuilder = new BodyBuilder();
-            bodyBuilder.HtmlBody = message;
-            //bodyBuilder.TextBody = "This is some plain text";
-
-            emailMessage.Body = bodyBuilder.ToMessageBody();
-
-            using (var client = new SmtpClient())
-            {
-                //client.LocalDomain = "some.domain.com";
-                await client.ConnectAsync("mail.jagadiri.co.id", 25, SecureSocketOptions.None).ConfigureAwait(false);
-                await client.SendAsync(emailMessage).ConfigureAwait(false);
-                await client.DisconnectAsync(true).ConfigureAwait(false);
-            }
-        }
-
-        public async Task SendEmailAsync(string email, string subject, string message,string bcc)
-        {
-            var emailMessage = new MimeMessage();
-            
-            var ColBcc = bcc.Split(',');
-            foreach (string mls in ColBcc) emailMessage.Bcc.Add(new MailboxAddress(mls.Trim()));
-
-            emailMessage.From.Add(new MailboxAddress("JAGADIRI", EmailCAF));
-            emailMessage.To.Add(new MailboxAddress(email));
-            
-            emailMessage.Subject = subject;
-
-            var bodyBuilder = new BodyBuilder();
-            bodyBuilder.HtmlBody = message;
-            //bodyBuilder.TextBody = "This is some plain text";
-
-            emailMessage.Body = bodyBuilder.ToMessageBody();
-
-            using (var client = new SmtpClient())
-            {
-                //client.LocalDomain = "some.domain.com";
-                await client.ConnectAsync("mail.jagadiri.co.id", 25, SecureSocketOptions.None).ConfigureAwait(false);
-                await client.SendAsync(emailMessage).ConfigureAwait(false);
-                await client.DisconnectAsync(true).ConfigureAwait(false);
-            }
-        }
-
-        public async Task AsyncSendEmailThanksRecurring(int BillID)
-        {
-            EmailThanksRecurringVM EmailThanks;
-            EmailThanks = (from b in _jbsDB.BillingModel
-                            join pb in _jbsDB.PolicyBillingModel on b.policy_id equals pb.policy_Id
-                            join ci in _jbsDB.CustomerInfo on pb.holder_id equals ci.CustomerId
-                            join pd in _jbsDB.Product on pb.product_id equals pd.product_id
-                            where b.BillingID == BillID
-                            select new EmailThanksRecurringVM()
-                           {
-                               PolicyNo = pb.policy_no,
-                               CustomerName=ci.CustomerName,
-                               Salam = (ci.IsLaki==true) ? "Bapak" : "Ibu",
-                               CustomerEmail=ci.Email,
-                               ProductName=pd.product_description,
-                               PremiAmount=b.TotalAmount                               
-                           }).SingleOrDefault();
-            string SubjectEmail =string.Format(@"JAGADIRI: Penerimaan Premi Regular {0} {1} {2}",EmailThanks.ProductName,EmailThanks.PolicyNo,EmailThanks.CustomerName.ToUpper());
-            string BodyMessage = string.Format(@"Salam hangat {0} {1},<br>
-<p style='text-align:justify'>Bersama surat ini kami ingin mengucapkan terima kasih atas pembayaran Premi Regular untuk Polis {2} dengan nomor polis {3} sejumlah IDR {4} yang telah kami terima. Pembayaran Premi tersebut secara otomatis akan membuat Polis Asuransi Anda tetap aktif dan memberikan manfaat perlindungan maksimal bagi Anda dan keluarga.</p>
-<br>Sukses selalu,
-<br>JAGADIRI ", EmailThanks.Salam, EmailThanks.CustomerName.ToUpper(), EmailThanks.ProductName,EmailThanks.PolicyNo,EmailThanks.PremiAmount.ToString("#,###"));
-            await SendEmailAsync(EmailThanks.CustomerEmail, SubjectEmail, BodyMessage, EmailPHS);
-        }
-
         private void PindahFileDownload(string trancode)
         {
             string fileSearch = "";
@@ -2622,72 +2590,207 @@ WHERE pb.`Policy_status` IN ('Inforce','Grace'); ";
             if (paymentType == "CC")
             {
                 query = @"INSERT INTO `billing`(`BillingDate`,`policy_id`,`recurring_seq`,`due_dt_pre`,`policy_regular_premium`,`cashless_fee_amount`,`TotalAmount`,`AccNo`,`AccName`,`cc_expiry`,UserCrt)
-                            SELECT CURDATE(),pb.`policy_Id`,b.`recurring_seq` +1,DATE_ADD(b.`due_dt_pre`,INTERVAL pb.`premium_mode` MONTH),b.`policy_regular_premium`,
-                            b.`cashless_fee_amount`,b.`policy_regular_premium`+b.`cashless_fee_amount`,pc.`cc_no`,pc.`cc_name`,pc.`cc_expiry`,@Usercrt
-                            FROM `billing` b 
-                            INNER JOIN `policy_billing` pb ON pb.`policy_Id`=b.`policy_id`
-                            LEFT JOIN `policy_cc` pc ON pc.`PolicyId`=pb.`policy_Id`
-                            WHERE pb.`policy_no`=@polisNo
-                            ORDER BY b.`recurring_seq` DESC
-                            LIMIT 1; ";
+SELECT CURDATE(),
+	pb.`policy_Id`, 
+	COALESCE(b.`recurring_seq`,pt.`recurring_seq`,0)+1 AS seq,
+	DATE_ADD(COALESCE(b.`due_dt_pre`,pt.`due_dt_pre`,pb.`commence_dt`),INTERVAL pb.`premium_mode` MONTH) AS date_pre,
+	pb.`regular_premium`,
+	pb.`cashless_fee_amount`,
+	(pb.`regular_premium`+pb.`cashless_fee_amount`) AS total,
+	pc.`cc_no`,
+	pc.`cc_name`,
+	pc.`cc_expiry`,@Usercrt
+FROM `policy_billing` pb
+INNER JOIN `policy_cc` pc ON pc.`PolicyId`=pb.`policy_Id`
+LEFT JOIN `policy_last_trans` pt ON pt.`policy_Id`=pb.`policy_Id`
+LEFT JOIN `billing` b ON b.`policy_id`=pb.`policy_Id`
+WHERE pb.`policy_no`=@polisNo
+ORDER BY b.`recurring_seq` DESC
+LIMIT 1;";
             }
             else if (paymentType == "AC")
             {
                 query = @"INSERT INTO `billing`(`BillingDate`,`policy_id`,`recurring_seq`,`due_dt_pre`,`policy_regular_premium`,`cashless_fee_amount`,`TotalAmount`,`AccNo`,`AccName`,UserCrt)
-                            SELECT CURDATE(),pb.`policy_Id`,b.`recurring_seq` +1,DATE_ADD(b.`due_dt_pre`,INTERVAL pb.`premium_mode` MONTH),b.`policy_regular_premium`,
-                            b.`cashless_fee_amount`,b.`policy_regular_premium`+b.`cashless_fee_amount`,pa.`acc_no`,pa.`acc_name`,@Usercrt
-                            FROM `billing` b 
-                            INNER JOIN `policy_billing` pb ON pb.`policy_Id`=b.`policy_id`
-                            LEFT JOIN `policy_ac` pa ON pa.`PolicyId`=pb.`policy_Id`
-                            WHERE pb.`policy_no`=@polisNo
-                            ORDER BY b.`recurring_seq` DESC
-                            LIMIT 1; ";
+SELECT CURDATE(),
+	pb.`policy_Id`, 
+	COALESCE(b.`recurring_seq`,pt.`recurring_seq`,0)+1 AS seq,
+	DATE_ADD(COALESCE(b.`due_dt_pre`,pt.`due_dt_pre`,pb.`commence_dt`),INTERVAL pb.`premium_mode` MONTH) AS date_pre,
+	pb.`regular_premium`,
+	pb.`cashless_fee_amount`,
+	(pb.`regular_premium`+pb.`cashless_fee_amount`) AS total,
+	pa.`acc_no`,
+	pa.`acc_name`,@Usercrt
+FROM `policy_billing` pb
+INNER JOIN `policy_ac` pa ON pa.`PolicyId`=pb.`policy_Id`
+LEFT JOIN `policy_last_trans` pt ON pt.`policy_Id`=pb.`policy_Id`
+LEFT JOIN `billing` b ON b.`policy_id`=pb.`policy_Id`
+WHERE pb.`policy_no`=@polisNo
+ORDER BY b.`recurring_seq` DESC
+LIMIT 1;";
             }
             else
             {
                 query = @"INSERT INTO `billing`(`BillingDate`,`policy_id`,`recurring_seq`,`due_dt_pre`,`policy_regular_premium`,`cashless_fee_amount`,`TotalAmount`,UserCrt)
-                            SELECT CURDATE(),pb.`policy_Id`,b.`recurring_seq` +1,DATE_ADD(b.`due_dt_pre`,INTERVAL pb.`premium_mode` MONTH),b.`policy_regular_premium`,
-                            b.`cashless_fee_amount`,b.`policy_regular_premium`+b.`cashless_fee_amount`,@Usercrt
-                            FROM `billing` b 
-                            INNER JOIN `policy_billing` pb ON pb.`policy_Id`=b.`policy_id`
-                            WHERE pb.`policy_no`=@polisNo
-                            ORDER BY b.`recurring_seq` DESC
-                            LIMIT 1; ";
+SELECT CURDATE(),
+	pb.`policy_Id`, 
+	COALESCE(b.`recurring_seq`,pt.`recurring_seq`,0)+1 AS seq,
+	DATE_ADD(COALESCE(b.`due_dt_pre`,pt.`due_dt_pre`,pb.`commence_dt`),INTERVAL pb.`premium_mode` MONTH) AS date_pre,
+	pb.`regular_premium`,
+	pb.`cashless_fee_amount`,
+	(pb.`regular_premium`+pb.`cashless_fee_amount`) AS total,@Usercrt
+FROM `policy_billing` pb
+LEFT JOIN `policy_last_trans` pt ON pt.`policy_Id`=pb.`policy_Id`
+LEFT JOIN `billing` b ON b.`policy_id`=pb.`policy_Id`
+WHERE pb.`policy_no`=@polisNo
+ORDER BY b.`recurring_seq` DESC
+LIMIT 1;";
             }
             return query;
         }
-
-        public async Task AsyncSendEmailThanksQuote(int Quoteid,Decimal jlhBayar)
+        
+        private int InsertPolisRefund(ref System.Data.Common.DbCommand cmd, PolicyRefundVM pf)
         {
-            var emailQ = (from qb in _jbsDB.QuoteBilling
-                          join q in _jbsDB.Quote on qb.quote_id equals q.quote_id
-                          join pd in _jbsDB.Product on qb.product_id equals pd.product_id
-                          where q.quote_id == Quoteid 
-                          select new EmailThanksQuoteVM()
-                          {
-                              QuoteID = q.quote_id,
-                              RefNo = qb.ref_no,
-                              Email = q.email,
-                              Gender = (q.IsLaki ? "Pria" : "Wanita"),
-                              Sapaan = (q.IsLaki ? "Bapak" : "Ibu"),
-                              CustName = q.prospect_name,
-                              POB = q.POB,
-                              DOB = q.DOB,
-                              MobileNo = q.mobile_phone,
-                              ProductName=pd.product_description,
-                              Insured = q.sum_insured,
-                              DurasiTahun = q.duration,
-                              DurasiHari = q.duration_days,
-                              PremiAmount = q.regular_premium + q.single_premium,
-                              CetakPolisAmount = q.paper_print_fee,
-                              FrekuensiBayar = (q.premium_mode==0 ? "Sekaligus" : (q.premium_mode == 1 ? "Bulanan" : (q.premium_mode == 3 ? "Triwulanan" : (q.premium_mode == 6 ? "Semesteran" : (q.premium_mode == 12 ? "Tahunan" : "-"))))),
-                              PaymentMeth = q.payment_method,
-                              PaymentAmount = jlhBayar
-                          }).SingleOrDefault();
-            if(emailQ == null) throw new Exception("AsyncSendEmailThanksQuote (QuoteID = " + Quoteid.ToString() + ") Email Qoute gagal");
+            cmd.Parameters.Clear();
+            cmd.CommandType = CommandType.Text;
+            cmd.CommandText = @"INSERT INTO `policy_refund`(`policy_id`,`policy_commence_dt`,
+`refund_date`,`refund_type`,`policy_regular_premium`,`policy_single_premium`,`total_amount`,`receipt_id`,`receipt_other_id`)
+SELECT @policy_id, @commence_dt, @refund_date, @refund_type, @regular_premium, @single_premium, @total_amount, @receipt_id, @receipt_other_id;
+SELECT LAST_INSERT_ID();";
+            cmd.CommandType = CommandType.Text;
+            cmd.Parameters.Add(new MySqlParameter("@policy_id", MySqlDbType.Int32) { Value = pf.PolicyId });
+            cmd.Parameters.Add(new MySqlParameter("@commence_dt", MySqlDbType.Date) { Value = pf.commenceDate });
+            cmd.Parameters.Add(new MySqlParameter("@refund_date", MySqlDbType.Date) { Value =  pf.refundDate});
+            cmd.Parameters.Add(new MySqlParameter("@refund_type", MySqlDbType.Int32) { Value = pf.refundType });
+            cmd.Parameters.Add(new MySqlParameter("@regular_premium", MySqlDbType.Decimal) { Value = pf.regularPremium });
+            cmd.Parameters.Add(new MySqlParameter("@single_premium", MySqlDbType.Decimal) { Value =  pf.singlePremium});
+            cmd.Parameters.Add(new MySqlParameter("@total_amount", MySqlDbType.Decimal) { Value = pf.totalAmount });
+            cmd.Parameters.Add(new MySqlParameter("@receipt_id", MySqlDbType.Int32) { Value = pf.receiptId });
+            cmd.Parameters.Add(new MySqlParameter("@receipt_other_id", MySqlDbType.Int32) { Value =  pf.receiptOtherId});
+            int hasil = 0;
+            try
+            {
+                hasil= Convert.ToInt32(cmd.ExecuteScalar());
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("InsertPolisRefund => (polisNo = " + pf.PolicyId + ") " + ex.Message);
+                //return 0
+            }
+            return hasil;
+        }
+
+        public async Task SendEmailAsync(string email, string subject, string message)
+        {
+            var emailMessage = new MimeMessage();
+            var ColReceiver = email.Split(',');
+            foreach (string mls in ColReceiver) emailMessage.To.Add(new MailboxAddress(mls.Trim()));
+
+            emailMessage.From.Add(new MailboxAddress("JAGADIRI", EmailCAF));
+            //emailMessage.To.Add(new MailboxAddress(email));
+            emailMessage.Subject = subject;
+
+            var bodyBuilder = new BodyBuilder();
+            bodyBuilder.HtmlBody = message;
+            //bodyBuilder.TextBody = "This is some plain text";
+
+            emailMessage.Body = bodyBuilder.ToMessageBody();
+
+            using (var client = new SmtpClient())
+            {
+                //client.LocalDomain = "some.domain.com";
+                await client.ConnectAsync("mail.jagadiri.co.id", 25, SecureSocketOptions.None).ConfigureAwait(false);
+                await client.SendAsync(emailMessage).ConfigureAwait(false);
+                await client.DisconnectAsync(true).ConfigureAwait(false);
+            }
+        }
+        public async Task SendEmailAsync(string email, string subject, string message, string bcc)
+        {
+            var emailMessage = new MimeMessage();
+
+            var ColBcc = bcc.Split(',');
+            foreach (string mls in ColBcc) emailMessage.Bcc.Add(new MailboxAddress(mls.Trim()));
+
+            emailMessage.From.Add(new MailboxAddress("JAGADIRI", EmailCAF));
+            emailMessage.To.Add(new MailboxAddress(email));
+
+            emailMessage.Subject = subject;
+
+            var bodyBuilder = new BodyBuilder();
+            bodyBuilder.HtmlBody = message;
+            //bodyBuilder.TextBody = "This is some plain text";
+
+            emailMessage.Body = bodyBuilder.ToMessageBody();
+
+            using (var client = new SmtpClient())
+            {
+                //client.LocalDomain = "some.domain.com";
+                await client.ConnectAsync("mail.jagadiri.co.id", 25, SecureSocketOptions.None).ConfigureAwait(false);
+                await client.SendAsync(emailMessage).ConfigureAwait(false);
+                await client.DisconnectAsync(true).ConfigureAwait(false);
+            }
+        }
+        public async Task AsyncSendEmailThanksRecurring(int BillID)
+        {
+            EmailThanksRecurringVM EmailThanks;
+            EmailThanks = await(from b in _jbsDB.BillingModel
+                           join pb in _jbsDB.PolicyBillingModel on b.policy_id equals pb.policy_Id
+                           join ci in _jbsDB.CustomerInfo on pb.holder_id equals ci.CustomerId
+                           join pd in _jbsDB.Product on pb.product_id equals pd.product_id
+                           where b.BillingID == BillID
+                           select new EmailThanksRecurringVM()
+                           {
+                               PolicyNo = pb.policy_no,
+                               CustomerName = ci.CustomerName,
+                               Salam = (ci.IsLaki == true) ? "Bapak" : "Ibu",
+                               CustomerEmail = ci.Email,
+                               ProductName = pd.product_description,
+                               PremiAmount = b.TotalAmount
+                           }).SingleOrDefaultAsync();
+            string SubjectEmail = string.Format(@"JAGADIRI: Penerimaan Premi Regular {0} {1} {2}", EmailThanks.ProductName, EmailThanks.PolicyNo, EmailThanks.CustomerName.ToUpper());
+            string BodyMessage = string.Format(@"Salam hangat {0} {1},<br>
+<p style='text-align:justify'>Bersama surat ini kami ingin mengucapkan terima kasih atas pembayaran Premi Regular untuk Polis {2} dengan nomor polis {3} sejumlah IDR {4} yang telah kami terima. Pembayaran Premi tersebut secara otomatis akan membuat Polis Asuransi Anda tetap aktif dan memberikan manfaat perlindungan maksimal bagi Anda dan keluarga.</p>
+<br>Sukses selalu,
+<br>JAGADIRI ", EmailThanks.Salam, EmailThanks.CustomerName.ToUpper(), EmailThanks.ProductName, EmailThanks.PolicyNo, EmailThanks.PremiAmount.ToString("#,###"));
+            try
+            {
+                await SendEmailAsync(EmailThanks.CustomerEmail, SubjectEmail, BodyMessage, EmailPHS);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("AsyncSendEmailThanksRecurring => (BillID = " + BillID.ToString() + ") " + ex.Message);
+            }
+        }
+        public async Task AsyncSendEmailThanksQuote(int Quoteid, Decimal jlhBayar)
+        {
+            var emailQ = await (from qb in _jbsDB.QuoteBilling
+                                join q in _jbsDB.Quote on qb.quote_id equals q.quote_id
+                                join pd in _jbsDB.Product on qb.product_id equals pd.product_id
+                                where q.quote_id == Quoteid
+                                select new EmailThanksQuoteVM()
+                                {
+                                    QuoteID = q.quote_id,
+                                    RefNo = qb.ref_no,
+                                    Email = q.email,
+                                    Gender = (q.IsLaki ? "Pria" : "Wanita"),
+                                    Sapaan = (q.IsLaki ? "Bapak" : "Ibu"),
+                                    CustName = q.prospect_name,
+                                    POB = q.POB,
+                                    DOB = q.DOB,
+                                    MobileNo = q.mobile_phone,
+                                    ProductName = pd.product_description,
+                                    Insured = q.sum_insured,
+                                    DurasiTahun = q.duration,
+                                    DurasiHari = q.duration_days,
+                                    PremiAmount = q.regular_premium + q.single_premium,
+                                    CetakPolisAmount = q.paper_print_fee,
+                                    FrekuensiBayar = (q.premium_mode == 0 ? "Sekaligus" : (q.premium_mode == 1 ? "Bulanan" : (q.premium_mode == 3 ? "Triwulanan" : (q.premium_mode == 6 ? "Semesteran" : (q.premium_mode == 12 ? "Tahunan" : "-"))))),
+                                    PaymentMeth = q.payment_method,
+                                    PaymentAmount = jlhBayar
+                                }).SingleOrDefaultAsync();
+            if (emailQ == null) throw new Exception("AsyncSendEmailThanksQuote (QuoteID = " + Quoteid.ToString() + ") Email Qoute gagal");
 
             string SubjectEmail = string.Format(@"JAGADIRI: Nomor Quotation: {0} TERBAYAR", emailQ.RefNo);
-            string cetakPolis="";
+            string cetakPolis = "";
             if (emailQ.CetakPolisAmount == null)
                 cetakPolis = string.Format(@"<tr><td>Biaya Cetak Polis</td>  <td>: IDR {0}</td></tr>", Convert.ToDecimal(emailQ.CetakPolisAmount).ToString("#,###"));
 
@@ -2706,7 +2809,7 @@ WHERE pb.`Policy_status` IN ('Inforce','Grace'); ";
     <tr><td>Durasi (tahun)</td>         <td>: {10} tahun</td></tr>
     <tr><td>Durasi (hari)</td>          <td>: {11} hari</td></tr>
     <tr><td>Total Premi</td>            <td>: IDR {12}</td></tr>" +
-    cetakPolis+
+    cetakPolis +
     @"<tr><td>Frekuensi Bayar</td>        <td>: {13}</td></tr>
 <tr><td><br></td><td></td></tr>
     <tr><td>Pembayaran</td><td></td></tr>
@@ -2715,16 +2818,16 @@ WHERE pb.`Policy_status` IN ('Inforce','Grace'); ";
     <tr><td>Status</td>                 <td>: TERDAFTAR</td></tr>
 <table>
 <br><br>Sukses selalu,
-<br>JAGADIRI ", emailQ.Sapaan, 
-emailQ.CustName.ToUpper(), 
+<br>JAGADIRI ", emailQ.Sapaan,
+emailQ.CustName.ToUpper(),
 emailQ.RefNo,
 emailQ.Gender,
 emailQ.POB,
-emailQ.DOB== null ? "" :  Convert.ToDateTime(emailQ.DOB).ToString("dd MMM yyyy"),
-emailQ.Email, 
-emailQ.MobileNo, 
-emailQ.ProductID.ToString(),
-emailQ.Insured == null ? "" : Convert.ToDecimal(emailQ.Insured).ToString("#,###"), 
+emailQ.DOB == null ? "" : Convert.ToDateTime(emailQ.DOB).ToString("dd MMM yyyy"),
+emailQ.Email,
+emailQ.MobileNo,
+emailQ.ProductName.ToString(),
+emailQ.Insured == null ? "" : Convert.ToDecimal(emailQ.Insured).ToString("#,###"),
 emailQ.DurasiTahun,
 emailQ.DurasiHari,
 emailQ.PremiAmount == null ? "" : Convert.ToDecimal(emailQ.PremiAmount).ToString("#,###"),
@@ -2732,27 +2835,33 @@ emailQ.FrekuensiBayar,
 emailQ.PaymentMeth,
 emailQ.PaymentAmount == null ? "" : Convert.ToDecimal(emailQ.PaymentAmount).ToString("#,###")
 );
-            await SendEmailAsync(emailQ.Email, SubjectEmail, BodyMessage, EmailPHS);
+            try
+            {
+                await SendEmailAsync(emailQ.Email, SubjectEmail, BodyMessage, EmailPHS);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("AsyncSendEmailThanksQuote => (Quoteid = " + Quoteid.ToString() + ") " + ex.Message);
+            }
         }
-
         public async Task AsyncSendEmailThanksEndorsemen(string BillID)
         {
             EmailThanksBillOthersVM EmailThanks;
-            EmailThanks = (from b in _jbsDB.BillingOtherModel
-                           join pb in _jbsDB.PolicyBillingModel on b.policy_id equals pb.policy_Id
-                           join ci in _jbsDB.CustomerInfo on pb.holder_id equals ci.CustomerId
-                           join pd in _jbsDB.Product on pb.product_id equals pd.product_id
-                           where b.BillingID == BillID.ToString()
-                           select new EmailThanksBillOthersVM()
-                           {
-                               PolicyNo = pb.policy_no,
-                               CustomerName = ci.CustomerName,
-                               Salam = (ci.IsLaki == true) ? "Bapak" : "Ibu",
-                               CustomerEmail = ci.Email,
-                               ProductName = pd.product_description,
-                               ProductType = (b.BillingType== "A2" ? "Endorsemen Cetak Polis Fisik" : (b.BillingType == "A3" ? "Cetak Kartu" : "")),
-                               PremiAmount = b.TotalAmount
-                           }).SingleOrDefault();
+            EmailThanks = await (from b in _jbsDB.BillingOtherModel
+                                 join pb in _jbsDB.PolicyBillingModel on b.policy_id equals pb.policy_Id
+                                 join ci in _jbsDB.CustomerInfo on pb.holder_id equals ci.CustomerId
+                                 join pd in _jbsDB.Product on pb.product_id equals pd.product_id
+                                 where b.BillingID == BillID.ToString()
+                                 select new EmailThanksBillOthersVM()
+                                 {
+                                     PolicyNo = pb.policy_no,
+                                     CustomerName = ci.CustomerName,
+                                     Salam = (ci.IsLaki == true) ? "Bapak" : "Ibu",
+                                     CustomerEmail = ci.Email,
+                                     ProductName = pd.product_description,
+                                     ProductType = (b.BillingType == "A2" ? "Endorsemen Cetak Polis Fisik" : (b.BillingType == "A3" ? "Cetak Kartu" : "")),
+                                     PremiAmount = b.TotalAmount
+                                 }).SingleOrDefaultAsync();
             if (string.IsNullOrEmpty(EmailThanks.ProductType)) return;
 
             string SubjectEmail = string.Format(@"JAGADIRI: Pembayaran {0}", EmailThanks.ProductType);
@@ -2760,62 +2869,46 @@ emailQ.PaymentAmount == null ? "" : Convert.ToDecimal(emailQ.PaymentAmount).ToSt
 <p style='text-align:justify'>Bersama surat ini kami ingin mengucapkan terima kasih atas pembayaran {2} untuk Polis {3} 
 dengan nomor polis {4} sejumlah {5} yang telah kami terima. Pembayaran Premi tersebut secara otomatis akan membuat Polis Asuransi Anda tetap aktif dan memberikan manfaat perlindungan maksimal bagi Anda dan keluarga.</p>
 <br>Sukses selalu,
-<br>JAGADIRI ", EmailThanks.Salam, EmailThanks.CustomerName.ToUpper(),EmailThanks.ProductType, EmailThanks.ProductName, EmailThanks.PolicyNo, EmailThanks.PremiAmount.ToString("#,###"));
-            await SendEmailAsync(EmailThanks.CustomerEmail, SubjectEmail, BodyMessage, EmailPHS);
+<br>JAGADIRI ", EmailThanks.Salam, EmailThanks.CustomerName.ToUpper(), EmailThanks.ProductType, EmailThanks.ProductName, EmailThanks.PolicyNo, EmailThanks.PremiAmount.ToString("#,###"));
+            try
+            {
+                await SendEmailAsync(EmailThanks.CustomerEmail, SubjectEmail, BodyMessage, EmailPHS);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("AsyncSendEmailThanksEndorsemen => (BillID = " + BillID + ") " + ex.Message);
+            }
         }
-
-        public async Task AsyncSendEmailRefundCancelRecurring(string BillID)
+        public async Task AsyncSendEmailRefundCancelRecurring(int BillID)
         {
-            EmailRefundVM EmailRefund;
-            EmailRefund = (from b in _jbsDB.BillingOtherModel
-                           join pb in _jbsDB.PolicyBillingModel on b.policy_id equals pb.policy_Id
-                           join ci in _jbsDB.CustomerInfo on pb.holder_id equals ci.CustomerId
-                           join pd in _jbsDB.Product on pb.product_id equals pd.product_id
-                           where b.BillingID == BillID.ToString()
-                           select new EmailRefundVM()
-                           {
-                               PolicyNo = pb.policy_no,
-                               CustomerName = ci.CustomerName,
-                               ProductName = pd.product_description,
-                               PolicyStatus=pb.Policy_status
+            var EmailRefund = await (from b in _jbsDB.BillingModel
+                                 join pb in _jbsDB.PolicyBillingModel on b.policy_id equals pb.policy_Id
+                                 join ci in _jbsDB.CustomerInfo on pb.holder_id equals ci.CustomerId
+                                 join pd in _jbsDB.Product on pb.product_id equals pd.product_id
+                                 where b.BillingID == BillID
+                                 select new EmailRefundVM()
+                                 {
+                                     PolicyNo = pb.policy_no,
+                                     CustomerName = ci.CustomerName,
+                                     ProductName = pd.product_description,
+                                     PolicyStatus = pb.Policy_status
 
-                           }).SingleOrDefault();
+                                 }).SingleOrDefaultAsync();
             string SubjectEmail = string.Format(@"JAGADIRI: SUCCESS RECURRING CANCEL POLICY");
             string BodyMessage = string.Format(@"<table><tr><td>PolicyNo</td><td>: {0}</td></tr>
 <tr><td>Holder Name</td><td>: {1}</td></tr>
 <tr><td>Product Description</td><td>: {2}</td></tr>
-<tr><td>Policy Status</td><td>: {3}</td></tr></table>", 
+<tr><td>Policy Status</td><td>: {3}</td></tr></table>",
 EmailRefund.PolicyNo, EmailRefund.CustomerName, EmailRefund.ProductName, EmailRefund.PolicyStatus);
-            string receiver = EmailCS +","+ EmailFA + "," + EmailPHS + "," + EmailBilling;
-            await SendEmailAsync(receiver, SubjectEmail, BodyMessage);
-        }
-        private void InsertPolisRefund(ref System.Data.Common.DbCommand cmd, PolicyRefundVM pf)
-        {
-            cmd.Parameters.Clear();
-            cmd.CommandText = @"INSERT INTO `policy_refund`(`policy_id`,`policy_commence_dt`,`refund_date`,`refund_type`,`
-policy_regular_premium`,`policy_single_premium`,`total_amount`,`receipt_id`,`receipt_other_id`)
-SELECT @policy_id, @commence_dt, @refund_date, @refund_type, @regular_premium, @single_premium, @total_amount, @receipt_id, @receipt_other_id";
-            cmd.CommandType = CommandType.Text;
-            cmd.Parameters.Add(new MySqlParameter("@policy_id", MySqlDbType.Int32) { Value = pf.PolicyId });
-            cmd.Parameters.Add(new MySqlParameter("@commence_dt", MySqlDbType.Date) { Value = pf.commenceDate });
-            cmd.Parameters.Add(new MySqlParameter("@refund_date", MySqlDbType.Date) { Value =  pf.refundDate});
-            cmd.Parameters.Add(new MySqlParameter("@refund_type", MySqlDbType.Int32) { Value = pf.refundType });
-            cmd.Parameters.Add(new MySqlParameter("@regular_premium", MySqlDbType.Decimal) { Value = pf.regularPremium });
-            cmd.Parameters.Add(new MySqlParameter("@single_premium", MySqlDbType.Decimal) { Value =  pf.singlePremium});
-            cmd.Parameters.Add(new MySqlParameter("@total_amount", MySqlDbType.Decimal) { Value = pf.totalAmount });
-            cmd.Parameters.Add(new MySqlParameter("@receipt_id", MySqlDbType.Int32) { Value = pf.receiptId });
-            cmd.Parameters.Add(new MySqlParameter("@receipt_other_id", MySqlDbType.Int32) { Value =  pf.receiptOtherId});
-
+            string receiver = EmailCS + "," + EmailFA + "," + EmailPHS + "," + EmailBilling;
             try
             {
-                cmd.ExecuteNonQuery();
-            }
-            catch (Exception ex)
+                await SendEmailAsync(receiver, SubjectEmail, BodyMessage);
+            }catch(Exception ex)
             {
-                throw new Exception("InsertPolisRefund => (polisNo = " + pf.PolicyId + ") " + ex.Message);
+                throw new Exception("AsyncSendEmailRefundCancelRecurring => (BillID = " + BillID + ") " + ex.Message);
             }
         }
-
 
     }
 }

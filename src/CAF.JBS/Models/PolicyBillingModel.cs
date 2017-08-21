@@ -1,8 +1,10 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace CAF.JBS.Models
 {
+    [Table("billing")]
     public class PolicyBillingModel
     {
         [Key]
