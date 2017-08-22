@@ -1193,6 +1193,18 @@ WHERE pb.`Policy_status` IN ('Inforce','Grace'); ";
                         break;
                 }
 
+                //Cek transaksi atas polis dengan tanggal yang sama
+                if (lst.PaymentSource == "VA")
+                {
+                    var billva = (from b in _jbsDB.BillingModel
+                                   join pb in _jbsDB.PolicyBillingModel on b.policy_id equals pb.policy_Id
+                                   where pb.policy_no == lst.polisNo && b.PaymentSource == lst.PaymentSource &&
+                                   b.paid_date == lst.tgl
+                                   select b.BillingID.ToString()
+                                   ).FirstOrDefault();
+                    if (!string.IsNullOrEmpty(billva)) continue;
+                }
+
                 Life21Tran = new PolicyTransaction();
                 if (lst.PaymentSource == "CC" || lst.PaymentSource == "VA")
                 {
@@ -1245,10 +1257,10 @@ WHERE pb.`Policy_status` IN ('Inforce','Grace'); ";
                                 Rcpt.transaction_code = "RP"; // buat recurring
                                 if (string.IsNullOrEmpty(lst.BillingID))
                                 {
-                                    if (! lst.IsSuccess) continue;
+                                    if (!lst.IsSuccess) continue;
 
                                     // Jika proses create billing hanya untuk billing approve
-                                    lst.BillingID = CreateBilling(ref cmd, lst.polisNo,lst.PaymentSource, lst.BankidPaid);
+                                    lst.BillingID = CreateBilling(ref cmd, lst.polisNo, lst.PaymentSource, lst.BankidPaid);
                                     if (string.IsNullOrEmpty(lst.BillingID)) throw new Exception("Billing Gagal Create");
 
                                     bil = _jbsDB.BillingModel.FirstOrDefault(c => c.BillingID == Convert.ToInt32(lst.BillingID));
@@ -1257,11 +1269,11 @@ WHERE pb.`Policy_status` IN ('Inforce','Grace'); ";
                                     lst.PolicyId = bil.policy_id;
                                     lst.ReqSeq = bil.recurring_seq;
                                     lst.Due_Date_Pre = bil.due_dt_pre;
-                                    
+
                                     lst.PaymentTransactionID = InsertTransactionBank(ref cmd, lst);
                                 }
                                 else bil = _jbsDB.BillingModel.FirstOrDefault(c => c.BillingID == Convert.ToInt32(lst.BillingID));
-                                var polis = _jbsDB.PolicyBillingModel.FirstOrDefault(p => p.policy_Id==bil.policy_id);
+                                var polis = _jbsDB.PolicyBillingModel.FirstOrDefault(p => p.policy_Id == bil.policy_id);
 
                                 if (bil.cashless_fee_amount > 0)
                                 { // insert receipt other recurring untuk cashless
@@ -1278,14 +1290,14 @@ WHERE pb.`Policy_status` IN ('Inforce','Grace'); ";
                                 Rcpt.receipt_policy_id = lst.PolicyId;
                                 Rcpt.receipt_source = lst.PaymentSource;
                                 Rcpt.receipt_date = tglSekarang;
-                                Rcpt.receipt_amount = lst.amount  - bil.cashless_fee_amount;
+                                Rcpt.receipt_amount = lst.amount - bil.cashless_fee_amount;
                                 Rcpt.receipt_seq = lst.ReqSeq;
                                 Rcpt.fund_type_id = 0;
                                 Rcpt.status = "P";
                                 Rcpt.acquirer_bank_id = lst.BankidPaid;
                                 Rcpt.due_date_pre = lst.Due_Date_Pre;
 
-                                lst.receipt_id =InsertReceipt(ref cmd2,Rcpt);
+                                lst.receipt_id = InsertReceipt(ref cmd2, Rcpt);
 
                                 Life21Tran.policy_id = lst.PolicyId;
                                 Life21Tran.ACC_Name = bil.AccName;
@@ -1295,7 +1307,7 @@ WHERE pb.`Policy_status` IN ('Inforce','Grace'); ";
                                 Life21Tran.recurring_seq = lst.ReqSeq;
                                 Life21Tran.transaction_type = "R";
 
-                                if (lst.PaymentSource == "AC") lst.life21TranID=InsertACTransaction(ref cmd2, Life21Tran);
+                                if (lst.PaymentSource == "AC") lst.life21TranID = InsertACTransaction(ref cmd2, Life21Tran);
                                 else if (lst.PaymentSource == "CC") lst.life21TranID = InsertCCTransaction(ref cmd2, Life21Tran);
                                 else lst.life21TranID = null;
 
@@ -1315,7 +1327,7 @@ WHERE pb.`Policy_status` IN ('Inforce','Grace'); ";
                                             lst.ACCno = bil.AccNo ?? polisCC.cc_no;
                                             lst.CC_Expiry = bil.cc_expiry ?? polisCC.cc_expiry;
                                         }
-                                    }else if (lst.PaymentSource == "AC")
+                                    } else if (lst.PaymentSource == "AC")
                                     {
                                         var polisAC = _jbsDB.PolicyAc.FirstOrDefault(p => p.PolicyId == bil.policy_id);
                                         if (polisAC != null)
@@ -1326,28 +1338,29 @@ WHERE pb.`Policy_status` IN ('Inforce','Grace'); ";
                                     }
                                 }
 
-                                if((!(polis.Policy_status.ToLower() == "grace" || polis.Policy_status.ToLower() == "inforce"))
-                                    && (lst.PolicyId != null) && (lst.BillCode == "B"))
+                                if (lst.BillCode == "B")
                                 {
-                                    PolicyRefundVM pr = new PolicyRefundVM();
-                                    pr.PolicyId = lst.PolicyId ?? 0;
-                                    pr.receiptId = lst.receipt_id;
-                                    pr.receiptOtherId = lst.receipt_other_id ?? 0;
-                                    pr.regularPremium = bil.policy_regular_premium;
-                                    pr.singlePremium = 0;
-                                    pr.refundDate = lst.TglSkrg;
-                                    pr.refundType = 2;
-                                    pr.totalAmount= bil.policy_regular_premium;
-                                    pr.commenceDate = polis.commence_dt;
-                                    lst.PolisRefundId = InsertPolisRefund(ref cmd2, pr);
-                                    await AsyncSendEmailRefundCancelRecurring(Convert.ToInt32(lst.BillingID));
+                                    if (bil.status_billing == "C" && (bil.due_dt_pre.AddMonths(-1 * polis.premium_mode) < (bil.cancel_date ?? DateTime.Now.Date)))
+                                    {
+                                        PolicyRefundVM pr = new PolicyRefundVM();
+                                        pr.PolicyId = lst.PolicyId ?? 0;
+                                        pr.receiptId = lst.receipt_id;
+                                        pr.receiptOtherId = lst.receipt_other_id ?? 0;
+                                        pr.regularPremium = bil.policy_regular_premium;
+                                        pr.singlePremium = 0;
+                                        pr.refundDate = lst.TglSkrg;
+                                        pr.refundType = 2;
+                                        pr.totalAmount = bil.policy_regular_premium;
+                                        pr.commenceDate = polis.commence_dt;
+                                        lst.PolisRefundId = InsertPolisRefund(ref cmd2, pr);
+                                        await AsyncSendEmailRefundCancelRecurring(Convert.ToInt32(lst.BillingID));
 
-                                    lst.StatusBilling = "R"; // status billing menjadi refund
+                                        lst.StatusBilling = "R"; // status billing menjadi refund
+                                    }
                                 }
                                 UpdateBillingJBS(ref cmd, lst);
                                 UpdateLastTransJBS(ref cmd, lst);
                                 await AsyncSendEmailThanksRecurring(Convert.ToInt32(lst.BillingID));
-                                
                             }
                             else
                             { // Billing Others >> insert Receipt Other (pasti CC) 

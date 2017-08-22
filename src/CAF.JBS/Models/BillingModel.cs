@@ -22,7 +22,7 @@ namespace CAF.JBS.Models
         public Decimal cashless_fee_amount { get; set; }
         public Decimal TotalAmount { get; set; }
         public string status_billing { get; set; }
-        //public DateTime status_billing_dateUpdate { get; set; }
+        public DateTime? cancel_date { get; set; }
         public Decimal? PaidAmount { get; set; }
         public Nullable<DateTime> paid_date { get; set; }
         public bool IsDownload { get; set; }
