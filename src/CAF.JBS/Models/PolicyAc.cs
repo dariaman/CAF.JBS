@@ -16,10 +16,6 @@ namespace CAF.JBS.Models
         public string acc_name { get; set; }
         public int bank_id { get; set; }
         public string bank_branch { get; set; }
-
-        public string UserCrt { get; set; }
-        public DateTime DateCrt { get; set; }
-        public string UserUpdate { get; set; }
-        public DateTime DateUpdate { get; set; }
+        
     }
 }

@@ -12,8 +12,6 @@
 </style>
 <h2>Billing</h2>
 
-<input type="button" value="Sync Data" class="btn btn-success" onclick="location.href='@Url.Action("SyncData", "Billing")'" />
-
 @(Html
     .Grid(Model)
     .Build(columns =>

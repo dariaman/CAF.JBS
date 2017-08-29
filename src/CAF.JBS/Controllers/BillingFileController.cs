@@ -697,101 +697,102 @@ namespace CAF.JBS.Controllers
             catch (Exception ex) { throw ex; }
         }
 
-        public ActionResult reset()
-        {
-            var cmd = _jbsDB.Database.GetDbConnection().CreateCommand();
-            cmd.CommandType = CommandType.Text;
-            cmd.CommandText = @"UPDATE `billing` AS b 
-INNER JOIN `policy_billing` pb ON b.`policy_id`=pb.`policy_Id`
-                                SET b.`IsDownload`=0,
-	                                b.`Source_download`=NULL,
-	                                b.`BankIdDownload`=NULL,
-	                                b.`BankID_Source`=NULL,
-	                                b.`IsClosed`=0,
-	                                b.`status_billing`='A',
-	                                b.`PaymentSource`=NULL,
-	                                b.`paid_date`=NULL,
-	                                b.`BankIdPaid`=NULL,
-	                                b.`PaidAmount`=NULL,
-	                                b.`LastUploadDate`=NULL,
-	                                b.`UserUpload`=NULL,
-	                                b.`Life21TranID`=NULL,
-	                                b.`ReceiptID`=NULL,
-	                                b.`PaymentTransactionID`=NULL,
-	                                b.`AccName`=NULL,
-	                                b.`AccNo`=NULL,
-	                                b.`cc_expiry`=NULL
-WHERE pb.`Policy_status` IN ('Inforce','Grace'); ";
-            try
-            {
-                cmd.Connection.Open();
-                cmd.ExecuteNonQuery();
-                cmd.CommandText = @"UPDATE `billing_download_summary` AS bs
-                                    SET bs.`BillingCountDWD`=0,
-                                    bs.`BillingAmountDWD`=0,
-                                    bs.`OthersCountDWD`=0,
-                                    bs.`OthersAmountDWD`=0,
-                                    bs.`QuoteCountDWD`=0,
-                                    bs.`QuoteAmountDWD`=0,
-                                    bs.`TotalCountDWD`=0,
-                                    bs.`TotalAmountDWD`=0; ";
-                cmd.ExecuteNonQuery();
-                cmd.CommandText = @"UPDATE `billing_others` AS b 
-                                    SET b.`IsDownload`=0,
-	                                    b.`Source_download`=NULL,
-	                                    b.`BankIdDownload`=NULL,
-	                                    b.`BankID_Source`=NULL,
-	                                    b.`IsClosed`=0,
-	                                    b.`status_billing`='A',
-	                                    b.`PaymentSource`=NULL,
-	                                    b.`paid_date`=NULL,
-	                                    b.`BankIdPaid`=NULL,
-	                                    b.`PaidAmount`=NULL,
-	                                    b.`LastUploadDate`=NULL,
-	                                    b.`UserUpload`=NULL,
-	                                    b.`Life21TranID`=NULL,
-	                                    b.`ReceiptOtherID`=NULL,
-	                                    b.`PaymentTransactionID`=NULL,
-	                                    b.`AccName`=NULL,
-	                                    b.`AccNo`=NULL,
-	                                    b.`cc_expiry`=NULL; ";
-                cmd.ExecuteNonQuery();
-                cmd.CommandText = @"UPDATE `quote_billing` AS b 
-                                    SET b.`IsDownload`=0,
-	                                    b.`Source_download`=NULL,
-	                                    b.`BankIdDownload`=NULL,
-	                                    b.`BankID_Source`=NULL,
-	                                    b.`IsClosed`=0,
-	                                    b.`status`='A',
-	                                    b.`PaymentSource`=NULL,
-	                                    b.`paid_dt`=NULL,
-	                                    b.`BankIdPaid`=NULL,
-	                                    b.`PaidAmount`=NULL,
-	                                    b.`LastUploadDate`=NULL,
-	                                    b.`UserUpload`=NULL,
-	                                    b.`PaymentTransactionID`=NULL;";
-                cmd.ExecuteNonQuery();
+//        public ActionResult reset()
+//        {
+//            var cmd = _jbsDB.Database.GetDbConnection().CreateCommand();
+//            cmd.CommandType = CommandType.Text;
+//            cmd.CommandText = @"UPDATE `billing` AS b 
+//INNER JOIN `policy_billing` pb ON b.`policy_id`=pb.`policy_Id`
+//                                SET b.`IsDownload`=0,
+//	                                b.`Source_download`=NULL,
+//	                                b.`BankIdDownload`=NULL,
+//	                                b.`BankID_Source`=NULL,
+//	                                b.`IsClosed`=0,
+//	                                b.`status_billing`='A',
+//	                                b.`PaymentSource`=NULL,
+//	                                b.`paid_date`=NULL,
+//	                                b.`BankIdPaid`=NULL,
+//	                                b.`PaidAmount`=NULL,
+//	                                b.`LastUploadDate`=NULL,
+//	                                b.`UserUpload`=NULL,
+//	                                b.`Life21TranID`=NULL,
+//	                                b.`ReceiptID`=NULL,
+//	                                b.`PaymentTransactionID`=NULL,
+//	                                b.`AccName`=NULL,
+//	                                b.`AccNo`=NULL,
+//	                                b.`cc_expiry`=NULL
+//WHERE pb.`Policy_status` IN ('Inforce','Grace'); ";
+//            try
+//            {
+//                cmd.Connection.Open();
+//                cmd.ExecuteNonQuery();
+//                cmd.CommandText = @"UPDATE `billing_download_summary` AS bs
+//                                    SET bs.`BillingCountDWD`=0,
+//                                    bs.`BillingAmountDWD`=0,
+//                                    bs.`OthersCountDWD`=0,
+//                                    bs.`OthersAmountDWD`=0,
+//                                    bs.`QuoteCountDWD`=0,
+//                                    bs.`QuoteAmountDWD`=0,
+//                                    bs.`TotalCountDWD`=0,
+//                                    bs.`TotalAmountDWD`=0; ";
+//                cmd.ExecuteNonQuery();
+//                cmd.CommandText = @"UPDATE `billing_others` AS b 
+//                                    SET b.`IsDownload`=0,
+//	                                    b.`Source_download`=NULL,
+//	                                    b.`BankIdDownload`=NULL,
+//	                                    b.`BankID_Source`=NULL,
+//	                                    b.`IsClosed`=0,
+//	                                    b.`status_billing`='A',
+//	                                    b.`PaymentSource`=NULL,
+//	                                    b.`paid_date`=NULL,
+//	                                    b.`BankIdPaid`=NULL,
+//	                                    b.`PaidAmount`=NULL,
+//	                                    b.`LastUploadDate`=NULL,
+//	                                    b.`UserUpload`=NULL,
+//	                                    b.`Life21TranID`=NULL,
+//	                                    b.`ReceiptOtherID`=NULL,
+//	                                    b.`PaymentTransactionID`=NULL,
+//	                                    b.`AccName`=NULL,
+//	                                    b.`AccNo`=NULL,
+//	                                    b.`cc_expiry`=NULL; ";
+//                cmd.ExecuteNonQuery();
+//                cmd.CommandText = @"UPDATE `quote_billing` AS b 
+//                                    SET b.`IsDownload`=0,
+//	                                    b.`Source_download`=NULL,
+//	                                    b.`BankIdDownload`=NULL,
+//	                                    b.`BankID_Source`=NULL,
+//	                                    b.`IsClosed`=0,
+//	                                    b.`status`='A',
+//	                                    b.`PaymentSource`=NULL,
+//	                                    b.`paid_dt`=NULL,
+//	                                    b.`BankIdPaid`=NULL,
+//	                                    b.`PaidAmount`=NULL,
+//	                                    b.`LastUploadDate`=NULL,
+//	                                    b.`UserUpload`=NULL,
+//	                                    b.`PaymentTransactionID`=NULL;";
+//                cmd.ExecuteNonQuery();
 
-                var files = Directory.GetFiles(DirBilling);
-                foreach (string file in files)
-                {
-                    FileInfo fileBill = new FileInfo(file);
-                    fileBill.Delete();
-                }
-            }
-            catch (Exception ex)
-            {
-                throw ex;
-            }
-            finally
-            {
-                //cmd.Dispose();
-                cmd.Connection.Close();
-                //_jbsDB.Database.CloseConnection();
-            }
+//                var files = Directory.GetFiles(DirBilling);
+//                foreach (string file in files)
+//                {
+//                    FileInfo fileBill = new FileInfo(file);
+//                    fileBill.Delete();
+//                }
+//            }
+//            catch (Exception ex)
+//            {
+//                throw ex;
+//            }
+//            finally
+//            {
+//                //cmd.Dispose();
+//                cmd.Connection.Close();
+//                //_jbsDB.Database.CloseConnection();
+//            }
 
-            return RedirectToAction("Index");
-        }
+//            return RedirectToAction("Index");
+//        }
+
         public ActionResult Recalculate()
         {
             hitungUlang();
@@ -1337,27 +1338,27 @@ WHERE pb.`Policy_status` IN ('Inforce','Grace'); ";
                                         }
                                     }
                                 }
+                                /////////////////////////////////// Untuk Kebutuhan Refund=================================
+                                //if (lst.BillCode == "B")
+                                //{
+                                //    if (bil.status_billing == "C" && (bil.due_dt_pre.AddMonths(-1 * polis.premium_mode) >= (bil.cancel_date ?? DateTime.Now.Date)))
+                                //    {
+                                //        PolicyRefundVM pr = new PolicyRefundVM();
+                                //        pr.PolicyId = lst.PolicyId ?? 0;
+                                //        pr.receiptId = lst.receipt_id;
+                                //        pr.receiptOtherId = lst.receipt_other_id ?? 0;
+                                //        pr.regularPremium = bil.policy_regular_premium;
+                                //        pr.singlePremium = 0;
+                                //        pr.refundDate = lst.TglSkrg;
+                                //        pr.refundType = 2;
+                                //        pr.totalAmount = bil.policy_regular_premium;
+                                //        pr.commenceDate = polis.commence_dt;
+                                //        lst.PolisRefundId = InsertPolisRefund(ref cmd2, pr);
+                                //        await AsyncSendEmailRefundCancelRecurring(Convert.ToInt32(lst.BillingID));
 
-                                if (lst.BillCode == "B")
-                                {
-                                    if (bil.status_billing == "C" && (bil.due_dt_pre.AddMonths(-1 * polis.premium_mode) < (bil.cancel_date ?? DateTime.Now.Date)))
-                                    {
-                                        PolicyRefundVM pr = new PolicyRefundVM();
-                                        pr.PolicyId = lst.PolicyId ?? 0;
-                                        pr.receiptId = lst.receipt_id;
-                                        pr.receiptOtherId = lst.receipt_other_id ?? 0;
-                                        pr.regularPremium = bil.policy_regular_premium;
-                                        pr.singlePremium = 0;
-                                        pr.refundDate = lst.TglSkrg;
-                                        pr.refundType = 2;
-                                        pr.totalAmount = bil.policy_regular_premium;
-                                        pr.commenceDate = polis.commence_dt;
-                                        lst.PolisRefundId = InsertPolisRefund(ref cmd2, pr);
-                                        await AsyncSendEmailRefundCancelRecurring(Convert.ToInt32(lst.BillingID));
-
-                                        lst.StatusBilling = "R"; // status billing menjadi refund
-                                    }
-                                }
+                                //        lst.StatusBilling = "R"; // status billing menjadi refund
+                                //    }
+                                //}
                                 UpdateBillingJBS(ref cmd, lst);
                                 UpdateLastTransJBS(ref cmd, lst);
                                 await AsyncSendEmailThanksRecurring(Convert.ToInt32(lst.BillingID));
@@ -1388,7 +1389,7 @@ WHERE pb.`Policy_status` IN ('Inforce','Grace'); ";
                     {
                         if (string.IsNullOrEmpty(lst.BillingID.Trim())) continue;
                         BukaFlagDownloadBilling(ref cmd,lst);
-                        if (Rcpt.receipt_source == "AC") InsertPolisHold(ref cmd,lst.BillCode, lst.polisNo, DateTime.Now.AddDays(15));
+                        if (lst.PaymentSource == "AC") InsertPolisHold(ref cmd,lst.BillCode, lst.polisNo, DateTime.Now.AddDays(15));
                     }
 
                     cmdx.CommitTransaction();
