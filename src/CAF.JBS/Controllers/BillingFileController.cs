@@ -351,6 +351,13 @@ namespace CAF.JBS.Controllers
             return File(new FileStream(DirBilling + fileName, FileMode.Open), "application/octet-stream");
         }
 
+        public ActionResult DeleteFile(string Filename)
+        {
+            FileInfo filex = new FileInfo(DirBilling + Filename);
+            if (filex.Exists) System.IO.File.Delete(filex.ToString());
+            return RedirectToAction("Index");
+        }
+
         #region GenerateFileDownloadCC
         protected void GenBcaCCFile(int id)
         {
@@ -696,102 +703,6 @@ namespace CAF.JBS.Controllers
             }
             catch (Exception ex) { throw ex; }
         }
-
-//        public ActionResult reset()
-//        {
-//            var cmd = _jbsDB.Database.GetDbConnection().CreateCommand();
-//            cmd.CommandType = CommandType.Text;
-//            cmd.CommandText = @"UPDATE `billing` AS b 
-//INNER JOIN `policy_billing` pb ON b.`policy_id`=pb.`policy_Id`
-//                                SET b.`IsDownload`=0,
-//	                                b.`Source_download`=NULL,
-//	                                b.`BankIdDownload`=NULL,
-//	                                b.`BankID_Source`=NULL,
-//	                                b.`IsClosed`=0,
-//	                                b.`status_billing`='A',
-//	                                b.`PaymentSource`=NULL,
-//	                                b.`paid_date`=NULL,
-//	                                b.`BankIdPaid`=NULL,
-//	                                b.`PaidAmount`=NULL,
-//	                                b.`LastUploadDate`=NULL,
-//	                                b.`UserUpload`=NULL,
-//	                                b.`Life21TranID`=NULL,
-//	                                b.`ReceiptID`=NULL,
-//	                                b.`PaymentTransactionID`=NULL,
-//	                                b.`AccName`=NULL,
-//	                                b.`AccNo`=NULL,
-//	                                b.`cc_expiry`=NULL
-//WHERE pb.`Policy_status` IN ('Inforce','Grace'); ";
-//            try
-//            {
-//                cmd.Connection.Open();
-//                cmd.ExecuteNonQuery();
-//                cmd.CommandText = @"UPDATE `billing_download_summary` AS bs
-//                                    SET bs.`BillingCountDWD`=0,
-//                                    bs.`BillingAmountDWD`=0,
-//                                    bs.`OthersCountDWD`=0,
-//                                    bs.`OthersAmountDWD`=0,
-//                                    bs.`QuoteCountDWD`=0,
-//                                    bs.`QuoteAmountDWD`=0,
-//                                    bs.`TotalCountDWD`=0,
-//                                    bs.`TotalAmountDWD`=0; ";
-//                cmd.ExecuteNonQuery();
-//                cmd.CommandText = @"UPDATE `billing_others` AS b 
-//                                    SET b.`IsDownload`=0,
-//	                                    b.`Source_download`=NULL,
-//	                                    b.`BankIdDownload`=NULL,
-//	                                    b.`BankID_Source`=NULL,
-//	                                    b.`IsClosed`=0,
-//	                                    b.`status_billing`='A',
-//	                                    b.`PaymentSource`=NULL,
-//	                                    b.`paid_date`=NULL,
-//	                                    b.`BankIdPaid`=NULL,
-//	                                    b.`PaidAmount`=NULL,
-//	                                    b.`LastUploadDate`=NULL,
-//	                                    b.`UserUpload`=NULL,
-//	                                    b.`Life21TranID`=NULL,
-//	                                    b.`ReceiptOtherID`=NULL,
-//	                                    b.`PaymentTransactionID`=NULL,
-//	                                    b.`AccName`=NULL,
-//	                                    b.`AccNo`=NULL,
-//	                                    b.`cc_expiry`=NULL; ";
-//                cmd.ExecuteNonQuery();
-//                cmd.CommandText = @"UPDATE `quote_billing` AS b 
-//                                    SET b.`IsDownload`=0,
-//	                                    b.`Source_download`=NULL,
-//	                                    b.`BankIdDownload`=NULL,
-//	                                    b.`BankID_Source`=NULL,
-//	                                    b.`IsClosed`=0,
-//	                                    b.`status`='A',
-//	                                    b.`PaymentSource`=NULL,
-//	                                    b.`paid_dt`=NULL,
-//	                                    b.`BankIdPaid`=NULL,
-//	                                    b.`PaidAmount`=NULL,
-//	                                    b.`LastUploadDate`=NULL,
-//	                                    b.`UserUpload`=NULL,
-//	                                    b.`PaymentTransactionID`=NULL;";
-//                cmd.ExecuteNonQuery();
-
-//                var files = Directory.GetFiles(DirBilling);
-//                foreach (string file in files)
-//                {
-//                    FileInfo fileBill = new FileInfo(file);
-//                    fileBill.Delete();
-//                }
-//            }
-//            catch (Exception ex)
-//            {
-//                throw ex;
-//            }
-//            finally
-//            {
-//                //cmd.Dispose();
-//                cmd.Connection.Close();
-//                //_jbsDB.Database.CloseConnection();
-//            }
-
-//            return RedirectToAction("Index");
-//        }
 
         public ActionResult Recalculate()
         {
@@ -2924,5 +2835,15 @@ EmailRefund.PolicyNo, EmailRefund.CustomerName, EmailRefund.ProductName, EmailRe
             }
         }
 
+        public ActionResult FileSetting()
+        {
+            FileStringVM fls = new FileStringVM();
+            foreach (String fs in filesettings.s)
+            {
+                fls.files = fls.files + fs.ToString();
+            }
+
+            return View(fls);
+        }
     }
 }

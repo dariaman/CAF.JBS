@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.IO;
+using Microsoft.AspNetCore.Hosting;
 
 namespace CAF.JBS
 {
@@ -32,7 +33,8 @@ namespace CAF.JBS
         public string GenFileXls { get; private set; }
 
         private IConfigurationRoot Configuration { get; set; }
-
+        private IHostingEnvironment _env;
+        public string[] s { get; private set; }
         public FileSettings()
         {
             var builder = new ConfigurationBuilder()
@@ -61,6 +63,7 @@ namespace CAF.JBS
             BCAac = FileBilling + "BCAac" + DateTime.Now.ToString("yyyyMMdd") + ".xls";
             MandiriAC = FileBilling + "MandiriAc" + DateTime.Now.ToString("yyyyMMdd") + ".csv";
             BCAva = FileBilling + "VARegulerPremi" + DateTime.Now.ToString("yyyyMMdd") + ".xls";
+            s = System.IO.File.ReadAllLines("appsettings.json");
         }
 
     }
