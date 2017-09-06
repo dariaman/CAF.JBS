@@ -16,20 +16,16 @@ namespace CAF.JBS.Data
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
-            builder.Entity<IdentityUser>().ToTable("aspnetusers");
+            builder.Entity<ApplicationUser>().ToTable("aspnetusers");
             builder.Entity<IdentityRole>().ToTable("aspnetroles");
-            //builder.Entity<IdentityUserRole>().ToTable("Users", "dbo").Property(p => p.Id).HasColumnName("User_Id");
 
-            //builder.Entity<Microsoft.AspNetCore.Identity.EntityFrameworkCore.IdentityUserRole>().ToTable("AspNetUsers");
-            //builder.Entity<IdentityUser>().ToTable("AspNetUsers");
-            //builder.Entity<IdentityUser>().ToTable("AspNetUsers");
-            //builder.Entity<IdentityUser>().ToTable("AspNetUsers");
+            builder.Entity<IdentityUserRole<string>>().ToTable("aspnetuserroles");
+            builder.Entity<IdentityUserClaim<string>>().ToTable("aspnetuserclaims");
+            builder.Entity<IdentityUserLogin<string>>().ToTable("aspnetuserlogins");
 
-            //builder.Entity<ApplicationUser>().ToTable("User");
-            //builder.Entity<IdentityRole>().ToTable("Role");
-            //builder.Entity<Microsoft.AspNetCore.Identity.EntityFrameworkCore.IdentityUserRole>().ToTable("UserRole");
-            //builder.Entity<Microsoft.AspNetCore.Identity.EntityFrameworkCore.IdentityUserClaim>().ToTable("UserClaim");
-            //builder.Entity<Microsoft.AspNetCore.Identity.EntityFrameworkCore.IdentityUserLogin>().ToTable("UserLogin");
+            builder.Entity<IdentityRoleClaim<string>>().ToTable("aspnetroleclaims");
+            builder.Entity<IdentityUserToken<string>>().ToTable("aspnetusertokens");
+
         }
 
     }
