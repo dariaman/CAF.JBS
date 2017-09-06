@@ -17,7 +17,6 @@ using CAF.JBS.Services;
 using NonFactors.Mvc.Grid;
 using System.Reflection;
 using MySQL.Data.Entity.Extensions;
-using CAF.JBS.Auth;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.Authorization;
 
@@ -48,11 +47,6 @@ namespace CAF.JBS
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.Configure<LdapConfig>(Configuration.GetSection("ldap"));
-            services.AddScoped<IAuthenticationService, LdapAuthenticationService>();
-            // Add framework services.
-            //services.AddApplicationInsightsTelemetry(Configuration);
-
             services.AddDbContext<JbsDbContext>(options => options.UseMySQL(Configuration.GetConnectionString("jbsDB")));
             services.AddDbContext<Life21DbContext>(options => options.UseMySQL(Configuration.GetConnectionString("life21")));
             services.AddDbContext<Life21pDbContext>(options => options.UseMySQL(Configuration.GetConnectionString("life21p")));
