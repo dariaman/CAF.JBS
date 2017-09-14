@@ -21,6 +21,8 @@ namespace CAF.JBS.Controllers
             List<BillingSumMonthlyVM> bs ;
             bs = (from bl in _jbsDB.BillingSumMonthly
                   join td in _jbsDB.TrancodeDashboard on bl.TranCode equals td.TranCode
+                  where bl.Periode==periode
+                  orderby bl.TranCode
                   select new BillingSumMonthlyVM()
                   {
                       DashName = td.DashName,
@@ -32,7 +34,7 @@ namespace CAF.JBS.Controllers
                       TotalCount = bl.TotalCount,
                       TotalAmount = bl.TotalAmount,
                       DateUpdate = bl.DateUpdate == null ? bl.DateCrt : bl.DateUpdate
-                  }).Where(z => z.Periode == periode).ToList();
+                  }).ToList();
             return View(bs);
         }
 

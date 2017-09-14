@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace CAF.JBS.Models
 {
-    [Table("billing")]
+    [Table("policy_billing")]
     public class PolicyBillingModel
     {
         [Key]
@@ -22,7 +22,7 @@ namespace CAF.JBS.Models
         public Nullable<DateTime> Policy_status_dateupdate { get; set; }
         public Boolean IsHoldBilling { get; set; }
         public string UserCrt { get; set; }
-        public DateTime DateCrt { get; set; }
+        public DateTime? DateCrt { get; set; }
         public string UserUpdate { get; set; }
         public Nullable<DateTime> DateUpdate { get; set; }
     }
