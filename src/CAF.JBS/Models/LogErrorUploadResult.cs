@@ -15,6 +15,6 @@ namespace CAF.JBS.Models
         public int line { get; set; }
         public string FileName { get; set; }
         public string exceptionApp { get; set; }
-        public DateTime DateCrt { get; set; }
+        public DateTime? DateCrt { get; set; }
     }
 }

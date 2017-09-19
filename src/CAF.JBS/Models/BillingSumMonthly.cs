@@ -21,7 +21,7 @@ namespace CAF.JBS.Models
         public Decimal UnPaidAmount { get; set; }
         public int TotalCount { get; set; }
         public Decimal TotalAmount { get; set; }
-        public DateTime DateCrt { get; set; }
+        public DateTime? DateCrt { get; set; }
         public DateTime? DateUpdate { get; set; }
     }
 }

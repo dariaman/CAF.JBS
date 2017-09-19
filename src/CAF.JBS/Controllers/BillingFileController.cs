@@ -1089,7 +1089,7 @@ namespace CAF.JBS.Controllers
                     case "bcaac":
                         lst.BankidPaid = 1;
                         lst.PaymentSource = "AC";
-                        Rcpt.bank_acc_id = 2;
+                        Rcpt.bank_acc_id = 1;
                         break;
                     case "mandiriac":
                         lst.BankidPaid = 2;
@@ -1100,7 +1100,7 @@ namespace CAF.JBS.Controllers
                     case "varealtime":
                     case "vadaily":
                         lst.BankidPaid = 1;
-                        Rcpt.bank_acc_id = 2;
+                        Rcpt.bank_acc_id = 3;
                         lst.PaymentSource = "VA";
                         break;
                 }
@@ -2110,7 +2110,6 @@ namespace CAF.JBS.Controllers
                 cm.CommandText = @"UPDATE `billing` SET `IsDownload`=0,
                                         `IsClosed`=1,
                                         `status_billing`=@statusBil,
-                                        `BillingDate`=@tglPaid,
                                         `PaymentSource`=@PaymentSource,
                                         `LastUploadDate`=@tgl,
                                         `BankIdPaid`=@bankid,

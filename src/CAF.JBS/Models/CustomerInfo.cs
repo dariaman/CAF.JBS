@@ -18,8 +18,8 @@ namespace CAF.JBS.Models
         public string Phone { get; set; }
         public string Email { get; set; }
         public string UserCrt { get; set; }
-        public DateTime DateCrt { get; set; }
+        public DateTime? DateCrt { get; set; }
         public string UserUpdate { get; set; }
-        public DateTime DateUpdate { get; set; }
+        public DateTime? DateUpdate { get; set; }
     }
 }

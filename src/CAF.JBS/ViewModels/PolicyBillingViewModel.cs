@@ -41,7 +41,7 @@ namespace CAF.JBS.ViewModels
         public int cycleDate { get; set; }
         public Nullable<DateTime> Policy_status_dateupdate { get; set; }
         public string UserCrt { get; set; }
-        public DateTime DateCrt { get; set; }
+        public DateTime? DateCrt { get; set; }
         public string UserUpdate { get; set; }
         public Nullable<DateTime> DateUpdate { get; set; }
     }
