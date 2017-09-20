@@ -69,7 +69,7 @@ namespace CAF.JBS.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult MonthlyBilling(ReportViewModel rpt)
         {
-            return MonthlyBilling(rpt.thn+rpt.bln);
+            return MonthlyBilling(rpt.thn + rpt.bln);
             //var fileName = "MonthlyBilling" + DateTime.Now.ToString("yyyyMMdd") + ".xlsx";
             //return RedirectToAction("Index");
         }
@@ -243,6 +243,9 @@ namespace CAF.JBS.Controllers
                         sheet.Cells[1, 20].Value = result.GetName(19);
                         sheet.Cells[1, 21].Value = result.GetName(20);
                         sheet.Cells[1, 22].Value = result.GetName(21);
+                        sheet.Cells[1, 23].Value = result.GetName(22);
+                        sheet.Cells[1, 24].Value = result.GetName(23);
+                        sheet.Cells[1, 25].Value = result.GetName(24);
 
                         var i = 2;
                         while (result.Read())
@@ -256,7 +259,7 @@ namespace CAF.JBS.Controllers
                             sheet.Cells[i, 7].Value = result[6];
                             sheet.Cells[i, 8].Value = result[7];
                             sheet.Cells[i, 9].Value = result[8];
-                            sheet.Cells[i,10].Value = result[9];
+                            sheet.Cells[i, 10].Value = result[9];
                             sheet.Cells[i, 11].Value = result[10];
                             sheet.Cells[i, 12].Value = result[11];
                             sheet.Cells[i, 13].Value = result[12];
@@ -269,6 +272,9 @@ namespace CAF.JBS.Controllers
                             sheet.Cells[i, 20].Value = result[19];
                             sheet.Cells[i, 21].Value = result[20];
                             sheet.Cells[i, 22].Value = result[21];
+                            sheet.Cells[i, 23].Value = result[22];
+                            sheet.Cells[i, 24].Value = result[23];
+                            sheet.Cells[i, 25].Value = result[24];
                             i++;
                         }
                         sheet.Column(1).AutoFit();
@@ -294,6 +300,8 @@ namespace CAF.JBS.Controllers
                         sheet.Column(21).AutoFit();
                         sheet.Column(22).AutoFit();
                         sheet.Column(23).AutoFit();
+                        sheet.Column(24).AutoFit();
+                        sheet.Column(25).AutoFit();
                     }
                 }
                 catch (Exception ex)
