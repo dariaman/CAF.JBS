@@ -1019,9 +1019,9 @@ namespace CAF.JBS.Controllers
             cmdT.CommandType = CommandType.Text;
             // Data yang diproses semua billing recurring (BillCode=B)
             // dan semua billing Other dan quote yang billingnya ditemukan
-            cmdT.CommandText = @"SELECT * FROM `stagingupload` su WHERE su.`BillCode`='B' AND su.`trancode`=@trcode
+            cmdT.CommandText = @"SELECT * FROM `stagingupload` su WHERE su.`BillCode`='B' AND su.`IsSuccess`=1 AND su.`trancode`=@trcode
                             UNION ALL
-                            SELECT * FROM `stagingupload` su WHERE su.`BillCode`<>'B' AND su.`Billid` IS NOT NULL AND su.`trancode`=@trcode;";
+                            SELECT * FROM `stagingupload` su WHERE su.`IsSuccess`=1 AND su.`BillCode`<>'B' AND su.`Billid` IS NOT NULL AND su.`trancode`=@trcode;";
             cmdT.Parameters.Add(new MySqlParameter("@trcode", MySqlDbType.VarChar) { Value = SubmitUpload.trancode });
             try
             {
@@ -1062,9 +1062,9 @@ namespace CAF.JBS.Controllers
             }
 
             /// Transaction===============================================================================
-            var cmdx = _jbsDB.Database; cmdx.SetCommandTimeout(60); // jbs
-            var cmdx2 = _life21.Database; cmdx2.SetCommandTimeout(60); // life21
-            var cmdx3 = _life21p.Database; cmdx3.SetCommandTimeout(60); //life21p
+            var cmdx = _jbsDB.Database;
+            var cmdx2 = _life21.Database;
+            var cmdx3 = _life21p.Database;
 
             var cmd = cmdx.GetDbConnection().CreateCommand(); // jbs
             var cmd2 = cmdx2.GetDbConnection().CreateCommand(); // life21
@@ -1077,6 +1077,10 @@ namespace CAF.JBS.Controllers
             //BillingOthersVM bom;
             foreach (var lst in StagingUploadx)
             {
+                cmdx.SetCommandTimeout(0); // jbs
+                cmdx2.SetCommandTimeout(0); // life21
+                cmdx3.SetCommandTimeout(0); //life21p
+
                 Rcpt = new Receipt();
                 lst.TglSkrg = tglSekarang;
                 lst.PaymentSource = "CC";
@@ -1353,7 +1357,32 @@ namespace CAF.JBS.Controllers
                     cmdx3.CloseConnection();
                 }
 
-            } // end foreach (var lst in StagingUploadx)
+            } // end foreach (var lst in StagingUploadx) 
+
+            // setelah selesai looping transaksi approve, buka flag download yang reject
+            cmdT.CommandType = CommandType.StoredProcedure;
+            cmdT.CommandText = @"mapping_billing_reject";
+            cmdT.Parameters.Clear();
+            try
+            {
+                cmdT.Connection.Open();
+                cmdT.ExecuteNonQuery();
+
+                cmdT.CommandText = @"Recurring_Reject";
+                cmdT.Parameters.Clear();
+                cmdT.Parameters.Add(new MySqlParameter("@trancode", MySqlDbType.VarChar) { Value = SubmitUpload.trancode });
+                cmdT.ExecuteNonQuery();
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+            finally
+            {
+                cmdT.Connection.Close();
+            }
+
+
             hitungUlang();
             PindahFileDownload(SubmitUpload.trancode);
 
@@ -1422,9 +1451,13 @@ namespace CAF.JBS.Controllers
                         st.ACCname = tmp.Substring(65, 26).Trim();
                         if (!Decimal.TryParse(tmp.Substring(54, 9), out fileamount)) continue;
                         st.amount = fileamount;
-                        st.Description = tmp.Substring(tmp.Length - 8).Substring(0, 6);
-                        st.ApprovalCode = tmp.Substring(tmp.Length - 2);
-                        if (st.ApprovalCode == "00") st.IsSuccess = true;
+                        st.Description = tmp.Substring(tmp.Length - 2);
+                        st.ApprovalCode = st.Description;
+                        if (st.Description == "00")
+                        {
+                            st.ApprovalCode = tmp.Substring(tmp.Length - 8).Substring(0,6);
+                            st.IsSuccess = true;
+                        }
 
                         if (st.polisNo.Substring(0, 1) == "A") st.BillCode = "A";
                         else if (st.polisNo.Substring(0, 1) == "X")
@@ -1455,14 +1488,16 @@ namespace CAF.JBS.Controllers
                     else if (UploadBill.TranCode == "mandiriac")
                     {
                         var panjang = tmp.Length;
-                        if (panjang < 820) continue;
+                        if (panjang < 720) continue;
 
                         st.polisNo = tmp.Substring(590, 40).Trim();
                         if (!Decimal.TryParse(tmp.Substring(634, 40), out fileamount)) continue;
                         st.amount = fileamount;
                         st.ApprovalCode = tmp.Substring(674, 46).Trim();
-                        st.Description = tmp.Substring(720, 100).Trim();
+
                         st.IsSuccess = (st.ApprovalCode.ToLower() == "success") ? true : false;
+                        if (!st.IsSuccess) st.Description = tmp.Substring(720, 100).Trim();
+
                         //temp.Split('-').Last().Trim();
                         var acc = tmp.Substring(306, 244).Trim().Split('/');
                         if (acc.Length < 2) continue;
@@ -2127,11 +2162,10 @@ namespace CAF.JBS.Controllers
             /// update billing jadi closed 
             /// untuk payment sukses aja
             cm.Parameters.Clear();
-            //if ((bm.trancode == "varealtime") || (bm.trancode == "vadaily"))
-            //{
             cm.CommandType = CommandType.Text;
             cm.CommandText = @"UPDATE `billing` SET `IsDownload`=0,
                                         `IsClosed`=1,
+                                        `BillingDate`=COALESCE(`BillingDate`,@tgl),
                                         `status_billing`=@statusBil,
                                         `PaymentSource`=@PaymentSource,
                                         `LastUploadDate`=@tgl,

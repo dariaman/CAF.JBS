@@ -246,6 +246,7 @@ namespace CAF.JBS.Controllers
                         sheet.Cells[1, 23].Value = result.GetName(22);
                         sheet.Cells[1, 24].Value = result.GetName(23);
                         sheet.Cells[1, 25].Value = result.GetName(24);
+                        sheet.Cells[1, 26].Value = result.GetName(25);
 
                         var i = 2;
                         while (result.Read())
@@ -275,6 +276,7 @@ namespace CAF.JBS.Controllers
                             sheet.Cells[i, 23].Value = result[22];
                             sheet.Cells[i, 24].Value = result[23];
                             sheet.Cells[i, 25].Value = result[24];
+                            sheet.Cells[i, 26].Value = result[25];
                             i++;
                         }
                         sheet.Column(1).AutoFit();
@@ -302,6 +304,7 @@ namespace CAF.JBS.Controllers
                         sheet.Column(23).AutoFit();
                         sheet.Column(24).AutoFit();
                         sheet.Column(25).AutoFit();
+                        sheet.Column(26).AutoFit();
                     }
                 }
                 catch (Exception ex)
