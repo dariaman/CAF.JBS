@@ -1,4 +1,4 @@
-@model CAF.JBS.ViewModels.DownloadBillingVM
+@model List<CAF.JBS.ViewModels.UploadResultIndexVM>
 
 @{
     ViewData["Title"] = "Upload Billing";
@@ -14,21 +14,44 @@
                 <table class="table table-bordered table-striped">
                     <thead>
                         <tr>
-                            <th style="width:250px;">Bank Collector</th>
+                            <th style="width:200px;">Bank Collector</th>
                             <th>File Billing</th>
                             <th>Tgl di Proses</th>
-                            <th></th>
+                            <th style="width:150px;"></th>
                         </tr>
                     </thead>
-                    <tr>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                    </tr>
+                    @for (int i = 0; i < Model.Count; i++)
+                    {
+                        <tr>
+                            <td>@Model[i].deskripsi</td>
+                            <td>@if (@Model[i].FileName != "")
+                            {
+                                @Html.ActionLink(@Model[i].FileName, "DownloadFile", new { fileName = @Model[i].FileName });
+
+                            }
+                            </td>
+                            <td>
+                                @if (@Model[i].tglProses != null)
+                                {
+                                    @Model[i].tglProses.Value.ToString("dddd, dd MMM yyyy")
+                                }
+                            </td>
+                            <td>
+                                @if ((@Model[i].billCountDwd > 0) && (@Model[i].FileName == ""))
+                                {
+                                    @Html.ActionLink("Upload", "UploadResult", new { id = @Model[i].id }, new { @class = "btn btn-success" })
+                                }
+                                @if (@Model[i].FileName != "")
+                                {
+                                    @Html.ActionLink("Remove", "RemoveFile", new { id = @Model[i].id }, new { @class = "btn btn-danger" })
+
+                                }
+                            </td>
+                        </tr>
+                    }
                 </table>
             </div>
-        </div>            
+        </div>
     </div>
 
 </form>

@@ -35,6 +35,7 @@ namespace CAF.JBS.Data
             builder.Entity<Quote>().ToTable("quote");
             builder.Entity<QuoteBilling>().ToTable("quote_billing");
             builder.Entity<BillingOtherModel>().ToTable("billing_others");
+            builder.Entity<FileNextProcessModel>().ToTable("FileNextProcess");
         }
 
         public DbSet<cctypeModel> cctypeModel { get; set; }
@@ -56,6 +57,7 @@ namespace CAF.JBS.Data
         public DbSet<Quote> Quote { get; set; }
         public DbSet<QuoteBilling> QuoteBilling { get; set; }
         public DbSet<BillingOtherModel> BillingOtherModel { get; set; }
+        public DbSet<FileNextProcessModel> FileNextProcessModel { get; set; }
         //public DbSet<LogErrorUploadResult> LogErrorUploadResult { get; set; }
     }
 }

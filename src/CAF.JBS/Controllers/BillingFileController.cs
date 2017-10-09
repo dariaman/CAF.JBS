@@ -1318,12 +1318,12 @@ namespace CAF.JBS.Controllers
                             }
                         }
                     }
-                    else // transaksi Gagal
-                    {
-                        if (string.IsNullOrEmpty(lst.BillingID.Trim())) continue;
-                        BukaFlagDownloadBilling(ref cmd, lst);
-                        if (lst.PaymentSource == "AC") InsertPolisHold(ref cmd, lst.BillCode, lst.polisNo, DateTime.Now.AddDays(15));
-                    }
+                    //else // transaksi Gagal
+                    //{
+                    //    if (string.IsNullOrEmpty(lst.BillingID.Trim())) continue;
+                    //    BukaFlagDownloadBilling(ref cmd, lst);
+                    //    if (lst.PaymentSource == "AC") InsertPolisHold(ref cmd, lst.BillCode, lst.polisNo, DateTime.Now.AddDays(15));
+                    //}
 
                     cmdx.CommitTransaction();
                     cmdx2.CommitTransaction();
@@ -1496,13 +1496,13 @@ namespace CAF.JBS.Controllers
                         st.ApprovalCode = tmp.Substring(674, 46).Trim();
 
                         st.IsSuccess = (st.ApprovalCode.ToLower() == "success") ? true : false;
-                        if (!st.IsSuccess) st.Description = tmp.Substring(720, 100).Trim();
+                        if (!st.IsSuccess) st.Description = tmp.Substring(720, tmp.Length- 720).Trim();
 
-                        //temp.Split('-').Last().Trim();
                         var acc = tmp.Substring(306, 244).Trim().Split('/');
-                        if (acc.Length < 2) continue;
-                        st.ACCno = acc[0].Trim();
-                        st.ACCname = acc[1].Replace("(IDR)", string.Empty).Trim();
+                        if (acc.Length == 2) {
+                            st.ACCno = acc[0].Trim();
+                            st.ACCname = acc[1].Replace("(IDR)", string.Empty).Trim();
+                        }                        
                         DateTime time;
                         if (!DateTime.TryParseExact(tmp.Substring(0, 19).Trim(), "yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture, DateTimeStyles.None, out time)) continue;
                         st.tgl = time;
@@ -2165,7 +2165,8 @@ namespace CAF.JBS.Controllers
             cm.CommandType = CommandType.Text;
             cm.CommandText = @"UPDATE `billing` SET `IsDownload`=0,
                                         `IsClosed`=1,
-                                        `BillingDate`=COALESCE(`BillingDate`,@tgl),
+                                        `BillingDate`=case when @PaymentSource in ('VA','AC') then @tgl 
+                                                            else COALESCE(`BillingDate`,@tgl) end,
                                         `status_billing`=@statusBil,
                                         `PaymentSource`=@PaymentSource,
                                         `LastUploadDate`=@tgl,
@@ -2668,7 +2669,7 @@ SELECT LAST_INSERT_ID();";
             using (var client = new SmtpClient())
             {
                 //client.LocalDomain = "some.domain.com";
-                await client.ConnectAsync("mail.jagadiri.co.id", 25, SecureSocketOptions.None).ConfigureAwait(false);
+                await client.ConnectAsync("mail.caf.co.id", 25, SecureSocketOptions.None).ConfigureAwait(false);
                 await client.SendAsync(emailMessage).ConfigureAwait(false);
                 await client.DisconnectAsync(true).ConfigureAwait(false);
             }
@@ -2694,7 +2695,7 @@ SELECT LAST_INSERT_ID();";
             using (var client = new SmtpClient())
             {
                 //client.LocalDomain = "some.domain.com";
-                await client.ConnectAsync("mail.jagadiri.co.id", 25, SecureSocketOptions.None).ConfigureAwait(false);
+                await client.ConnectAsync("mail.caf.co.id", 25, SecureSocketOptions.None).ConfigureAwait(false);
                 await client.SendAsync(emailMessage).ConfigureAwait(false);
                 await client.DisconnectAsync(true).ConfigureAwait(false);
             }
@@ -2735,7 +2736,7 @@ SELECT LAST_INSERT_ID();";
             var emailQ = await (from qb in _jbsDB.QuoteBilling
                                 join q in _jbsDB.Quote on qb.quote_id equals q.quote_id
                                 join pd in _jbsDB.Product on qb.product_id equals pd.product_id
-                                where q.quote_id == Quoteid
+                                where qb.quote_id == Quoteid
                                 select new EmailThanksQuoteVM()
                                 {
                                     QuoteID = q.quote_id,
@@ -2751,8 +2752,8 @@ SELECT LAST_INSERT_ID();";
                                     Insured = q.sum_insured,
                                     DurasiTahun = q.duration,
                                     DurasiHari = q.duration_days,
-                                    PremiAmount = q.regular_premium + q.single_premium,
-                                    CetakPolisAmount = q.paper_print_fee,
+                                    PremiAmount = qb.prospect_amount,
+                                    CetakPolisAmount = qb.paper_print_fee,
                                     FrekuensiBayar = (q.premium_mode == 0 ? "Sekaligus" : (q.premium_mode == 1 ? "Bulanan" : (q.premium_mode == 3 ? "Triwulanan" : (q.premium_mode == 6 ? "Semesteran" : (q.premium_mode == 12 ? "Tahunan" : "-"))))),
                                     PaymentMeth = q.payment_method,
                                     PaymentAmount = jlhBayar
@@ -2761,9 +2762,9 @@ SELECT LAST_INSERT_ID();";
 
             string SubjectEmail = string.Format(@"JAGADIRI: Nomor Quotation: {0} TERBAYAR", emailQ.RefNo);
             string cetakPolis = "";
-            if (emailQ.CetakPolisAmount == null)
+            if ((emailQ.CetakPolisAmount != null) && (emailQ.CetakPolisAmount > 0)) { 
                 cetakPolis = string.Format(@"<tr><td>Biaya Cetak Polis</td>  <td>: IDR {0}</td></tr>", Convert.ToDecimal(emailQ.CetakPolisAmount).ToString("#,###"));
-
+            }
             string BodyMessage = string.Format(@"Dengan Hormat {0} {1},
 <p style='text-align:justify'>Terima kasih atas Pembayaran Asuransi Anda. Permohonan Asuransi Anda akan segera kami proses dan kami akan informasikan Anda kembali via email </p>
 <table>

@@ -15,5 +15,9 @@ namespace CAF.JBS.Models
         public int quote_id { get; set; }
         public int product_id { get; set; }
         public string ref_no { get; set; }
+        public Decimal prospect_amount { get; set; }
+        public Decimal paper_print_fee { get; set; }
+        public Decimal cashless_fee { get; set; }
+        public Decimal TotalAmount { get; set; }
     }
 }

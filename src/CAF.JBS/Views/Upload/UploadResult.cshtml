@@ -1,0 +1,36 @@
+@model CAF.JBS.ViewModels.UploadResultSubmitVM
+
+@{
+    //ViewData["Title"] = "Upload " + @Model.Description;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div asp-validation-summary="ModelOnly" class="text-danger"></div>
+<form asp-action="UploadResult" enctype="multipart/form-data">
+    <input type="hidden" asp-for="id" />
+
+    <div class="container" style="margin: auto; padding: 20px;">
+        <div class="panel panel-primary" style="margin: auto;width:700px;">
+            <div class="panel-heading"><b>Upload Result @Model.deskripsi</b></div>  
+            <div class="panel-body">
+                <label asp-for="tglProses" class="col-md-2 control-label">Tgl Proses</label>
+                <div class="col-md-10">
+                    <input type="date" asp-for="tglProses" class="form-control" accept=".xlsx, .txt" />
+                    <span asp-validation-for="tglProses" class="text-danger"></span>
+                </div>
+                <div class="col-md-12"></div>
+
+                <label asp-for="FileName" class="col-md-2 control-label">File Result</label>
+                <div class="col-md-10">
+                    <input type="file" asp-for="FileName" class="form-control" accept=".xlsx, .txt" />
+                    <span asp-validation-for="FileName" class="text-danger"></span>
+                </div>
+                </div>
+
+            <div class="panel-footer" style="margin: auto; text-align:center; padding: 10px;">
+                <input type="submit" value="Upload" class="btn btn-success" />
+                <input type="button" value="Back" class="btn btn-primary" onclick="location.href='@Url.Action("Index")'" />
+            </div>
+        </div>            
+    </div>
+</form>
