@@ -23,7 +23,7 @@ namespace CAF.JBS.Controllers
         {
             _context = context;
             filesettings = new FileSettings();
-            FileResult = filesettings.Result;
+            FileResult = filesettings.UploadSchedule;
         }
 
         public IActionResult Index()

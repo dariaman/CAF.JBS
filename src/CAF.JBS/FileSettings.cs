@@ -14,6 +14,7 @@ namespace CAF.JBS
         public  string BackupBilling { get; private set; }
         public  string Result { get; private set; }
         public  string BackupResult { get; private set; }
+        public string UploadSchedule { get; private set; }
         public  string Template { get; private set; }
         public  string TempBNIcc { get; private set; }
         public  string TempMandiriCC { get; private set; }
@@ -48,6 +49,7 @@ namespace CAF.JBS
             BackupBilling = Configuration.GetValue<string>("FileSetting:BackupBilling");
             Result = Configuration.GetValue<string>("FileSetting:Result");
             BackupResult = Configuration.GetValue<string>("FileSetting:BackupResult");
+            UploadSchedule = Configuration.GetValue<string>("FileSetting:UploadSchedule");
             Template = Configuration.GetValue<string>("FileSetting:TemplateFile");
 
             TempBNIcc = Configuration.GetValue<string>("FileSetting:TemplateBNIcc");
