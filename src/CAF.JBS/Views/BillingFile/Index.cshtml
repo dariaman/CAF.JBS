@@ -372,15 +372,8 @@
         <h4>Virtual Account</h4>
         <table class="table table-bordered table-striped">
             <tr>
-                <td style="width:250px;"> <input type="checkbox" asp-for="BcaRegularPremium" /> BCA Reguler Premium (VA) </td>
-                <td>
-                    <b>
-                        @{ if (ViewBag.VA != null)
-                            {
-                                @Html.ActionLink((string)ViewBag.VA, "DownloadFile", new { fileName = ViewBag.VA });
-                            }
-                        }
-                    </b>
+                <td style="width:250px;">BCA Reguler Premium (VA) </td>
+                <td><b>@Html.ActionLink("Download Data VA", "DownloadVA")</b>
                 </td>
                 <td style="width:250px;">@Html.ActionLink("Realtime Result", "UploadResult", new { TranCode = "varealtime" }, new { @class = "btn btn-danger" })
                     @Html.ActionLink("Daily Result", "UploadResult", new { TranCode = "vadaily" }, new { @class = "btn btn-primary" })
@@ -391,8 +384,6 @@
 
             <div class="panel-footer" style="margin: auto; text-align:center; padding: 10px;">
                 <input type="submit" value="Create File" class="btn btn-success" />
-                @*<input type="button" value="Recalculate" class="btn btn-primary" onclick="location.href='@Url.Action("Recalculate", "BillingFile")'" />*@
-                @*<input type="button" value="Reset Data Billing" class="btn btn-danger" onclick="location.href='@Url.Action("reset", "BillingFile")'" />*@
             </div>
         </div>            
     </div>

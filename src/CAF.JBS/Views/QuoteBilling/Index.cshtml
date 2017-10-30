@@ -1,0 +1,46 @@
+@model IEnumerable<CAF.JBS.ViewModels.QuoteBillingVM>
+@using NonFactors.Mvc.Grid;
+
+@{
+    ViewData["Title"] = "Quote";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<style>
+    .kanan {
+        text-align:right;
+    }
+    .tengah {
+        text-align:center;
+    }
+    .date {
+        min-width:100px;
+        text-align:center;
+    }
+</style>
+<h2>Quote</h2>
+
+@(Html
+    .Grid(Model)
+    .Build(columns =>
+    {
+        columns.Add(model => model.quote_id).Titled("QuoteID");
+        columns.Add(model => model.ref_no).Titled("QuoteNo");
+        columns.Add(model => model.CustomerName).Titled("CustomerName");
+        columns.Add(model => model.prospect_amount).Titled("ProspectAmount").Formatted("{0:#,###}").Css("kanan").Filterable(false);
+        columns.Add(model => model.paper_print_fee).Titled("PaperPrintFee").Formatted("{0:#,###}").Css("kanan").Filterable(false);
+        columns.Add(model => model.cashless_fee).Titled("CashlessFee").Formatted("{0:#,###}").Css("kanan").Filterable(false);
+        columns.Add(model => model.cancel_date).Titled("CancelDate").Formatted("{0:dd-MM-yyyy}").Css("date").Filterable(false);
+        columns.Add(model => model.status).Titled("status").Css("tengah").Filterable(false);
+        columns.Add(model => model.paid_dt).Titled("PaidDate").Formatted("{0:dd-MM-yyyy}").Css("date").Filterable(false);
+        columns.Add(model => model.DateCrt).Titled("DateCrt").Formatted("{0:dd-MM-yyyy}").Css("date").Filterable(false);
+        columns.Add(model => model.LastUploadDate).Titled("UploadDate").Formatted("{0:dd-MM-yyyy}").Css("date").Filterable(false);
+    }).Empty("No data found")
+    .Pageable(pager =>
+    {
+        pager.PagesToDisplay = 10;
+        pager.RowsPerPage = 10;
+    })
+    .Sortable()
+    .Filterable()
+    .Css("table-hover")
+)

@@ -23,7 +23,7 @@ namespace CAF.JBS.Models
         public int BankID_Source { get; set; }
         public Boolean IsClosed { get; set; }
         public string status_billing { get; set; }
-        public DateTime? LastUploadDate { get; set; }
+        
         public string UserUpload { get; set; }
         public string PaymentSource { get; set; }
         public int? BankIdPaid { get; set; }
@@ -36,5 +36,7 @@ namespace CAF.JBS.Models
         public string AccNo { get; set; }
         public string AccName { get; set; }
         public string cc_expiry { get; set; }
+        public DateTime? DateCrt { get; set; }
+        public DateTime? LastUploadDate { get; set; }
     }
 }

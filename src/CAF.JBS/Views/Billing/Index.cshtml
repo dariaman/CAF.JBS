@@ -2,34 +2,40 @@
 @using NonFactors.Mvc.Grid;
 
 @{
-    ViewData["Title"] = "Billing";
+    ViewData["Title"] = "Billing Recurring";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 <style>
-    .colDate {
-        width: 500px;
+    .kanan {
+        text-align:right;
+    }
+    .tengah {
+        text-align:center;
+    }
+    .date {
+        min-width:100px;
+        text-align:center;
     }
 </style>
-<h2>Billing</h2>
+<h2>Billing Recurring</h2>
 
 @(Html
     .Grid(Model)
     .Build(columns =>
     {
         columns.Add(model => model.BillingID).Titled("BillingID");
-        //columns.Add(model => model.policy_id).Titled("PolicyID");
+        columns.Add(model => model.policy_id).Titled("PolicyID");
         columns.Add(model => model.PolicyNo).Titled("PolicyNo");
-        columns.Add(model => model.recurring_seq).Titled("Seq");
-        columns.Add(model => model.BillingDate).Titled("BillingDate").Formatted("{0:dd-MM-yyyy}").Css("colDate");
-        columns.Add(model => model.due_dt_pre).Titled("Due Date Pre").Formatted("{0:dd-MM-yyyy}").Css("colDate");
-        columns.Add(model => model.PeriodeBilling).Titled("Periode");
-        //columns.Add(model => model.BillingType).Titled("BillingType");
-        columns.Add(model => model.policy_regular_premium).Titled("Premi");
-        columns.Add(model => model.IsDownload).Titled("IsDownload");
-        columns.Add(model => model.IsPending).Titled("IsPending");
-        columns.Add(model => model.IsClosed).Titled("IsClosed");
-        columns.Add(model => model.BankIdDownload).Titled("BankIdDownload");
-        columns.Add(model => model.ReceiptID).Titled("ReceiptID");
+        columns.Add(model => model.PayMeth).Titled("P.Method").Css("tengah");
+        columns.Add(model => model.recurring_seq).Titled("Seq").Filterable(false);
+        columns.Add(model => model.BillingDate).Titled("BillingDate").Formatted("{0:dd-MM-yyyy}").Css("tengah").Filterable(false);
+        columns.Add(model => model.due_dt_pre).Titled("DueDatePre").Formatted("{0:dd-MM-yyyy}").Css("tengah").Filterable(false);
+        columns.Add(model => model.policy_regular_premium).Titled("Premi").Formatted("{0:#,###}").Css("kanan").Filterable(false);
+        columns.Add(model => model.cashless_fee_amount).Titled("CashlessFee").Formatted("{0:#,###}").Css("kanan").Filterable(false);
+        columns.Add(model => model.status_billing).Titled("status").Css("tengah").Filterable(false);
+        columns.Add(model => model.cancel_date).Titled("CancelDate").Formatted("{0:dd-MM-yyyy}").Css("date").Filterable(false);
+        columns.Add(model => model.paid_date).Titled("PaidDate").Formatted("{0:dd-MM-yyyy}").Css("date").Filterable(false);
+        columns.Add(model => model.LastUploadDate).Titled("LastUploadDate").Formatted("{0:dd-MM-yyyy}").Css("date").Filterable(false);
     }).Empty("No data found")
     .Pageable(pager =>
     {

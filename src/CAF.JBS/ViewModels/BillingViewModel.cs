@@ -14,15 +14,17 @@ namespace CAF.JBS.ViewModels
         public int policy_id { get; set; }
         public string PolicyNo { get; set; }
         public int recurring_seq { get; set; }
-        public Nullable<DateTime> BillingDate { get; set; }
+        public DateTime? BillingDate { get; set; }
         public DateTime due_dt_pre { get; set; }
         public string PeriodeBilling { get; set; }
-        public string BillingType { get; set; }
+        public string PayMeth { get; set; }
         public Decimal policy_regular_premium { get; set; }
+        public Decimal? cashless_fee_amount { get; set; }
         public Decimal TotalAmount { get; set; }
         public string status_billing { get; set; }
-        public Nullable<DateTime> status_billing_dateUpdate { get; set; }
-        public Nullable<DateTime> paid_date { get; set; }
+        public DateTime? paid_date { get; set; }
+        public DateTime? cancel_date { get; set; }
+        public DateTime? LastUploadDate { get; set; }
         public bool IsDownload { get; set; }
         public bool IsPending { get; set; }
         public bool IsClosed { get; set; }

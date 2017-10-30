@@ -250,7 +250,7 @@ namespace CAF.JBS.Controllers
             }
             if (dw.MandiriAC) GenMandiriAcFile();
             if (dw.BcaAC) GenBcaAcFile();
-            if (dw.BcaRegularPremium) GenVA();
+            //if (dw.BcaRegularPremium) GenVA();
 
             if (dw.BcaCC || dw.MandiriCC || dw.MegaCC || dw.BniCC || dw.BcaAC || dw.MandiriAC)
             { // Jika ada aktifitas generate file tuk siap di download
@@ -678,30 +678,87 @@ namespace CAF.JBS.Controllers
         }
         #endregion
 
-        protected void GenVA()
+        //protected void GenVA()
+        //{
+
+        //    try
+        //    {
+        //        foreach (Process proc in Process.GetProcessesByName("JBSGenExcel")) { proc.Kill(); }
+        //    }
+        //    catch (Exception ex) { throw ex; }
+
+        //    try
+        //    {
+        //        var process = new Process();
+        //        process.StartInfo.FileName = GenerateXls;
+        //        process.StartInfo.Arguments = @" va /c";
+
+        //        process.EnableRaisingEvents = true;
+
+        //        process.StartInfo.UseShellExecute = false;
+        //        process.StartInfo.RedirectStandardOutput = true;
+
+        //        process.Start();
+        //        process.WaitForExit();
+        //    }
+        //    catch (Exception ex) { throw ex; }
+        //}
+
+        public FileStreamResult DownloadVA()
         {
-
-            try
+            string[] files = Directory.GetFiles(DirResult, "VARegulerPremi*.xlsx", SearchOption.TopDirectoryOnly);
+            foreach (string file in files)
             {
-                foreach (Process proc in Process.GetProcessesByName("JBSGenExcel")) { proc.Kill(); }
+                FileInfo FileName = new FileInfo(file);
+                if (FileName.Exists) System.IO.File.Delete(FileName.ToString());
             }
-            catch (Exception ex) { throw ex; }
+            var fileName = "VARegulerPremi" + DateTime.Now.ToString("yyyyMMdd") + ".xlsx";
+            var fullePath = DirResult + fileName;
 
-            try
+            var cmd = _jbsDB.Database.GetDbConnection().CreateCommand();
+            cmd.Parameters.Clear();
+            cmd.CommandType = CommandType.StoredProcedure;
+            cmd.CommandText = @"GenVARegulerPremi_sp";
+
+            using (ExcelPackage package = new ExcelPackage(new FileInfo(fullePath)))
             {
-                var process = new Process();
-                process.StartInfo.FileName = GenerateXls;
-                process.StartInfo.Arguments = @" va /c";
+                var sheet = package.Workbook.Worksheets.Add("sheet1");
 
-                process.EnableRaisingEvents = true;
+                try
+                {
+                    cmd.Connection.Open();
+                    using (var result = cmd.ExecuteReader())
+                    {
+                        sheet.Cells[1, 1].Value = "No Polis";
+                        sheet.Cells[1, 2].Value = "Pemegang Polis";
+                        sheet.Cells[1, 3].Value = "Premi";
 
-                process.StartInfo.UseShellExecute = false;
-                process.StartInfo.RedirectStandardOutput = true;
-
-                process.Start();
-                process.WaitForExit();
+                        var i = 2;
+                        while (result.Read())
+                        {
+                            sheet.Cells[i, 1].Value = result[0].ToString();
+                            sheet.Cells[i, 2].Value = result[1].ToString();
+                            sheet.Cells[i, 3].Value = result[2].ToString();
+                            i++;
+                        }
+                        sheet.Column(1).AutoFit();
+                        sheet.Column(2).AutoFit();
+                        sheet.Column(3).AutoFit();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    throw ex;
+                }
+                finally
+                {
+                    cmd.Dispose();
+                    cmd.Connection.Close();
+                }
+                package.Save();
             }
-            catch (Exception ex) { throw ex; }
+            var mimeType = "application/vnd.ms-excel";
+            return File(new FileStream(fullePath, FileMode.Open), mimeType, fileName);
         }
 
         public ActionResult Recalculate()
@@ -1174,7 +1231,7 @@ namespace CAF.JBS.Controllers
                         if ((lst.BillCode != "B") && (lst.BillingID == string.Empty)) throw new Exception("Submit Upload (PolisNo " + lst.polisNo + ")==>> Billcode null");
                         if (lst.BillCode == "Q")
                         { // untuk Billing Quote 
-                            UpdateQuote(ref cmd3, tglSekarang, lst.BankidPaid, Convert.ToInt32(lst.BillingID));
+                            UpdateQuote(ref cmd3, tglSekarang, lst.BankidPaid, Convert.ToInt32(lst.BillingID), lst.PaymentSource);
                             UpdateBillingQuoteJBS(ref cmd, lst);
                             await AsyncSendEmailThanksQuote(Convert.ToInt32(lst.BillingID), lst.amount);
                         }
@@ -2054,7 +2111,7 @@ namespace CAF.JBS.Controllers
             }
         }
 
-        private void UpdateQuote(ref System.Data.Common.DbCommand cm, DateTime tgl, int bankID, int QuoteID)
+        private void UpdateQuote(ref System.Data.Common.DbCommand cm, DateTime tgl, int bankID, int QuoteID, string PaymentSource)
         { // Update Quote di Life21P
             try
             {
@@ -2069,22 +2126,24 @@ namespace CAF.JBS.Controllers
 
                 cm.Parameters.Clear();
                 cm.CommandText = @"UPDATE `prospect_billing`
-                                        SET prospect_convert_flag=2,prospect_appr_code='UP4Y1',
+                                        SET prospect_convert_flag=2,prospect_appr_code=@appCode,
                                         updated_dt=@tgl,
                                         acquirer_bank_id=@bankid
                                         WHERE `quote_id`=@quoteID;";
                 cm.Parameters.Add(new MySqlParameter("@tgl", MySqlDbType.DateTime) { Value = tgl });
                 cm.Parameters.Add(new MySqlParameter("@bankid", MySqlDbType.Int32) { Value = bankID });
                 cm.Parameters.Add(new MySqlParameter("@quoteID", MySqlDbType.Int32) { Value = QuoteID });
+                cm.Parameters.Add(new MySqlParameter("@appCode", MySqlDbType.VarChar) { Value = (PaymentSource=="VA" ? "VA" : "UP4Y1") });
                 cm.ExecuteNonQuery();
 
                 cm.Parameters.Clear();
                 cm.CommandText = @"UPDATE `quote_edc`
                                         SET status_id=1,
                                         reason='',
-                                        appr_code='UP4Y1'
+                                        appr_code=@appCode
                                         WHERE `quote_id`=@quoteID;";
                 cm.Parameters.Add(new MySqlParameter("@quoteID", MySqlDbType.Int32) { Value = QuoteID });
+                cm.Parameters.Add(new MySqlParameter("@appCode", MySqlDbType.VarChar) { Value = (PaymentSource == "VA" ? "VA" : "UP4Y1") });
                 cm.ExecuteNonQuery();
             }
             catch (Exception ex)
@@ -2102,15 +2161,18 @@ namespace CAF.JBS.Controllers
 			                                            `status`='P',
                                                         `PaymentSource`=@PaymentSource,
                                                         `PaidAmount`=@PaidAmount,
+                                                        paid_dt=@tglPaid,
                                                         BankIdPaid=@bankid,
 			                                            `LastUploadDate`=@tgl,
-			                                            `PaymentTransactionID`=@uid,UserUpload=@user
+			                                            `PaymentTransactionID`=@uid,
+                                                        UserUpload=@user
 		                                            WHERE `quote_id`=@idBill;";
             cm.Parameters.Add(new MySqlParameter("@PaymentSource", MySqlDbType.VarChar) { Value = bm.PaymentSource });
             cm.Parameters.Add(new MySqlParameter("@idBill", MySqlDbType.Int32) { Value = Convert.ToInt32(bm.BillingID) });
             cm.Parameters.Add(new MySqlParameter("@PaidAmount", MySqlDbType.Decimal) { Value = bm.amount });
             cm.Parameters.Add(new MySqlParameter("@bankid", MySqlDbType.Int32) { Value = bm.BankidPaid });
             cm.Parameters.Add(new MySqlParameter("@tgl", MySqlDbType.DateTime) { Value = bm.TglSkrg });
+            cm.Parameters.Add(new MySqlParameter("@tglPaid", MySqlDbType.DateTime) { Value = bm.tgl });
             cm.Parameters.Add(new MySqlParameter("@uid", MySqlDbType.Int32) { Value = bm.PaymentTransactionID });
             cm.Parameters.Add(new MySqlParameter("@user", MySqlDbType.VarChar) { Value = User.Identity.Name });
             try
@@ -2133,6 +2195,7 @@ namespace CAF.JBS.Controllers
                                                         `PaymentSource`=@PaymentSource,
 			                                            `LastUploadDate`=@tgl,
                                                         BankIdPaid=@bankid,
+                                                        paid_date=@tglPaid,
                                                         `PaidAmount`=@PaidAmount,
                                                         Life21TranID=@TransactionID,
 			                                            `ReceiptOtherID`=@receiptID,
@@ -2141,6 +2204,7 @@ namespace CAF.JBS.Controllers
             cm.Parameters.Add(new MySqlParameter("@idBill", MySqlDbType.VarChar) { Value = bm.BillingID });
             cm.Parameters.Add(new MySqlParameter("@PaymentSource", MySqlDbType.VarChar) { Value = bm.PaymentSource });
             cm.Parameters.Add(new MySqlParameter("@tgl", MySqlDbType.DateTime) { Value = bm.TglSkrg });
+            cm.Parameters.Add(new MySqlParameter("@tglPaid", MySqlDbType.DateTime) { Value = bm.tgl });
             cm.Parameters.Add(new MySqlParameter("@PaidAmount", MySqlDbType.Decimal) { Value = bm.amount });
             cm.Parameters.Add(new MySqlParameter("@bankid", MySqlDbType.Int32) { Value = bm.BankidPaid });
             cm.Parameters.Add(new MySqlParameter("@TransactionID", MySqlDbType.Int32) { Value = bm.life21TranID });
@@ -2733,7 +2797,7 @@ SELECT LAST_INSERT_ID();";
         }
         public async Task AsyncSendEmailThanksQuote(int Quoteid, Decimal jlhBayar)
         {
-            var emailQ = await (from qb in _jbsDB.QuoteBilling
+            var emailQ = await (from qb in _jbsDB.QuoteBillingModel
                                 join q in _jbsDB.Quote on qb.quote_id equals q.quote_id
                                 join pd in _jbsDB.Product on qb.product_id equals pd.product_id
                                 where qb.quote_id == Quoteid
@@ -2787,7 +2851,7 @@ SELECT LAST_INSERT_ID();";
     <tr><td>Metode Pembayaran</td>      <td>: {14}</td></tr>
     <tr><td>Jumlah Pembayaran</td>      <td>: IDR {15}</td></tr>
     <tr><td>Status</td>                 <td>: TERDAFTAR</td></tr>
-<table>
+</table>
 <br><br>Sukses selalu,
 <br>JAGADIRI ", emailQ.Sapaan,
 emailQ.CustName.ToUpper(),

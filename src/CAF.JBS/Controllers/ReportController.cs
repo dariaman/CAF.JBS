@@ -194,7 +194,7 @@ namespace CAF.JBS.Controllers
         {
             // period = yyyyMM
             // kosongkan folder tmp
-            var files = Directory.GetFiles(tempFile);
+            string[] files = Directory.GetFiles(tempFile, "MonthlyBilling*.xlsx", SearchOption.TopDirectoryOnly);
             foreach (string file in files)
             {
                 FileInfo FileName = new FileInfo(file);
@@ -211,10 +211,7 @@ namespace CAF.JBS.Controllers
 
             using (ExcelPackage package = new ExcelPackage(new FileInfo(fullePath)))
             {
-                //var worksheet = package.Workbook.Worksheets.FirstOrDefault(x => x.Name == "Attempts");
-                //var ws = package.Workbook.Worksheets.Add("Sample1");
                 var sheet = package.Workbook.Worksheets.Add("sheet1");
-                //worksheet = package.Workbook.Worksheets.Add("Assessment Attempts");
 
                 try
                 {

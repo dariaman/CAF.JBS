@@ -1,0 +1,37 @@
+@model IEnumerable<CAF.JBS.ViewModels.RerateVM>
+@using NonFactors.Mvc.Grid;
+
+@{
+    ViewData["Title"] = "Rerate";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<style>
+    .kanan {
+        text-align:right;
+    }
+    .tengah {
+        text-align:center;
+    }
+</style>
+<h2>Rerate Premi</h2>
+<p align="right">
+    <input type="button" value="Download Data" class="btn btn-success" onclick="location.href='@Url.Action("Download", "Rerate")'" />
+</p>
+@(Html
+    .Grid(Model)
+    .Build(columns =>
+    {
+        columns.Add(model => model.policy_Id).Titled("PolicyID");
+        columns.Add(model => model.policy_No).Titled("PolicyNo");
+        columns.Add(model => model.history_date).Titled("HistoryDate").Formatted("{0:dd-MM-yyyy}");
+        columns.Add(model => model.premium_amount).Titled("PremiAmount").Formatted("{0:#,###}").Css("kanan");
+    }).Empty("No data found")
+    .Pageable(pager =>
+    {
+        pager.PagesToDisplay = 10;
+        pager.RowsPerPage = 10;
+    })
+    .Sortable()
+    .Filterable()
+    .Css("table-hover")
+)

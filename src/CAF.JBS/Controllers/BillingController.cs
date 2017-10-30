@@ -38,18 +38,23 @@ namespace CAF.JBS.Controllers
                     select new BillingViewModel()
                      {
                         BillingID=cd.BillingID,
-                        //policy_id=cd.policy_id,
-                        PolicyNo=bk.policy_no,
+                        policy_id = cd.policy_id,
+                        PolicyNo =bk.policy_no,
                         recurring_seq=cd.recurring_seq,
                         BillingDate=cd.BillingDate,
                         due_dt_pre = cd.due_dt_pre,
                         PeriodeBilling=cd.PeriodeBilling,
+                        PayMeth=bk.payment_method,
+                        cancel_date=cd.cancel_date,
+                        paid_date=cd.paid_date,
                         IsPending=cd.IsPending,
+                        cashless_fee_amount=cd.cashless_fee_amount,
                         policy_regular_premium=cd.TotalAmount,
                         status_billing=cd.status_billing,
                         IsDownload=cd.IsDownload,
                         BankIdDownload=cd.BankIdDownload,
-                        ReceiptID=cd.ReceiptID
+                        ReceiptID=cd.ReceiptID,
+                        LastUploadDate=cd.LastUploadDate
                      });
             return View(BillingView);
         }
