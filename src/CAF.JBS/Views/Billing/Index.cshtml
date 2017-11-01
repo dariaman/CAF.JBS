@@ -35,7 +35,7 @@
         columns.Add(model => model.status_billing).Titled("status").Css("tengah").Filterable(false);
         columns.Add(model => model.cancel_date).Titled("CancelDate").Formatted("{0:dd-MM-yyyy}").Css("date").Filterable(false);
         columns.Add(model => model.paid_date).Titled("PaidDate").Formatted("{0:dd-MM-yyyy}").Css("date").Filterable(false);
-        columns.Add(model => model.LastUploadDate).Titled("LastUploadDate").Formatted("{0:dd-MM-yyyy}").Css("date").Filterable(false);
+        columns.Add(model => model.LastUploadDate).Titled("UploadDate").Formatted("{0:dd-MM-yyyy}").Css("date").Filterable(false);
     }).Empty("No data found")
     .Pageable(pager =>
     {

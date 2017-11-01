@@ -49,7 +49,7 @@ namespace CAF.JBS.Controllers
                         paid_date=cd.paid_date,
                         IsPending=cd.IsPending,
                         cashless_fee_amount=cd.cashless_fee_amount,
-                        policy_regular_premium=cd.TotalAmount,
+                        policy_regular_premium=cd.policy_regular_premium,
                         status_billing=cd.status_billing,
                         IsDownload=cd.IsDownload,
                         BankIdDownload=cd.BankIdDownload,
