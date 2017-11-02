@@ -677,33 +677,7 @@ namespace CAF.JBS.Controllers
             }
         }
         #endregion
-
-        //protected void GenVA()
-        //{
-
-        //    try
-        //    {
-        //        foreach (Process proc in Process.GetProcessesByName("JBSGenExcel")) { proc.Kill(); }
-        //    }
-        //    catch (Exception ex) { throw ex; }
-
-        //    try
-        //    {
-        //        var process = new Process();
-        //        process.StartInfo.FileName = GenerateXls;
-        //        process.StartInfo.Arguments = @" va /c";
-
-        //        process.EnableRaisingEvents = true;
-
-        //        process.StartInfo.UseShellExecute = false;
-        //        process.StartInfo.RedirectStandardOutput = true;
-
-        //        process.Start();
-        //        process.WaitForExit();
-        //    }
-        //    catch (Exception ex) { throw ex; }
-        //}
-
+        
         public FileStreamResult DownloadVA()
         {
             string[] files = Directory.GetFiles(DirResult, "VARegulerPremi*.xlsx", SearchOption.TopDirectoryOnly);
@@ -1134,10 +1108,6 @@ namespace CAF.JBS.Controllers
             //BillingOthersVM bom;
             foreach (var lst in StagingUploadx)
             {
-                cmdx.SetCommandTimeout(0); // jbs
-                cmdx2.SetCommandTimeout(0); // life21
-                cmdx3.SetCommandTimeout(0); //life21p
-
                 Rcpt = new Receipt();
                 lst.TglSkrg = tglSekarang;
                 lst.PaymentSource = "CC";
@@ -2945,7 +2915,6 @@ EmailRefund.PolicyNo, EmailRefund.CustomerName, EmailRefund.ProductName, EmailRe
                 throw new Exception("AsyncSendEmailRefundCancelRecurring => (BillID = " + BillID + ") " + ex.Message);
             }
         }
-
         public ActionResult FileSetting()
         {
             FileStringVM fls = new FileStringVM();
@@ -2956,5 +2925,6 @@ EmailRefund.PolicyNo, EmailRefund.CustomerName, EmailRefund.ProductName, EmailRe
 
             return View(fls);
         }
+
     }
 }

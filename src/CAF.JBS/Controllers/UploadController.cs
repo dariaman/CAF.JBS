@@ -81,8 +81,8 @@ namespace CAF.JBS.Controllers
         public ActionResult UploadResult(int id, [Bind("tglProses,FileName")] UploadResultSubmitVM UploadFile)
         {
             var tgl = DateTime.Now.Date;
-            if (UploadFile.tglProses <= tgl)
-                ModelState.AddModelError("tglProses", " Tgl Proses harus mulai dari tanggal besok Atau setelahnya .... ");
+            if (UploadFile.tglProses < tgl)
+                ModelState.AddModelError("tglProses", " Tgl Proses harus mulai dari tanggal sekarang Atau setelahnya .... ");
 
             if (ModelState.IsValid)
             {
