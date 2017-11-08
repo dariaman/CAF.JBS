@@ -71,7 +71,7 @@ namespace CAF.JBS.Controllers
             var dataUpload = new UploadResultSubmitVM();
             dataUpload.id = up.id;
             dataUpload.deskripsi = up.deskripsi;
-            dataUpload.tglProses = DateTime.Now.AddDays(1).Date;
+            dataUpload.tglProses = DateTime.Now.Date;
 
             return View("UploadResult", dataUpload);
         }
