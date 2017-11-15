@@ -396,8 +396,7 @@ namespace CAF.JBS.Controllers
                                 }
                             }
                         }
-                    }
-                    UpdateDataFileBilling(2, FileName.Name);
+                    }                    
                 }
                 catch (Exception ex)
                 {
@@ -407,6 +406,15 @@ namespace CAF.JBS.Controllers
                 {
                     cmd.Dispose();
                     cmd.Connection.Close();
+                }
+
+                try
+                {
+                    UpdateDataFileBilling(2, FileName.Name);
+                }
+                catch (Exception ex)
+                {
+                    throw ex;
                 }
             }
         }
@@ -470,7 +478,6 @@ namespace CAF.JBS.Controllers
                             }
                         }
                     }
-                    UpdateDataFileBilling(4, FileName.Name);
                 }
                 catch (Exception ex)
                 {
@@ -480,6 +487,15 @@ namespace CAF.JBS.Controllers
                 {
                     cmd.Dispose();
                     cmd.Connection.Close();
+                }
+
+                try
+                {
+                    UpdateDataFileBilling(4, FileName.Name);
+                }
+                catch (Exception ex)
+                {
+                    throw ex;
                 }
             }
 
@@ -518,7 +534,6 @@ namespace CAF.JBS.Controllers
                             }
                         }
                     }
-                    UpdateDataFileBilling(5, FileName.Name);
                 }
                 catch (Exception ex)
                 {
@@ -528,6 +543,15 @@ namespace CAF.JBS.Controllers
                 {
                     cmd.Dispose();
                     cmd.Connection.Close();
+                }
+
+                try
+                {
+                    UpdateDataFileBilling(5, FileName.Name);
+                }
+                catch (Exception ex)
+                {
+                    throw ex;
                 }
             }
         }
@@ -572,7 +596,6 @@ namespace CAF.JBS.Controllers
                             }
                         }
                         package.Save();
-                        UpdateDataFileBilling(6, FileName.Name);
                     }
                     catch (Exception ex)
                     {
@@ -582,6 +605,15 @@ namespace CAF.JBS.Controllers
                     {
                         cmd.Dispose();
                         cmd.Connection.Close();
+                    }
+
+                    try
+                    {
+                        UpdateDataFileBilling(6, FileName.Name);
+                    }
+                    catch (Exception ex)
+                    {
+                        throw ex;
                     }
                 }
             }
@@ -860,7 +892,7 @@ namespace CAF.JBS.Controllers
 UPDATE `FileNextProcess` fl
 SET fl.`FileBilling`=@filename
 WHERE fl.`id`=@id";
-            cmd.Parameters.Add(new MySqlParameter("@filename", MySqlDbType.Int32) { Value = Filename });
+            cmd.Parameters.Add(new MySqlParameter("@filename", MySqlDbType.VarChar) { Value = Filename });
             cmd.Parameters.Add(new MySqlParameter("@id", MySqlDbType.Int32) { Value = id });
             try
             {
@@ -1268,6 +1300,7 @@ WHERE fl.`id`=@id";
                                     Rcpto.receipt_amount = bil.cashless_fee_amount;
                                     Rcpto.receipt_date = tglSekarang;
                                     Rcpto.bank_acc_id = Rcpt.bank_acc_id;
+                                    Rcpto.seq = lst.ReqSeq;
                                     Rcpto.receipt_source = lst.PaymentSource;
                                     Rcpto.type_id = 3; // untuk recurring type harus 3
                                     Rcpto.acquirer_bank_id = lst.BankidPaid;
