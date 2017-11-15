@@ -397,6 +397,7 @@ namespace CAF.JBS.Controllers
                             }
                         }
                     }
+                    UpdateDataFileBilling(2, FileName.Name);
                 }
                 catch (Exception ex)
                 {
@@ -469,6 +470,7 @@ namespace CAF.JBS.Controllers
                             }
                         }
                     }
+                    UpdateDataFileBilling(4, FileName.Name);
                 }
                 catch (Exception ex)
                 {
@@ -516,6 +518,7 @@ namespace CAF.JBS.Controllers
                             }
                         }
                     }
+                    UpdateDataFileBilling(5, FileName.Name);
                 }
                 catch (Exception ex)
                 {
@@ -569,6 +572,7 @@ namespace CAF.JBS.Controllers
                             }
                         }
                         package.Save();
+                        UpdateDataFileBilling(6, FileName.Name);
                     }
                     catch (Exception ex)
                     {
@@ -579,7 +583,6 @@ namespace CAF.JBS.Controllers
                         cmd.Dispose();
                         cmd.Connection.Close();
                     }
-
                 }
             }
         }
@@ -846,6 +849,32 @@ namespace CAF.JBS.Controllers
                 cmd.Connection.Close();
             }
             return pesan;
+        }
+
+        private void UpdateDataFileBilling(int id, string Filename)
+        {
+            var cmd = _jbsDB.Database.GetDbConnection().CreateCommand();
+            cmd.Parameters.Clear();
+            cmd.CommandType = CommandType.Text;
+            cmd.CommandText = @"
+UPDATE `FileNextProcess` fl
+SET fl.`FileBilling`=@filename
+WHERE fl.`id`=@id";
+            cmd.Parameters.Add(new MySqlParameter("@filename", MySqlDbType.Int32) { Value = Filename });
+            cmd.Parameters.Add(new MySqlParameter("@id", MySqlDbType.Int32) { Value = id });
+            try
+            {
+                cmd.Connection.Open();
+                cmd.ExecuteNonQuery();
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+            finally
+            {
+                cmd.Connection.Close();
+            }
         }
 
         [HttpGet]
@@ -1280,7 +1309,7 @@ namespace CAF.JBS.Controllers
                                 {
                                     if (lst.PaymentSource == "CC")
                                     {
-                                        var polisCC = _jbsDB.PolicyCc.FirstOrDefault(p => p.PolicyId == bil.policy_id);
+                                        var polisCC = _jbsDB.PolicyCCModel.FirstOrDefault(p => p.PolicyId == bil.policy_id);
                                         if (polisCC != null)
                                         {
                                             lst.ACCname = bil.AccName ?? polisCC.cc_name;
@@ -1290,7 +1319,7 @@ namespace CAF.JBS.Controllers
                                     }
                                     else if (lst.PaymentSource == "AC")
                                     {
-                                        var polisAC = _jbsDB.PolicyAc.FirstOrDefault(p => p.PolicyId == bil.policy_id);
+                                        var polisAC = _jbsDB.PolicyAcModel.FirstOrDefault(p => p.PolicyId == bil.policy_id);
                                         if (polisAC != null)
                                         {
                                             lst.ACCname = bil.AccName ?? polisAC.acc_name;

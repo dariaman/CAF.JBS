@@ -22,8 +22,8 @@ namespace CAF.JBS.Data
             builder.Entity<BillingHoldModel>().ToTable("billinghold");
             builder.Entity<PolicyBillingModel>().ToTable("policy_billing");
             builder.Entity<CustomerInfo>().ToTable("customer_info");
-            builder.Entity<PolicyAc>().ToTable("policy_ac");
-            builder.Entity<PolicyCc>().ToTable("policy_cc");
+            builder.Entity<PolicyAcModel>().ToTable("policy_ac");
+            builder.Entity<PolicyCCModel>().ToTable("policy_cc");
             builder.Entity<PolicyVa>().ToTable("policy_va");
             builder.Entity<PolicyLastTrans>().ToTable("policy_last_trans");
             builder.Entity<BillingSummary>().ToTable("billing_download_summary");
@@ -46,8 +46,8 @@ namespace CAF.JBS.Data
         public DbSet<BillingHoldModel> BillingHoldModel { get; set; }
         public DbSet<PolicyBillingModel> PolicyBillingModel { get; set; }
         public DbSet<CustomerInfo> CustomerInfo { get; set; }
-        public DbSet<PolicyAc> PolicyAc { get; set; }
-        public DbSet<PolicyCc> PolicyCc { get; set; }
+        public DbSet<PolicyAcModel> PolicyAcModel { get; set; }
+        public DbSet<PolicyCCModel> PolicyCCModel { get; set; }
         public DbSet<PolicyVa> PolicyVa { get; set; }
         public DbSet<PolicyLastTrans> PolicyLastTrans { get; set; }
         public DbSet<BillingSummary> BillingSummary { get; set; }

@@ -80,7 +80,7 @@ namespace CAF.JBS
             });
             //services.AddMvc();
             services.AddMvcGrid();
-
+            services.AddMvcJQueryDataTables();
             // Adds a default in-memory implementation of IDistributedCache.
             services.AddDistributedMemoryCache();
 
@@ -118,7 +118,7 @@ namespace CAF.JBS
             app.UseStaticFiles();
             app.UseIdentity();
             app.UseDeveloperExceptionPage();
-
+            app.UseMvcJQueryDataTables();
             app.UseMvc(routes =>
             {
                 //routes.MapRoute(name: "SampleSolution",

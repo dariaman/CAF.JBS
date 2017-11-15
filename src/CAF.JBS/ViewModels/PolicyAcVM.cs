@@ -1,14 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace CAF.JBS.Models
+namespace CAF.JBS.ViewModels
 {
-    [Table("policy_ac")]
-    public class PolicyAc
+    public class PolicyAcVM
     {
         [Key]
         public int PolicyId { get; set; }
@@ -16,6 +14,9 @@ namespace CAF.JBS.Models
         public string acc_name { get; set; }
         public int bank_id { get; set; }
         public string bank_branch { get; set; }
-        
+
+        public int? cycleDate { get; set; }
+        public Boolean IsSKDR { get; set; }
+        public DateTime? DateUpdate { get; set; }
     }
 }

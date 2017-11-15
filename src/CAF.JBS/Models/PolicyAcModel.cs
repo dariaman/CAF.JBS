@@ -7,17 +7,18 @@ using System.Threading.Tasks;
 
 namespace CAF.JBS.Models
 {
-    [Table("policy_cc")]
-    public class PolicyCc
+    [Table("policy_ac")]
+    public class PolicyAcModel
     {
         [Key]
         public int PolicyId { get; set; }
-        public string cc_no { get; set; }
-        public string cc_name { get; set; }
+        public string acc_no { get; set; }
+        public string acc_name { get; set; }
         public int bank_id { get; set; }
-        public string cc_expiry { get; set; }
-        public string cc_address { get; set; }
-        public string cc_telephone { get; set; }
-        
+        public string bank_branch { get; set; }
+
+        public int? cycleDate { get; set; }
+        public Boolean IsSKDR { get; set; }
+        public DateTime? DateUpdate { get; set; }
     }
 }
