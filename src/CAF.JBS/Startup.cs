@@ -19,6 +19,7 @@ using System.Reflection;
 using MySQL.Data.Entity.Extensions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.Authorization;
+using DataTables.AspNet.AspNetCore;
 
 namespace CAF.JBS
 {
@@ -31,12 +32,7 @@ namespace CAF.JBS
                 .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
                 .AddJsonFile($"appsettings.{env.EnvironmentName}.json", optional: true);
 
-            //if (env.IsDevelopment())
-            //{
-                builder.AddUserSecrets("dariaman46@");
-            //builder.AddApplicationInsightsSettings(developerMode: true);
-            //}
-            //app.UseExceptionHandler("Home/Error");
+            builder.AddUserSecrets("dariaman46@");
 
             builder.AddEnvironmentVariables();
             Configuration = builder.Build();
@@ -53,7 +49,8 @@ namespace CAF.JBS
             services.AddDbContext<UserDbContext>(options => options.UseMySQL(Configuration.GetConnectionString("jbsUser")));
 
             services.AddIdentity<ApplicationUser, IdentityRole>(
-                options => {
+                options =>
+                {
                     // configure identity options
                     options.Password.RequireDigit = false;
                     options.Password.RequireLowercase = false;
@@ -69,7 +66,7 @@ namespace CAF.JBS
                 })
                 .AddEntityFrameworkStores<UserDbContext>()
                 .AddDefaultTokenProviders();
-            
+
             services.AddMvcCore().AddViewLocalization();
             services.AddMvc(config =>
             {
@@ -80,10 +77,8 @@ namespace CAF.JBS
             });
             //services.AddMvc();
             services.AddMvcGrid();
-            services.AddMvcJQueryDataTables();
             // Adds a default in-memory implementation of IDistributedCache.
             services.AddDistributedMemoryCache();
-
             services.AddSession(options =>
             {
                 // Set a short timeout for easy testing.
@@ -94,6 +89,7 @@ namespace CAF.JBS
             // Add application services.
             services.AddTransient<IEmailSender, AuthMessageSender>();
             services.AddTransient<ISmsSender, AuthMessageSender>();
+            services.RegisterDataTables();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -104,28 +100,13 @@ namespace CAF.JBS
             loggerFactory.AddConsole(Configuration.GetSection("Logging"));
             loggerFactory.AddDebug();
 
-            //if (env.IsDevelopment())
-            //{
-            //    app.UseDeveloperExceptionPage();
-            //    app.UseDatabaseErrorPage();
-            //    app.UseBrowserLink();
-            //}
-            //else
-            //{
             app.UseExceptionHandler("/Home/Error");
-            //}
 
             app.UseStaticFiles();
             app.UseIdentity();
             app.UseDeveloperExceptionPage();
-            app.UseMvcJQueryDataTables();
             app.UseMvc(routes =>
             {
-                //routes.MapRoute(name: "SampleSolution",
-                //    template: "{controller=Settings}/{action=ViewApplicationSolution}/{ bugID ?}/{ view ?}");
-                //routes.MapRoute(name: "Sample",
-                //    template: "{controller=Settings}/{action=ViewApplication}/{applicationID?}/{ applicationVersionID ?}/{ view ?}");
-
                 routes.MapRoute(
                     name: "default",
                     template: "{controller=Home}/{action=Index}/{id?}");

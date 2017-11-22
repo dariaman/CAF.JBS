@@ -3,6 +3,7 @@
 
   "dependencies": {
     "BundlerMinifier.Core": "2.4.337",
+    "DataTables.AspNet.AspNetCore": "2.0.2",
     "EPPlus.Core": "1.5.1",
     "MailKit": "1.16.2",
     "Microsoft.AspNetCore.Authentication.Cookies": "1.1.2",
@@ -44,7 +45,6 @@
       "version": "1.1.1",
       "type": "build"
     },
-    "Mvc.JQuery.DataTables.AspNetCore": "1.5.36",
     "NonFactors.Grid.Mvc6": "1.4.0",
     "SapientGuardian.EntityFrameworkCore.MySql": "7.1.23",
     "Sendgrid": "9.9.0",

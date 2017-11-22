@@ -1,41 +1,211 @@
-@model IEnumerable<CAF.JBS.ViewModels.BillingOthersVM>
-@using NonFactors.Mvc.Grid;
-
 @{
     ViewData["Title"] = "Billing Others";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 <style>
-    .kanan {
-        text-align:right;
+    th input {
+        width: 100%;
     }
-    .tengah {
-        text-align:center;
+
+    table.dataTable thead tr th.search {
+        padding: 10px 8px;
     }
 </style>
 <h2>Billing Others</h2>
+<br />
+<table id="myTable">
+    <thead>
+        <tr>
+            <th>BillingID</th>
+            <th>PolicyID</th>
+            <th>PolicyNo</th>
+            <th>BillingDate</th>
+            <th>BillingType</th>
+            <th>TotalAmount</th>
+            <th>StatusBilling</th>
+            <th style="min-width:80px;">DateCrt</th>
+            <th>LastUploadDate</th>
+            <th>CancelDate</th>
+            <th style="min-width:80px;">PaidDate</th>
+        </tr>
+    </thead>
+    <tfoot>
+        <tr>
+            <th class="search"></th>
+            <th class="search"></th>
+            <th class="search"></th>
+            <th class="search"></th>
+            <th class="search"></th>
+            <th class="search"></th>
+            <th class="search"></th>
+            <th class="search"></th>
+            <th class="search"></th>
+            <th class="search"></th>
+            <th class="search"></th>
+        </tr>
+    </tfoot>
+</table>
 
-@(Html
-    .Grid(Model)
-    .Build(columns =>
-    {
-        columns.Add(model => model.BillingID).Titled("BillingID");
-        columns.Add(model => model.PolicyNo).Titled("PolicyNo");
-        columns.Add(model => model.BillingType).Titled("Billing Type").Css("tengah").Filterable(false);
-        columns.Add(model => model.BillingDate).Titled("BillingDate").Formatted("{0:dd-MM-yyyy}").Filterable(false);
-        columns.Add(model => model.TotalAmount).Titled("Amount").Formatted("{0:#,###}").Css("kanan").Filterable(false);
-        columns.Add(model => model.cancel_date).Titled("CancelDate").Formatted("{0:dd-MM-yyyy}").Css("tengah").Filterable(false);
-        columns.Add(model => model.status_billing).Titled("Status").Css("tengah").Filterable(false);
-        columns.Add(model => model.paid_date).Titled("PaidDate").Formatted("{0:dd-MM-yyyy}").Css("tengah").Filterable(false);
-        columns.Add(model => model.BillingDate).Titled("CreateDate").Formatted("{0:dd-MM-yyyy}").Css("tengah").Filterable(false);
-        columns.Add(model => model.LastUploadDate).Titled("UploadDate").Formatted("{0:dd-MM-yyyy}").Css("tengah").Filterable(false);
-    }).Empty("No data found")
-    .Pageable(pager =>
-    {
-        pager.PagesToDisplay = 10;
-        pager.RowsPerPage = 10;
-    })
-    .Sortable()
-    .Filterable()
-    .Css("table-hover")
-)
+<script>
+    $(document).ready(function () {
+        $('#myTable').dataTable({
+            serverSide: true,
+            processing: true,
+            search: {
+                "regex": true
+            },
+            initComplete: function () {
+                var r = $('#myTable tfoot tr');
+                $('#myTable thead').append(r);
+                $('#search_0').css('text-align', 'center');
+
+                this.api().columns([4]).every(function () {
+                    var column = this;
+                    var select = $('<select><option value=""> ... </option></select>')
+                        .appendTo($(column.footer()).empty())
+                        .on('change', function () {
+                            column.search(this.value).draw();
+                        });
+                    select.append('<option value=A2>Cetak Polis</option>');
+                    select.append('<option value=A3>Cetak Kartu</option>');
+                });
+
+                this.api().columns([6]).every(function () {
+                    var column = this;
+                    var select = $('<select><option value=""> ... </option></select>')
+                        .appendTo($(column.footer()).empty())
+                        .on('change', function () {
+                            column.search(this.value).draw();
+                        });
+                    select.append('<option value="A">Unpaid</option>');
+                    select.append('<option value="C">Cancel</option>');
+                    select.append('<option value="P">Paid</option>');
+                });
+
+                this.api().columns([8]).every(function () {
+                    var column = this;
+                    var select = $('<input type="date" placeholder=" ... " />')
+                        .appendTo($(column.footer()).empty())
+                        .on('keyup change', function () {
+                            if (column.search() !== this.value) {
+                                if (this.value == 'mm/dd/yyyy') { this.value =''}
+                                column.search(this.value).draw();
+                            }
+                        });
+                });
+
+            },
+            dom: '<"top"B>tr<"bottom"ip>',
+            language: {
+                "decimal": ",",
+                "thousands": ".",
+                "zeroRecords": "No Data",
+                "infoEmpty": "No Data",
+            },
+            ajax: {
+                "url": "/BillingOther/pagedata",
+                "type": "POST"
+            },
+            columns: [
+                { data: "billingID" },
+                { data: "policy_id" },
+                { data: "policyNo" },
+                {
+                    data: "billingDate",
+                    searchable: false,
+                    className: "dt-right",
+                    render: function (data) {
+                        var tgl = new Date(data);
+                        return data == null ? "" : tgl.toLocaleDateString("en-GB", { year: "numeric", month: "short", day: "numeric" })
+                    }
+                },
+                {
+                    data: "billingType",
+                    className: "dt-center"
+                },
+                {
+                    data: "totalAmount",
+                    searchable: false,
+                    render: $.fn.dataTable.render.number(',', '.', 0, ''),
+                    className: "dt-right"
+                },
+                {
+                    data: "status_billing",
+                    className: "dt-center",
+                    render: function (data) { return (data == "P" ? "Paid" : (data == "C" ? "Cancel" : "Unpaid")) }
+                },
+                {
+                    data: "dateCrt",
+                    searchable: false,
+                    className: "dt-right",
+                    render: function (data) {
+                        var tgl = new Date(data);
+                        return data == null ? "" : tgl.toLocaleDateString("en-GB", { year: "numeric", month: "short", day: "numeric" })
+                    }
+                },
+                {
+                    data: "lastUploadDate",
+                    className: "dt-right",
+                    render: function (data) {
+                        var tgl = new Date(data);
+                        return data == null ? "" : tgl.toLocaleDateString("en-GB", { year: "numeric", month: "short", day: "numeric" })
+                    }
+                },
+                {
+                    data: "cancel_date",
+                    searchable: false,
+                    className: "dt-right",
+                    render: function (data) {
+                        var tgl = new Date(data);
+                        return data == null ? "" : tgl.toLocaleDateString("en-GB", { year: "numeric", month: "short", day: "numeric" })
+                    }
+                },
+                {
+                    data: "paid_date",
+                    searchable: false,
+                    className: "dt-right",
+                    render: function (data) {
+                        var tgl = new Date(data);
+                        return data == null ? "" : tgl.toLocaleDateString("en-GB", { year: "numeric", month: "short", day: "numeric" })
+                    }
+                }
+            ]
+        });
+
+        $('#myTable tfoot th').filter(":eq(0),:eq(1),:eq(2),:eq(8)").each(function () {
+            var title = $(this).text();
+            $(this).html('<input type="text" placeholder=" ... " />');
+        });
+
+        // DataTable
+        var table = $('#myTable').DataTable();
+
+        /* Apply the search for individual columns*/
+        table.columns().every(function () {
+            var that = this;
+            $('input', this.footer()).on('focusout', function () {
+                if (that.search() !== this.value) {
+                    that.search(this.value).draw();
+                }
+            });
+
+            $('input', this.footer()).on('keyup change', function (ev) {
+                if (ev.keyCode == 13) { //only on enter keypress (code 13)
+                    if (that.search() !== this.value) {
+                        that.search(this.value).draw();
+                    }
+                }
+            });
+        });
+
+        $('#myTable tbody').on('click', 'tr', function () {
+            if ($(this).hasClass('selected')) {
+                $(this).removeClass('selected');
+            }
+            else {
+                table.$('tr.selected').removeClass('selected');
+                $(this).addClass('selected');
+            }
+        });
+    });
+</script>
