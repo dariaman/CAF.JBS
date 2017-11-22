@@ -1,48 +1,229 @@
-@model IEnumerable<CAF.JBS.ViewModels.BillingViewModel>
-@using NonFactors.Mvc.Grid;
-
 @{
     ViewData["Title"] = "Billing Recurring";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 <style>
-    .kanan {
-        text-align:right;
+    th input {
+        width: 100%;
     }
-    .tengah {
-        text-align:center;
-    }
-    .date {
-        min-width:100px;
-        text-align:center;
+
+    table.dataTable thead tr th.search {
+        padding: 10px 8px;
     }
 </style>
 <h2>Billing Recurring</h2>
+<br />
 
-@(Html
-    .Grid(Model)
-    .Build(columns =>
-    {
-        columns.Add(model => model.BillingID).Titled("BillingID");
-        columns.Add(model => model.policy_id).Titled("PolicyID");
-        columns.Add(model => model.PolicyNo).Titled("PolicyNo");
-        columns.Add(model => model.PayMeth).Titled("P.Method").Css("tengah");
-        columns.Add(model => model.recurring_seq).Titled("Seq").Filterable(false);
-        columns.Add(model => model.BillingDate).Titled("BillingDate").Formatted("{0:dd-MM-yyyy}").Css("tengah").Filterable(false);
-        columns.Add(model => model.due_dt_pre).Titled("DueDatePre").Formatted("{0:dd-MM-yyyy}").Css("tengah").Filterable(false);
-        columns.Add(model => model.policy_regular_premium).Titled("Premi").Formatted("{0:#,###}").Css("kanan").Filterable(false);
-        columns.Add(model => model.cashless_fee_amount).Titled("CashlessFee").Formatted("{0:#,###}").Css("kanan").Filterable(false);
-        columns.Add(model => model.status_billing).Titled("status").Css("tengah").Filterable(false);
-        columns.Add(model => model.cancel_date).Titled("CancelDate").Formatted("{0:dd-MM-yyyy}").Css("date").Filterable(false);
-        columns.Add(model => model.paid_date).Titled("PaidDate").Formatted("{0:dd-MM-yyyy}").Css("date").Filterable(false);
-        columns.Add(model => model.LastUploadDate).Titled("UploadDate").Formatted("{0:dd-MM-yyyy}").Css("date").Filterable(false);
-    }).Empty("No data found")
-    .Pageable(pager =>
-    {
-        pager.PagesToDisplay = 10;
-        pager.RowsPerPage = 10;
-    })
-    .Sortable()
-    .Filterable()
-    .Css("table-hover")
-)
+<table id="myTable">
+    <thead>
+        <tr>
+            <th>BillingID</th>
+            <th>PolicyID</th>
+            <th>PolicyNo</th>
+            <th>P.Method</th>
+            <th>Seq</th>
+            <th>BillingDate</th>
+            <th>DueDatePre</th>
+            <th>Premi</th>
+            <th>CashlessFee</th>
+            <th>Total</th>
+            <th>Status</th>
+            <th>LastUploadDate</th>
+            <th>CancelDate</th>
+            <th style="min-width:80px;">PaidDate</th>
+            <th>PaymentSource</th>
+            <th>IsHold</th>
+            <th style="min-width:80px;">DateCrt</th>
+        </tr>
+    </thead>
+    <tfoot>
+        <tr>
+            <th class="search"></th>
+            <th class="search"></th>
+            <th class="search"></th>
+            <th class="search"></th>
+            <th class="search"></th>
+            <th class="search"></th>
+            <th class="search"></th>
+            <th class="search"></th>
+            <th class="search"></th>
+            <th class="search"></th>
+            <th class="search"></th>
+            <th class="search"></th>
+            <th class="search"></th>
+            <th class="search"></th>
+            <th class="search"></th>
+            <th class="search"></th>
+            <th class="search"></th>
+        </tr>
+    </tfoot>
+</table>
+
+<script>
+    $(document).ready(function () {
+        $('#myTable').dataTable({
+            serverSide: true,
+            processing: true,
+            initComplete: function () {
+                var r = $('#myTable tfoot tr');
+                $('#myTable thead').append(r);
+                $('#search_0').css('text-align', 'center');
+
+                this.api().columns([10]).every(function () {
+                    var column = this;
+                    var select = $('<select><option value=""> ... </option></select>')
+                        .appendTo($(column.footer()).empty())
+                        .on('change', function () {
+                            column.search(this.value).draw();
+                        });
+                    select.append('<option value="A">Unpaid</option>');
+                    select.append('<option value="C">Cancel</option>');
+                    select.append('<option value="P">Paid</option>');
+                });
+
+                this.api().columns([14]).every(function () {
+                    var column = this;
+                    var select = $('<select><option value=""> ... </option></select>')
+                        .appendTo($(column.footer()).empty())
+                        .on('change', function () {
+                            column.search(this.value).draw();
+                        });
+                    select.append('<option value="BT">BankTransfer</option>');
+                    select.append('<option value="AC">AutoCollection</option>');
+                    select.append('<option value="CC">CreditCard</option>');
+                });
+            },
+            dom: '<"top"B>tr<"bottom"ip>',
+            language: {
+                "decimal": ",",
+                "thousands": ".",
+                "zeroRecords": "No Data",
+                "infoEmpty": "No Data",
+            },
+            ajax: {
+                "url": "@Url.Action("PageData", "Billing")",
+                "type": "POST"
+            },
+            columns: [
+                { data: "billingID", className: "dt-right" },
+                { data: "policy_id", className: "dt-right" },
+                { data: "policyNo", className: "dt-right" },
+                { data: "payment_method", className: "dt-center" },
+                { data: "recurring_seq", className: "dt-right" },
+                {
+                    data: "billingDate",
+                    className: "dt-center",
+                    render: function (data) {
+                        var tgl = new Date(data);
+                        return data == null ? "" : tgl.toLocaleDateString("en-GB", { year: "numeric", month: "short", day: "numeric" })
+                    }
+                },
+                {
+                    data: "due_dt_pre",
+                    className: "dt-center",
+                    render: function (data) {
+                        var tgl = new Date(data);
+                        return data == null ? "" : tgl.toLocaleDateString("en-GB", { year: "numeric", month: "short", day: "numeric" })
+                    }
+                },
+                {
+                    data: "policy_regular_premium",
+                    className: "dt-right",
+                    searchable: false,
+                    render: $.fn.dataTable.render.number(',', '.', 0, ''),
+                },
+                {
+                    data: "cashless_fee_amount",
+                    className: "dt-right",
+                    searchable: false,
+                    render: $.fn.dataTable.render.number(',', '.', 0, ''),
+                },
+                {
+                    data: "totalAmount",
+                    className: "dt-right",
+                    searchable: false,
+                    render: $.fn.dataTable.render.number(',', '.', 0, ''),
+                },
+                {
+                    data: "status_billing",
+                    className: "dt-center",
+                    render: function (data) { return (data == "P" ? "Paid" : (data == "C" ? "Cancel" : "Unpaid")) }
+                },
+                {
+                    data: "lastUploadDate",
+                    className: "dt-center",
+                    render: function (data) {
+                        var tgl = new Date(data);
+                        return data == null ? "" : tgl.toLocaleDateString("en-GB", { year: "numeric", month: "short", day: "numeric" })
+                    }
+                },
+                {
+                    data: "cancel_date", render: function (data) {
+                        var tgl = new Date(data);
+                        return data == null ? "" : tgl.toLocaleDateString("en-GB", { year: "numeric", month: "short", day: "numeric" })
+                    }
+                },
+                {
+                    data: "paid_date",
+                    className: "dt-center",
+                    render: function (data) {
+                        var tgl = new Date(data);
+                        return data == null ? "" : tgl.toLocaleDateString("en-GB", { year: "numeric", month: "short", day: "numeric" })
+                    }
+                },
+                { data: "paymentSource", className: "dt-center" },
+                {
+                    data: "isHold",
+                    className: "dt-center",
+                    render: function (data) {
+                        return (data ? "<span class='glyphicon glyphicon-ok text-success'></span>" : "");
+                    }
+                },
+                {
+                    data: "dateCrt",
+                    className: "dt-center",
+                    render: function (data) {
+                        var tgl = new Date(data);
+                        return data == null ? "" : tgl.toLocaleDateString("en-GB", { year: "numeric", month: "short", day: "numeric" })
+                    }
+                },
+            ]
+        });
+        // DataTable
+        var table = $('#myTable').DataTable();
+
+        /* Apply the search for individual columns*/
+        $('#myTable tfoot th').filter(":eq(0),:eq(1),:eq(2),:eq(3),:eq(4)").each(function () {
+            var title = $(this).text();
+            $(this).html('<input type="text" placeholder=" ... " />');
+        });
+        
+        table.columns().every(function () {
+            var that = this;
+            $('input', this.footer()).on('focusout', function () {
+                if (that.search() !== this.value) {
+                    that.search(this.value).draw();
+                }
+            });
+
+            $('input', this.footer()).on('keyup change', function (ev) {
+                if (ev.keyCode == 13) { //only on enter keypress (code 13)
+                    if (that.search() !== this.value) {
+                        that.search(this.value).draw();
+                    }
+                }
+            });
+        });
+
+
+        $('#myTable tbody').on('click', 'tr', function () {
+            if ($(this).hasClass('selected')) {
+                $(this).removeClass('selected');
+            }
+            else {
+                table.$('tr.selected').removeClass('selected');
+                $(this).addClass('selected');
+            }
+        });
+    });
+</script>

@@ -51,9 +51,6 @@
         $('#myTable').dataTable({
             serverSide: true,
             processing: true,
-            search: {
-                "regex": true
-            },
             initComplete: function () {
                 var r = $('#myTable tfoot tr');
                 $('#myTable thead').append(r);
@@ -104,7 +101,6 @@
             },
             ajax: {
                 "url": "@Url.Action("PageData", "BillingOther")",
-                //"/jbs/BillingOther/PageData",
                 "type": "POST"
             },
             columns: [

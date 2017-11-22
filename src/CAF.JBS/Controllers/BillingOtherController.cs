@@ -28,25 +28,6 @@ namespace CAF.JBS.Controllers
 
         public IActionResult Index()
         {
-            //IEnumerable<BillingOthersVM> BillingOthers;
-            //BillingOthers = (from cd in _context.BillingOtherModel
-            //                 join bk in _context.PolicyBillingModel on cd.policy_id equals bk.policy_Id
-            //                 orderby cd.DateCrt descending
-            //                 select new BillingOthersVM()
-            //                 {
-            //                     BillingID = cd.BillingID,
-            //                     PolicyNo = bk.policy_no,
-            //                     BillingDate = cd.BillingDate,
-            //                     BillingType = cd.BillingType,
-            //                     TotalAmount = cd.TotalAmount,
-            //                     status_billing = cd.status_billing,
-            //                     IsDownload = cd.IsDownload,
-            //                     BankIdDownload = cd.BankIdDownload,
-            //                     DateCrt = cd.DateCrt,
-            //                     LastUploadDate = cd.LastUploadDate,
-            //                     cancel_date = cd.cancel_date,
-            //                     paid_date = cd.paid_date
-            //                 });
             return View();
         }
 
@@ -127,10 +108,6 @@ namespace CAF.JBS.Controllers
 
         private List<BillingOthersVM> GetPageData(int rowStart, string orderString, string FilterWhere,ref int jlhdataFilter, ref int jlhData)
         {
-            // direction
-            // 0 = ASC
-            // 1 = DESC
-
             FilterWhere = string.Concat(" WHERE 1=1 ", FilterWhere);
             string order = (orderString=="" ? "" : string.Format(" ORDER BY {0} " , orderString));
             string limit = string.Format(" LIMIT {0},10 ", rowStart);
