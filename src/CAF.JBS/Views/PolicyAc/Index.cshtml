@@ -1,0 +1,151 @@
+@{
+    ViewData["Title"] = "Policy AC";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<style>
+    th input {
+        width: 100%;
+    }
+
+    table.dataTable thead tr th.search {
+        padding: 10px 8px;
+    }
+</style>
+<h2>Policy AC</h2>
+<br />
+
+<br />
+<table id="myTable">
+    <thead>
+        <tr>
+            <th>PolicyID</th>
+            <th>PolicyNo</th>
+            <th>ACCNo</th>
+            <th>ACCName</th>
+            <th>BankIssuer</th>
+            <th>CycleDate</th>
+            <th>IsSKDR</th>
+            <th style="min-width:80px;">DateCrt</th>
+            <th style="min-width:80px;">DateUpdate</th>
+        </tr>
+    </thead>
+    <tfoot>
+        <tr>
+            <th class="search"></th>
+            <th class="search"></th>
+            <th class="search"></th>
+            <th class="search"></th>
+            <th class="search"></th>
+            <th class="search"></th>
+            <th class="search"></th>
+            <th class="search"></th>
+            <th class="search"></th>
+        </tr>
+    </tfoot>
+</table>
+
+
+<script>
+    $(document).ready(function () {
+        $('#myTable').dataTable({
+            serverSide: true,
+            processing: true,
+            initComplete: function () {
+                var r = $('#myTable tfoot tr');
+                $('#myTable thead').append(r);
+                $('#search_0').css('text-align', 'center');
+
+                this.api().columns([6]).every(function () {
+                    var column = this;
+                    var select = $('<select><option value=""> ... </option></select>')
+                        .appendTo($(column.footer()).empty())
+                        .on('change', function () {
+                            column.search(this.value).draw();
+                        });
+                    select.append('<option value="1">True</option>');
+                    select.append('<option value="0">False</option>');
+                });
+            },
+            dom: '<"top"B>tr<"bottom"ip>',
+            language: {
+                "decimal": ",",
+                "thousands": ".",
+                "zeroRecords": "No Data",
+                "infoEmpty": "No Data",
+            },
+            ajax: {
+                "url": "@Url.Action("PageData", "PolicyAc")",
+                "type": "POST"
+            },
+            columns: [
+                { data: "policyId", className: "dt-right" },
+                { data: "policy_no", className: "dt-right" },
+                { data: "acc_no", className: "dt-right" },
+                { data: "acc_name" },
+                { data: "bank_code" },
+                { data: "cycleDate", className: "dt-center" },
+                {
+                    data: "isSKDR",
+                    className: "dt-center",
+                    render: function (data) {
+                        return (data ? "<span class='glyphicon glyphicon-ok text-success'></span>" : "");
+                    }
+                },
+                {
+                    data: "dateCrt",
+                    searchable: false,
+                    className: "dt-center",
+                    render: function (data) {
+                        var tgl = new Date(data);
+                        return data == null ? "" : tgl.toLocaleDateString("en-GB", { year: "numeric", month: "short", day: "numeric" })
+                    }
+                },
+                {
+                    data: "dateUpdate",
+                    searchable: false,
+                    className: "dt-center",
+                    render: function (data) {
+                        var tgl = new Date(data);
+                        return data == null ? "" : tgl.toLocaleDateString("en-GB", { year: "numeric", month: "short", day: "numeric" })
+                    }
+                },
+            ]
+        });
+
+        $('#myTable tfoot th').filter(":eq(0),:eq(1),:eq(2),:eq(3),:eq(4),:eq(5)").each(function () {
+            var title = $(this).text();
+            $(this).html('<input type="text" placeholder=" ... " />');
+        });
+
+        // DataTable
+        var table = $('#myTable').DataTable();
+
+        /* Apply the search for individual columns*/
+        table.columns().every(function () {
+            var that = this;
+            $('input', this.footer()).on('focusout', function () {
+                if (that.search() !== this.value) {
+                    that.search(this.value).draw();
+                }
+            });
+
+            $('input', this.footer()).on('keyup change', function (ev) {
+                if (ev.keyCode == 13) { //only on enter keypress (code 13)
+                    if (that.search() !== this.value) {
+                        that.search(this.value).draw();
+                    }
+                }
+            });
+        });
+
+        $('#myTable tbody').on('click', 'tr', function () {
+            if ($(this).hasClass('selected')) {
+                $(this).removeClass('selected');
+            }
+            else {
+                table.$('tr.selected').removeClass('selected');
+                $(this).addClass('selected');
+            }
+        });
+    });
+</script>

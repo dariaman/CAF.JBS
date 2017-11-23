@@ -39,12 +39,7 @@ namespace CAF.JBS.Controllers
 
             List<BillingOthersVM> BillingOthers = new List<BillingOthersVM>();
             BillingOthers = GetPageData(request.Start, sort, sqlFilter,ref jlhFilter,ref jlh);
-
-            var filteredData =BillingOthers ;
-
-            //var dataPage = filteredData.Skip(request.Start).Take(request.Length);
-
-            var response = DataTablesResponse.Create(request, jlh, jlhFilter, filteredData);
+            var response = DataTablesResponse.Create(request, jlh, jlhFilter, BillingOthers);
 
             return new DataTablesJsonResult(response);
         }

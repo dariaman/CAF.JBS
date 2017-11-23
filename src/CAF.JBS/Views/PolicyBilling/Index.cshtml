@@ -1,55 +1,229 @@
-@model IEnumerable<CAF.JBS.ViewModels.PolicyBillingViewModel>
-@using NonFactors.Mvc.Grid;
-
 @{
     ViewData["Title"] = "Policy";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
+<style>
+    th input {
+        width: 100%;
+    }
 
+    table.dataTable thead tr th.search {
+        padding: 10px 8px;
+    }
+</style>
 <h2>Policy</h2>
+<br />
+<table id="myTable">
+    <thead>
+        <tr>
+            <th>PolicyID</th>
+            <th>PolicyNo</th>
+            <th>CommenceDate</th>
+            <th style="min-width:80px;">DueDate</th>
+            <th>P.Method</th>
+            <th>PaymentFreq</th>
+            <th>CycleDate</th>
+            <th>CylceDateNotes</th>
+            <th style="min-width:120px;">Product</th>
 
-@(Html
-    .Grid(Model)
-    .Build(columns =>
-    {
-        //columns.Add(model => model.policy_Id).Titled("PolicyId");
-        columns.Add(model => model.policy_no).Titled("PolicyNo");
-        columns.Add(model => model.payment_method).Titled("Payment Method");
-        columns.Add(model => model.commence_dt).Titled("Commence Date").Formatted("{0: dd-MM-yyyy}");
-        columns.Add(model => model.due_dt).Titled("Due Date").Formatted("{0: dd-MM-yyyy}");
-        columns.Add(model => model.premium_mode).Titled("PremiumMode");
-        //columns.Add(model => model.due_dt_pre).Titled("DueDatePre").Formatted("{0: dd-MM-yyyy}");
-        //columns.Add(model => model.product_code).Titled("ProductCode");
-        //columns.Add(model => model.HolderName).Titled("HolderName");
-        //columns.Add(model => model.EmailHolder).Titled("EmailHolder");
-        //columns.Add(model => model.regular_premium).Titled("RegularPremium");
-        columns.Add(model => model.Policy_status).Titled("StatusPolis");
-        columns.Add(model => model.cycleDate).Titled("Cycle Date");
-        //columns.Add(model => model.cc_acquirer_bank_id).Titled("CC BankId");
-        //columns.Add(model => model.cc_expiry).Titled("cc_expiry");
-        //columns.Add(model => model.cc_name).Titled("cc_name");
-        //columns.Add(model => model.cc_address).Titled("cc_address");
-        //columns.Add(model => model.cc_telephone).Titled("cc_telephone");
-        //columns.Add(model => model.acc_no).Titled("acc_no");
-        //columns.Add(model => model.acc_bank_id).Titled("ACC BankId");
-        //columns.Add(model => model.acc_name).Titled("Acc Name");
-        //columns.Add(model => model.acc_bank_branch).Titled("acc_bank_branch");
-        //columns.Add(model => model.VANo).Titled("VA No");
-        //columns.Add(model => model.VAName).Titled("VA Name");
-        //columns.Add(model => model.last_recurring_seq).Titled("LastRecurringSeq");
-        //columns.Add(model => model.last_payment_source).Titled("LastPaymentSource");
-        //columns.Add(model => model.last_receipt_id).Titled("LastReceiptID");
-        //columns.Add(model => model.last_receipt_date).Titled("LastReceiptDate").Formatted("{0: dd-MM-yyyy}");
-        //columns.Add(model => model.last_acquirer_bank_id).Titled("LastAcquirerBankID");
-        columns.Add(model => model.IsHoldBilling).Titled("IsHold");
-        columns.Add(model => "<a class='glyphicon glyphicon-pencil' href='./PolicyBilling/Edit/" + model.policy_Id + "'></a>").Encoded(false).Filterable(false);
-    }).Empty("No data found")
-    .Pageable(pager =>
-    {
-        pager.PagesToDisplay = 10;
-        pager.RowsPerPage = 10;
-    })
-    .Sortable()
-    .Filterable()
-    .Css("table-hover")
-)
+            <th>CustomerName</th>
+            <th>Premi</th>
+            <th>CashlessFee</th>
+            <th>Status</th>
+
+            <th>IsHoldBilling</th>
+            <th>IsWatchList</th>
+            <th>IsRenewal</th>
+            <th>WorksiteName</th>
+            <th style="min-width:80px;">DateCrt</th>
+        </tr>
+    </thead>
+    <tfoot>
+        <tr>
+            <th class="search"></th>
+            <th class="search"></th>
+            <th class="search"></th>
+            <th class="search"></th>
+            <th class="search"></th>
+            <th class="search"></th>
+            <th class="search"></th>
+            <th class="search"></th>
+            <th class="search"></th>
+            <th class="search"></th>
+            <th class="search"></th>
+            <th class="search"></th>
+            <th class="search"></th>
+            <th class="search"></th>
+            <th class="search"></th>
+            <th class="search"></th>
+            <th class="search"></th>
+            <th class="search"></th>
+        </tr>
+    </tfoot>
+</table>
+
+<script>
+    $(document).ready(function () {
+        $('#myTable').dataTable({
+            serverSide: true,
+            processing: true,
+            initComplete: function () {
+                var r = $('#myTable tfoot tr');
+                $('#myTable thead').append(r);
+                $('#search_0').css('text-align', 'center');
+
+                this.api().columns([13]).every(function () {
+                    var column = this;
+                    var select = $('<select><option value=""> ... </option></select>')
+                        .appendTo($(column.footer()).empty())
+                        .on('change', function () {
+                            column.search(this.value).draw();
+                        });
+                    select.append('<option value="1">True</option>');
+                    select.append('<option value="0">False</option>');
+                });
+                this.api().columns([14]).every(function () {
+                    var column = this;
+                    var select = $('<select><option value=""> ... </option></select>')
+                        .appendTo($(column.footer()).empty())
+                        .on('change', function () {
+                            column.search(this.value).draw();
+                        });
+                    select.append('<option value="1">True</option>');
+                    select.append('<option value="0">False</option>');
+                });
+                this.api().columns([15]).every(function () {
+                    var column = this;
+                    var select = $('<select><option value=""> ... </option></select>')
+                        .appendTo($(column.footer()).empty())
+                        .on('change', function () {
+                            column.search(this.value).draw();
+                        });
+                    select.append('<option value="1">True</option>');
+                    select.append('<option value="0">False</option>');
+                });
+
+            },
+            dom: '<"top"B>tr<"bottom"ip>',
+            language: {
+                "decimal": ",",
+                "thousands": ".",
+                "zeroRecords": "No Data",
+                "infoEmpty": "No Data",
+            },
+            ajax: {
+                "url": "@Url.Action("PageData", "PolicyBilling")",
+                "type": "POST"
+            },
+            columns: [
+                { data: "policy_Id" },
+                { data: "policy_no" },
+                {
+                    data: "commence_dt",
+                    searchable: false,
+                    className: "dt-right",
+                    render: function (data) {
+                        var tgl = new Date(data);
+                        return data == null ? "" : tgl.toLocaleDateString("en-GB", { year: "numeric", month: "short", day: "numeric" })
+                    }
+                },
+                {
+                    data: "due_dt",
+                    searchable: false,
+                    className: "dt-right",
+                    render: function (data) {
+                        var tgl = new Date(data);
+                        return data == null ? "" : tgl.toLocaleDateString("en-GB", { year: "numeric", month: "short", day: "numeric" })
+                    }
+                },
+                { data: "payment_method", className: "dt-center"},
+                { data: "premium_mode", className: "dt-center" },
+                { data: "cycleDate", className: "dt-center" },
+                { data: "cylceDateNotes" },
+                { data: "product_description" },
+                { data: "customerName" },
+                {
+                    data: "regular_premium",
+                    searchable: false,
+                    render: $.fn.dataTable.render.number(',', '.', 0, ''),
+                    className: "dt-right"
+                },
+                {
+                    data: "cashless_fee_amount",
+                    searchable: false,
+                    render: $.fn.dataTable.render.number(',', '.', 0, ''),
+                    className: "dt-right"
+                },
+                { data: "policy_status", className: "dt-center" },
+
+                {
+                    data: "isHoldBilling",
+                    className: "dt-center",
+                    render: function (data) {
+                        return (data ? "<span class='glyphicon glyphicon-ok text-success'></span>" : "");
+                    }
+                },
+                {
+                    data: "isWatchList",
+                    className: "dt-center",
+                    render: function (data) {
+                        return (data ? "<span class='glyphicon glyphicon-ok text-success'></span>" : "");
+                    }
+                },
+                {
+                    data: "isRenewal",
+                    className: "dt-center",
+                    render: function (data) {
+                        return (data ? "<span class='glyphicon glyphicon-ok text-success'></span>" : "");
+                    }
+                },
+                { data: "worksite_org_name", className: "dt-center" },
+                {
+                    data: "dateCrt",
+                    searchable: false,
+                    className: "dt-right",
+                    render: function (data) {
+                        var tgl = new Date(data);
+                        return data == null ? "" : tgl.toLocaleDateString("en-GB", { year: "numeric", month: "short", day: "numeric" })
+                    }
+                },
+            ]
+        });
+
+        $('#myTable tfoot th').filter(":eq(0),:eq(1),:eq(4),:eq(5),:eq(6),:eq(7),:eq(8),:eq(9),:eq(12),:eq(16)").each(function () {
+            var title = $(this).text();
+            $(this).html('<input type="text" placeholder=" ... " />');
+        });
+
+        // DataTable
+        var table = $('#myTable').DataTable();
+
+        /* Apply the search for individual columns*/
+        table.columns().every(function () {
+            var that = this;
+            $('input', this.footer()).on('focusout', function () {
+                if (that.search() !== this.value) {
+                    that.search(this.value).draw();
+                }
+            });
+
+            $('input', this.footer()).on('keyup change', function (ev) {
+                if (ev.keyCode == 13) { //only on enter keypress (code 13)
+                    if (that.search() !== this.value) {
+                        that.search(this.value).draw();
+                    }
+                }
+            });
+        });
+
+        $('#myTable tbody').on('click', 'tr', function () {
+            if ($(this).hasClass('selected')) {
+                $(this).removeClass('selected');
+            }
+            else {
+                table.$('tr.selected').removeClass('selected');
+                $(this).addClass('selected');
+            }
+        });
+    });
+</script>

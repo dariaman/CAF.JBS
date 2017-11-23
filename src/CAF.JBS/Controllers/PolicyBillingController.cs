@@ -8,6 +8,10 @@ using Microsoft.EntityFrameworkCore;
 using CAF.JBS.Data;
 using CAF.JBS.Models;
 using CAF.JBS.ViewModels;
+using System.Data;
+using System.Text.RegularExpressions;
+using DataTables.AspNet.Core;
+using DataTables.AspNet.AspNetCore;
 
 namespace CAF.JBS.Controllers
 {
@@ -23,81 +27,8 @@ namespace CAF.JBS.Controllers
         // GET: PolicyBilling
         public IActionResult Index()
         {
-            IEnumerable<PolicyBillingViewModel> PolicyBillingView;
-            PolicyBillingView = (from cd in _context.PolicyBillingModel
-                                 select new PolicyBillingViewModel()
-                                 {
-                                     policy_Id = cd.policy_Id,
-                                     policy_no = cd.policy_no,
-                                     payment_method = cd.payment_method,
-                                     commence_dt = cd.commence_dt,
-                                     due_dt = cd.due_dt,
-                                     premium_mode = cd.premium_mode,
-                                     cycleDate=cd.cycleDate,
-                                     //due_dt_pre = cd.due_dt_pre,
-                                     //product_code = cd.product_code,
-                                     //HolderName = cd.HolderName,
-                                     //EmailHolder = cd.EmailHolder,
-                                     //regular_premium = cd.regular_premium,
-                                     Policy_status = cd.Policy_status,
-                                     //cc_no = cd.cc_no,
-                                     //cc_acquirer_bank_id = cd.cc_acquirer_bank_id,
-                                     //cc_expiry = cd.cc_expiry,
-                                     //cc_name = cd.cc_name,
-                                     //cc_address = cd.cc_address,
-                                     //cc_telephone = cd.cc_telephone,
-                                     //acc_no = cd.acc_no,
-                                     //acc_bank_id = cd.acc_bank_id,
-                                     //acc_name = cd.acc_name,
-                                     //acc_bank_branch = cd.acc_bank_branch,
-                                     //VANo = cd.VANo,
-                                     //VAName = cd.VAName,
-                                     //last_recurring_seq = cd.last_recurring_seq,
-                                     //last_payment_source = cd.last_payment_source,
-                                     //last_receipt_id = cd.last_receipt_id,
-                                     //last_receipt_date = cd.last_receipt_date,
-                                     //last_acquirer_bank_id = cd.last_acquirer_bank_id,
-                                     IsHoldBilling = cd.IsHoldBilling
-                                 });
-            return View(PolicyBillingView);
+            return View();
         }
-
-        // GET: PolicyBilling/Details/5
-        public async Task<IActionResult> Details(int id)
-        {
-            //if (id == null)
-            //{
-            //    return NotFound();
-            //}
-
-            var billingModel = await _context.BillingModel
-                .SingleOrDefaultAsync(m => m.BillingID == id);
-            if (billingModel == null)
-            {
-                return NotFound();
-            }
-
-            return View(billingModel);
-        }
-
-        // GET: PolicyBilling/Create
-        //public IActionResult Create()
-        //{
-        //    return View();
-        //}
-
-        //[HttpPost]
-        //[ValidateAntiForgeryToken]
-        //public async Task<IActionResult> Create([Bind("BillingID,policy_id,recurring_seq,BillingDate,due_date_pre,PeriodeBilling,BillingType,policy_regular_premium,DISC_REGULAR_PREMIUM,DISC_REGULAR_PREMIUM_PCT_Amount,TotalAmount,statusBilling,IsDownload,DownloadDate,ReceiptID,PaymentTransactionID,UserCrt,DateCrt,UserUpdate,DateUpdate")] BillingModel billingModel)
-        //{
-        //    if (ModelState.IsValid)
-        //    {
-        //        _context.Add(billingModel);
-        //        await _context.SaveChangesAsync();
-        //        return RedirectToAction("Index");
-        //    }
-        //    return View(billingModel);
-        //}
 
         public async Task<IActionResult> Edit(int id)
         {
@@ -188,6 +119,228 @@ namespace CAF.JBS.Controllers
         private async Task<PolicyBillingModel> findPolicyModel(int id)
         {
             return await _context.PolicyBillingModel.SingleOrDefaultAsync(m => m.policy_Id == id); ;
+        }
+
+        public IActionResult PageData(IDataTablesRequest request)
+        {
+            int jlh = 0, jlhFilter = 0;
+            string sort = "";
+            var sqlFilter = GenerateFilter(request, ref sort);
+
+            List<PolicyBillingViewModel> Polis = new List<PolicyBillingViewModel>();
+            Polis = GetPageData(request.Start, sort, sqlFilter, ref jlhFilter, ref jlh);
+            var response = DataTablesResponse.Create(request, jlh, jlhFilter, Polis);
+
+            return new DataTablesJsonResult(response);
+        }
+
+        private string GenerateFilter(IDataTablesRequest request, ref string sort)
+        {
+            string FilterSql = "";
+            DateTime tgl = DateTime.Now.Date;
+
+            string paternAngkaLike = @"[^0-9,%]";
+            string paternAngka = @"[^0-9]";
+            string paternHurufLike = @"[^a-zA-Z,%]";
+            string paternHuruf = @"[^a-zA-Z]";
+
+            int i = 0;
+            foreach (var req in request.Columns)
+            {
+                i++;
+                if (req.Sort != null) sort = string.Format(" {0} {1} ", i, req.Sort.Direction.ToString().ToLower() == "ascending" ? "ASC" : "DESC");
+
+                if (req.Search == null) continue;
+                if (req.Search.Value == null) continue;
+
+                if (req.Field == "policy_Id" && !string.IsNullOrEmpty(req.Search.Value))
+                {
+                    var tmp = Regex.Replace(req.Search.Value, paternAngkaLike, "");
+                    FilterSql += " AND pb.`policy_Id` like '" + tmp + "'";
+                }
+                else if (req.Field == "policy_no" && !string.IsNullOrEmpty(req.Search.Value))
+                {
+                    var tmp = Regex.Replace(req.Search.Value, paternAngkaLike, "");
+                    FilterSql += " AND pb.`policy_no` like '" + tmp + "'";
+                }
+                else if (req.Field == "payment_method" && !string.IsNullOrEmpty(req.Search.Value))
+                {
+                    var tmp = Regex.Replace(req.Search.Value, paternHuruf, "");
+                    FilterSql += " AND pb.`payment_method` = '" + tmp + "'";
+                }
+                else if (req.Field == "premium_mode" && !string.IsNullOrEmpty(req.Search.Value))
+                {
+                    var tmp = Regex.Replace(req.Search.Value, paternAngka, "");
+                    FilterSql += " AND pb.`premium_mode`='" + tmp + "'";
+                }
+                else if (req.Field == "cycleDate" && !string.IsNullOrEmpty(req.Search.Value))
+                {
+                    var tmp = Regex.Replace(req.Search.Value, paternAngka, "");
+                    FilterSql += " AND pb.`cycleDate`='" + tmp + "'";
+                }
+                else if (req.Field == "cylceDateNotes" && !string.IsNullOrEmpty(req.Search.Value))
+                {
+                    var tmp = Regex.Replace(req.Search.Value, paternHurufLike, "");
+                    FilterSql += " AND pb.`CylceDateNotes` like '" + tmp + "'";
+                }
+                else if (req.Field == "product_description" && !string.IsNullOrEmpty(req.Search.Value))
+                {
+                    var tmp = Regex.Replace(req.Search.Value.Trim(), "[^a-zA-Z ,%]", "");
+                    FilterSql += " AND pd.`product_description` like '" + tmp + "'";
+                }
+                else if (req.Field == "customerName" && !string.IsNullOrEmpty(req.Search.Value))
+                {
+                    var tmp = Regex.Replace(req.Search.Value.Trim(), "[^a-zA-Z ,%]", "");
+                    FilterSql += " AND ci.`CustomerName` like '" + tmp + "'";
+                }
+                else if (req.Field == "policy_status" && !string.IsNullOrEmpty(req.Search.Value))
+                {
+                    var tmp = Regex.Replace(req.Search.Value, paternHurufLike, "");
+                    FilterSql += " AND pb.`Policy_status` like '" + tmp + "'";
+                }
+                else if (req.Field == "isHoldBilling" && !string.IsNullOrEmpty(req.Search.Value))
+                {
+                    var tmp = Regex.Replace(req.Search.Value, paternAngka, "");
+                    FilterSql += " AND pb.`IsHoldBilling`='" + tmp + "'";
+                }
+                else if (req.Field == "isWatchList" && !string.IsNullOrEmpty(req.Search.Value))
+                {
+                    var tmp = Regex.Replace(req.Search.Value, paternAngka, "");
+                    FilterSql += " AND pb.`IsWatchList`='" + tmp + "'";
+                }
+                else if (req.Field == "isRenewal" && !string.IsNullOrEmpty(req.Search.Value))
+                {
+                    var tmp = Regex.Replace(req.Search.Value, paternAngka, "");
+                    FilterSql += " AND pb.`IsRenewal`='" + tmp + "'";
+                }
+                else if (req.Field == "worksite_org_name" && !string.IsNullOrEmpty(req.Search.Value))
+                {
+                    var tmp = Regex.Replace(req.Search.Value, paternHurufLike, "");
+                    FilterSql += " AND pb.`worksite_org_name` like '" + tmp + "'";
+                }
+            }
+
+            return FilterSql;
+        }
+
+        private List<PolicyBillingViewModel> GetPageData(int rowStart, string orderString, string FilterWhere, ref int jlhdataFilter, ref int jlhData)
+        {
+            FilterWhere = string.Concat(" WHERE 1=1 ", FilterWhere);
+            string order = (orderString == "" ? "" : string.Format(" ORDER BY {0} ", orderString));
+            string limit = string.Format(" LIMIT {0},10 ", rowStart);
+            PolicyBillingViewModel dt = new PolicyBillingViewModel();
+            List<PolicyBillingViewModel> ls = new List<PolicyBillingViewModel>();
+
+            var cmd = _context.Database.GetDbConnection().CreateCommand();
+            cmd.CommandType = CommandType.Text;
+            cmd.CommandText = QueryPaging(GetDataSelect(), FilterWhere, order, limit);
+
+            try
+            {
+                if (cmd.Connection.State == ConnectionState.Closed) cmd.Connection.Open();
+                var rd = cmd.ExecuteReader();
+                while (rd.Read())
+                {
+                    ls.Add(new PolicyBillingViewModel()
+                    {
+                        policy_Id = rd["policy_Id"].ToString(),
+                        policy_no = rd["policy_no"].ToString(),
+                        commence_dt = Convert.ToDateTime(rd["commence_dt"]),
+                        due_dt= Convert.ToDateTime(rd["due_dt"]),
+                        payment_method= rd["payment_method"].ToString(),
+
+                        premium_mode = rd["premium_mode"].ToString(),
+                        cycleDate = rd["cycleDate"].ToString(),
+                        CylceDateNotes = rd["CylceDateNotes"].ToString(),
+                        product_description = rd["product_description"].ToString(),
+
+                        CustomerName = rd["CustomerName"].ToString(),
+                        regular_premium = Convert.ToDecimal(rd["regular_premium"]),
+                        cashless_fee_amount = Convert.ToDecimal(rd["cashless_fee_amount"]),
+                        Policy_status = rd["Policy_status"].ToString(),
+
+                        IsHoldBilling = Convert.ToBoolean(rd["IsHoldBilling"]),
+                        IsWatchList = Convert.ToBoolean(rd["IsWatchList"]),
+                        IsRenewal = Convert.ToBoolean(rd["IsRenewal"]),
+                        worksite_org_name = rd["worksite_org_name"].ToString(),
+                        DateCrt= rd["DateCrt"] == DBNull.Value ? (DateTime?)null : Convert.ToDateTime(rd["DateCrt"])
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+            finally
+            {
+                cmd.Connection.Close();
+            }
+
+            try
+            {
+                if (cmd.Connection.State == ConnectionState.Closed) cmd.Connection.Open();
+                cmd.CommandText = QueryPaging(" COUNT(1) ", FilterWhere, "", "");
+                jlhdataFilter = Convert.ToInt32(cmd.ExecuteScalar().ToString());
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+            finally
+            {
+                cmd.Connection.Close();
+            }
+
+            try
+            {
+                if (cmd.Connection.State == ConnectionState.Closed) cmd.Connection.Open();
+                cmd.CommandText = QueryPaging(" COUNT(1) ", "", "", "");
+                jlhData = Convert.ToInt32(cmd.ExecuteScalar().ToString());
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+            finally
+            {
+                cmd.Connection.Close();
+            }
+
+            return ls;
+        }
+
+        private string QueryPaging(string SelectData, string where, string order, string limit)
+        {
+            string sql = "";
+            sql = @"SELECT " + SelectData + @"
+                    FROM `policy_billing` pb
+                    LEFT JOIN `product` pd ON pd.`product_id`=pb.`product_id`
+                    LEFT JOIN `customer_info` ci ON ci.`CustomerId`=pb.`holder_id` " +
+                    where + order + limit;
+
+            return sql;
+        }
+
+        private string GetDataSelect()
+        {
+            string select = @"pb.`policy_Id`,
+                            pb.`policy_no`,
+                            pb.`commence_dt`,
+                            pb.`due_dt`,
+                            pb.`payment_method`,
+                            pb.`premium_mode`,
+                            pb.`cycleDate`,
+                            pb.`CylceDateNotes`,
+                            pd.`product_description`,
+                            ci.`CustomerName`,
+                            pb.`regular_premium`,
+                            pb.`cashless_fee_amount`,
+                            pb.`Policy_status`,
+                            pb.`IsHoldBilling`,
+                            pb.`IsWatchList`,
+                            pb.`IsRenewal`,
+                            pb.`worksite_org_name`,pb.`DateCrt`";
+            return select;
         }
     }
 }
