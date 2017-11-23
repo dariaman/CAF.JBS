@@ -69,6 +69,18 @@
                 $('#myTable thead').append(r);
                 $('#search_0').css('text-align', 'center');
 
+                this.api().columns([3]).every(function () {
+                    var column = this;
+                    var select = $('<select><option value=""> ... </option></select>')
+                        .appendTo($(column.footer()).empty())
+                        .on('change', function () {
+                            column.search(this.value).draw();
+                        });
+                    select.append('<option value="AC">AC</option>');
+                    select.append('<option value="CC">CC</option>');
+                    select.append('<option value="x">Others</option>');
+                });
+
                 this.api().columns([10]).every(function () {
                     var column = this;
                     var select = $('<select><option value=""> ... </option></select>')
@@ -79,6 +91,18 @@
                     select.append('<option value="A">Unpaid</option>');
                     select.append('<option value="C">Cancel</option>');
                     select.append('<option value="P">Paid</option>');
+                });
+
+                this.api().columns([11]).every(function () {
+                    var column = this;
+                    var select = $('<input type="date" placeholder=" ... " />')
+                        .appendTo($(column.footer()).empty())
+                        .on('keyup change', function () {
+                            if (column.search() !== this.value) {
+                                if (this.value == 'mm/dd/yyyy') { this.value = '' }
+                                column.search(this.value).draw();
+                            }
+                        });
                 });
 
                 this.api().columns([14]).every(function () {
@@ -193,7 +217,7 @@
         var table = $('#myTable').DataTable();
 
         /* Apply the search for individual columns*/
-        $('#myTable tfoot th').filter(":eq(0),:eq(1),:eq(2),:eq(3),:eq(4)").each(function () {
+        $('#myTable tfoot th').filter(":eq(0),:eq(1),:eq(2),:eq(4)").each(function () {
             var title = $(this).text();
             $(this).html('<input type="text" placeholder=" ... " />');
         });

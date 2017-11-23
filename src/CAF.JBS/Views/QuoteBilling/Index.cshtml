@@ -1,46 +1,224 @@
-@model IEnumerable<CAF.JBS.ViewModels.QuoteBillingVM>
-@using NonFactors.Mvc.Grid;
-
 @{
     ViewData["Title"] = "Quote";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 <style>
-    .kanan {
-        text-align:right;
+    th input {
+        width: 100%;
     }
-    .tengah {
-        text-align:center;
-    }
-    .date {
-        min-width:100px;
-        text-align:center;
+
+    table.dataTable thead tr th.search {
+        padding: 10px 8px;
     }
 </style>
 <h2>Quote</h2>
+<br />
 
-@(Html
-    .Grid(Model)
-    .Build(columns =>
-    {
-        columns.Add(model => model.quote_id).Titled("QuoteID");
-        columns.Add(model => model.ref_no).Titled("QuoteNo");
-        columns.Add(model => model.CustomerName).Titled("CustomerName");
-        columns.Add(model => model.prospect_amount).Titled("ProspectAmount").Formatted("{0:#,###}").Css("kanan").Filterable(false);
-        columns.Add(model => model.paper_print_fee).Titled("PaperPrintFee").Formatted("{0:#,###}").Css("kanan").Filterable(false);
-        columns.Add(model => model.cashless_fee).Titled("CashlessFee").Formatted("{0:#,###}").Css("kanan").Filterable(false);
-        columns.Add(model => model.cancel_date).Titled("CancelDate").Formatted("{0:dd-MM-yyyy}").Css("date").Filterable(false);
-        columns.Add(model => model.status).Titled("status").Css("tengah").Filterable(false);
-        columns.Add(model => model.paid_dt).Titled("PaidDate").Formatted("{0:dd-MM-yyyy}").Css("date").Filterable(false);
-        columns.Add(model => model.DateCrt).Titled("DateCrt").Formatted("{0:dd-MM-yyyy}").Css("date").Filterable(false);
-        columns.Add(model => model.LastUploadDate).Titled("UploadDate").Formatted("{0:dd-MM-yyyy}").Css("date").Filterable(false);
-    }).Empty("No data found")
-    .Pageable(pager =>
-    {
-        pager.PagesToDisplay = 10;
-        pager.RowsPerPage = 10;
-    })
-    .Sortable()
-    .Filterable()
-    .Css("table-hover")
-)
+<br />
+<table id="myTable">
+    <thead>
+        <tr>
+            <th>QuoteID</th>
+            <th>RefNo</th>
+            <th>PolicyID</th>
+            <th>PolicyNo</th>
+            <th>HolderName</th>
+            <th>PremiAmount</th>
+            <th>PaperPrintFee</th>
+            <th>CashlessFee</th>
+            <th>TotalAmount</th>
+            <th>Status</th>
+            <th>LastUploadDate</th>
+            <th>CancelDate</th>
+            <th style="min-width:80px;">PaidDate</th>
+            <th style="min-width:80px;">DateCrt</th>
+            <th>ACCNo</th>
+            <th>ACCName</th>
+            <th>CCExpiry</th>
+            <th>CardIssuerBank</th>
+        </tr>
+    </thead>
+    <tfoot>
+        <tr>
+            <th class="search"></th>
+            <th class="search"></th>
+            <th class="search"></th>
+            <th class="search"></th>
+            <th class="search"></th>
+            <th class="search"></th>
+            <th class="search"></th>
+            <th class="search"></th>
+            <th class="search"></th>
+            <th class="search"></th>
+            <th class="search"></th>
+            <th class="search"></th>
+            <th class="search"></th>
+            <th class="search"></th>
+            <th class="search"></th>
+            <th class="search"></th>
+            <th class="search"></th>
+            <th class="search"></th>
+        </tr>
+    </tfoot>
+</table>
+
+
+<script>
+    $(document).ready(function () {
+        $('#myTable').dataTable({
+            serverSide: true,
+            processing: true,
+            initComplete: function () {
+                var r = $('#myTable tfoot tr');
+                $('#myTable thead').append(r);
+                $('#search_0').css('text-align', 'center');
+
+                this.api().columns([9]).every(function () {
+                    var column = this;
+                    var select = $('<select><option value=""> ... </option></select>')
+                        .appendTo($(column.footer()).empty())
+                        .on('change', function () {
+                            column.search(this.value).draw();
+                        });
+                    select.append('<option value="A">Unpaid</option>');
+                    select.append('<option value="C">Cancel</option>');
+                    select.append('<option value="P">Paid</option>');
+                });
+
+                this.api().columns([10]).every(function () {
+                    var column = this;
+                    var select = $('<input type="date" placeholder=" ... " />')
+                        .appendTo($(column.footer()).empty())
+                        .on('keyup change', function () {
+                            if (column.search() !== this.value) {
+                                if (this.value == 'mm/dd/yyyy') { this.value = '' }
+                                column.search(this.value).draw();
+                            }
+                        });
+                });
+            },
+            dom: '<"top"B>tr<"bottom"ip>',
+            language: {
+                "decimal": ",",
+                "thousands": ".",
+                "zeroRecords": "No Data",
+                "infoEmpty": "No Data",
+            },
+            ajax: {
+                "url": "@Url.Action("PageData", "QuoteBilling")",
+                "type": "POST"
+            },
+            columns: [
+                { data: "quote_id", className: "dt-right" },
+                { data: "ref_no", className: "dt-right" },
+                { data: "policy_id", className: "dt-right" },
+                { data: "policy_no", className: "dt-right" },
+                { data: "holder_Name" },
+                {
+                    data: "prospect_amount",
+                    searchable: false,
+                    render: $.fn.dataTable.render.number(',', '.', 0, ''),
+                    className: "dt-right"
+                },
+                {
+                    data: "paper_print_fee",
+                    searchable: false,
+                    render: $.fn.dataTable.render.number(',', '.', 0, ''),
+                    className: "dt-right"
+                },
+                {
+                    data: "cashless_fee",
+                    searchable: false,
+                    render: $.fn.dataTable.render.number(',', '.', 0, ''),
+                    className: "dt-right"
+                },
+                {
+                    data: "totalAmount",
+                    searchable: false,
+                    render: $.fn.dataTable.render.number(',', '.', 0, ''),
+                    className: "dt-right"
+                },
+                {
+                    data: "status",
+                    className: "dt-center",
+                    render: function (data) { return (data == "P" ? "Paid" : (data == "C" ? "Cancel" : "Unpaid")) }
+                },
+                {
+                    data: "lastUploadDate",
+                    className: "dt-right",
+                    render: function (data) {
+                        var tgl = new Date(data);
+                        return data == null ? "" : tgl.toLocaleDateString("en-GB", { year: "numeric", month: "short", day: "numeric" })
+                    }
+                },
+                {
+                    data: "cancel_date",
+                    searchable: false,
+                    className: "dt-right",
+                    render: function (data) {
+                        var tgl = new Date(data);
+                        return data == null ? "" : tgl.toLocaleDateString("en-GB", { year: "numeric", month: "short", day: "numeric" })
+                    }
+                },
+                {
+                    data: "paid_dt",
+                    searchable: false,
+                    className: "dt-right",
+                    render: function (data) {
+                        var tgl = new Date(data);
+                        return data == null ? "" : tgl.toLocaleDateString("en-GB", { year: "numeric", month: "short", day: "numeric" })
+                    }
+                },
+                {
+                    data: "dateCrt",
+                    searchable: false,
+                    className: "dt-right",
+                    render: function (data) {
+                        var tgl = new Date(data);
+                        return data == null ? "" : tgl.toLocaleDateString("en-GB", { year: "numeric", month: "short", day: "numeric" })
+                    }
+                },
+                { data: "acc_no", className: "dt-center" },
+                { data: "acc_name" },
+                { data: "cc_expiry", className: "dt-right" },
+                { data: "bank_code" },
+            ]
+        });
+
+        $('#myTable tfoot th').filter(":eq(0),:eq(1),:eq(2),:eq(3),:eq(4)").each(function () {
+            var title = $(this).text();
+            $(this).html('<input type="text" placeholder=" ... " />');
+        });
+
+        // DataTable
+        var table = $('#myTable').DataTable();
+
+        /* Apply the search for individual columns*/
+        table.columns().every(function () {
+            var that = this;
+            $('input', this.footer()).on('focusout', function () {
+                if (that.search() !== this.value) {
+                    that.search(this.value).draw();
+                }
+            });
+
+            $('input', this.footer()).on('keyup change', function (ev) {
+                if (ev.keyCode == 13) { //only on enter keypress (code 13)
+                    if (that.search() !== this.value) {
+                        that.search(this.value).draw();
+                    }
+                }
+            });
+        });
+
+        $('#myTable tbody').on('click', 'tr', function () {
+            if ($(this).hasClass('selected')) {
+                $(this).removeClass('selected');
+            }
+            else {
+                table.$('tr.selected').removeClass('selected');
+                $(this).addClass('selected');
+            }
+        });
+    });
+</script>

@@ -91,7 +91,7 @@ namespace CAF.JBS.Controllers
                 else if (req.Field == "payment_method" && !string.IsNullOrEmpty(req.Search.Value))
                 {
                     var tmp = Regex.Replace(req.Search.Value, "[^a-zA-Z]", "");
-                    FilterSql += " AND pb.`payment_method`='" + tmp + "'";
+                    FilterSql += (tmp == "x" ? " AND pb.`payment_method` NOT IN ('AC','CC') " : " AND pb.`payment_method`='" + tmp + "'");
                 }
                 else if (req.Field == "recurring_seq" && !string.IsNullOrEmpty(req.Search.Value))
                 {
@@ -108,14 +108,14 @@ namespace CAF.JBS.Controllers
                     var tmp = Regex.Replace(req.Search.Value, "[^a-zA-Z]", "");
                     FilterSql += " AND b.`PaymentSource`='" + tmp + "'";
                 }
-                //else if (req.Field == "lastUploadDate" && !string.IsNullOrEmpty(req.Search.Value))
-                //{
-                //    if (DateTime.TryParse(req.Search.Value, out tgl))
-                //    {
-                //        FilterSql += " AND b.`LastUploadDate` >= '" + tgl.ToString("yyyy-MM-dd") + "'";
-                //        FilterSql += " AND b.`LastUploadDate` <  '" + tgl.AddDays(1).ToString("yyyy-MM-dd") + "'";
-                //    }
-                //}
+                else if (req.Field == "lastUploadDate" && !string.IsNullOrEmpty(req.Search.Value))
+                {
+                    if (DateTime.TryParse(req.Search.Value, out tgl))
+                    {
+                        FilterSql += " AND b.`LastUploadDate` >= '" + tgl.ToString("yyyy-MM-dd") + "'";
+                        FilterSql += " AND b.`LastUploadDate` <  '" + tgl.AddDays(1).ToString("yyyy-MM-dd") + "'";
+                    }
+                }
             }
 
             return FilterSql;
