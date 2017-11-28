@@ -24,6 +24,7 @@
             <th>ACCName</th>
             <th>BankIssuer</th>
             <th>CycleDate</th>
+            <th>CycleDateNote</th>
             <th>IsSKDR</th>
             <th style="min-width:80px;">DateCrt</th>
             <th style="min-width:80px;">DateUpdate</th>
@@ -31,6 +32,7 @@
     </thead>
     <tfoot>
         <tr>
+            <th class="search"></th>
             <th class="search"></th>
             <th class="search"></th>
             <th class="search"></th>
@@ -55,7 +57,7 @@
                 $('#myTable thead').append(r);
                 $('#search_0').css('text-align', 'center');
 
-                this.api().columns([6]).every(function () {
+                this.api().columns([7]).every(function () {
                     var column = this;
                     var select = $('<select><option value=""> ... </option></select>')
                         .appendTo($(column.footer()).empty())
@@ -83,7 +85,14 @@
                 { data: "acc_no", className: "dt-right" },
                 { data: "acc_name" },
                 { data: "bank_code" },
-                { data: "cycleDate", className: "dt-center" },
+                {
+                    data: "cycleDate",
+                    className: "dt-center",
+                    render: function (data, type, row) {
+                        return '<a data-toggle="modal" class="anchor-update" data-id=' + row.policyId + '>' + data + '</a>';
+                    }
+                },
+                { data: "cycleDateNote"},
                 {
                     data: "isSKDR",
                     className: "dt-center",
@@ -146,6 +155,16 @@
                 table.$('tr.selected').removeClass('selected');
                 $(this).addClass('selected');
             }
+        });
+
+        $('#myTable tbody').on('click', 'td .anchor-update', function () {
+            var tr = $(this).closest('tr');
+            var row = table.row(tr);
+            var url = '@Url.Action("Edit", "PolicyAc")';
+            url += '/' + row.data().policyId;
+            $('#myModal').empty();
+            $('#myModal').load(url);
+            $('#myModal').modal('show');
         });
     });
 </script>

@@ -21,7 +21,7 @@ namespace CAF.JBS.Controllers
 
         public PolicyBillingController(JbsDbContext context)
         {
-            _context = context;    
+            _context = context;
         }
 
         // GET: PolicyBilling
@@ -36,68 +36,11 @@ namespace CAF.JBS.Controllers
                                join c in _context.CustomerInfo on p.holder_id equals c.CustomerId
                                join pd in _context.Product on p.product_id equals pd.product_id
                                where p.policy_Id.Equals(id)
-                     select new PolicyCycleDateVM()
-                     {
-                         policy_Id = p.policy_Id,
-                         cycleDate = p.cycleDate,
-                         policy_no=p.policy_no,
-                         commence_dt=p.commence_dt,
-                         payment_method=p.payment_method,
-                         premium_mode=p.premium_mode,
-                         regular_premium=p.regular_premium,
-                         Status=p.Policy_status,
-                         product_Name=pd.product_description,
-                         HolderName=c.CustomerName
-                     }).SingleOrDefaultAsync();
-            if (polis == null) return NotFound();
-
-            return View(polis);
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("policy_Id,cycleDate")] PolicyCycleDateVM polisVM)
-        {
-            if (id != polisVM.policy_Id)
-            {
-                return NotFound();
-            }
-
-            var polis = await this.findPolicyModel(id);
-            if(polis==null) return NotFound();
-
-            polis.cycleDate = polisVM.cycleDate;
-
-
-            if (ModelState.IsValid)
-            {
-                try
-                {
-                    _context.Update(polis);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-
-                    //if (!PolicyModelExists(billingModel.BillingID))
-                    //{
-                    //    return NotFound();
-                    //}
-                    //else
-                    //{
-                        throw;
-                    //}
-                }
-                return RedirectToAction("Index");
-            }
-            var polisx = await (from p in _context.PolicyBillingModel
-                               join c in _context.CustomerInfo on p.holder_id equals c.CustomerId
-                               join pd in _context.Product on p.product_id equals pd.product_id
-                               where p.policy_Id.Equals(id)
                                select new PolicyCycleDateVM()
                                {
                                    policy_Id = p.policy_Id,
                                    cycleDate = p.cycleDate,
+                                   CylceDateNotes=p.CylceDateNotes,
                                    policy_no = p.policy_no,
                                    commence_dt = p.commence_dt,
                                    payment_method = p.payment_method,
@@ -108,7 +51,53 @@ namespace CAF.JBS.Controllers
                                    HolderName = c.CustomerName
                                }).SingleOrDefaultAsync();
             if (polis == null) return NotFound();
-            return View(polisx);
+
+            return PartialView(polis);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult Edit(int id, [Bind("policy_Id,cycleDate,CylceDateNotes")] PolicyCycleDateVM polisVM)
+        {
+            Boolean retval =false;
+            string message = "";
+
+            if (id != polisVM.policy_Id)
+            {
+                return NotFound();
+            }
+
+            if (polisVM.cycleDate < 1 || polisVM.cycleDate > 31)
+            {
+                message = " cycleDate harus diantara 1 - 31 ! ";
+                return Json(new { data = retval, message = message });
+            }
+
+            var polis = this.findPolicyModel(id);
+            if (polis == null)
+            {
+                message = " Polis Tidak ditemukan ! ";
+                return Json(new { data = retval, message = message });
+            }
+
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    polis.cycleDate = polisVM.cycleDate;
+                    if(polisVM.CylceDateNotes != "") polis.CylceDateNotes = polisVM.CylceDateNotes;
+                    _context.Update(polis);
+                    _context.SaveChanges();
+                    retval = true;
+                    message = "sukses";
+                }
+                catch (DbUpdateConcurrencyException ex)
+                {
+                    retval = false;
+                    message = ex.Message;
+                }
+            }
+            return Json(new { data = retval, message = message });
         }
 
         private bool PolicyModelExists(int id)
@@ -116,9 +105,9 @@ namespace CAF.JBS.Controllers
             return _context.PolicyBillingModel.Any(e => e.policy_Id == id);
         }
 
-        private async Task<PolicyBillingModel> findPolicyModel(int id)
+        private PolicyBillingModel findPolicyModel(int id)
         {
-            return await _context.PolicyBillingModel.SingleOrDefaultAsync(m => m.policy_Id == id); ;
+            return _context.PolicyBillingModel.SingleOrDefault(m => m.policy_Id == id); ;
         }
 
         public IActionResult PageData(IDataTablesRequest request)
@@ -246,8 +235,8 @@ namespace CAF.JBS.Controllers
                         policy_Id = rd["policy_Id"].ToString(),
                         policy_no = rd["policy_no"].ToString(),
                         commence_dt = Convert.ToDateTime(rd["commence_dt"]),
-                        due_dt= Convert.ToDateTime(rd["due_dt"]),
-                        payment_method= rd["payment_method"].ToString(),
+                        due_dt = Convert.ToDateTime(rd["due_dt"]),
+                        payment_method = rd["payment_method"].ToString(),
 
                         premium_mode = rd["premium_mode"].ToString(),
                         cycleDate = rd["cycleDate"].ToString(),
@@ -263,7 +252,7 @@ namespace CAF.JBS.Controllers
                         IsWatchList = Convert.ToBoolean(rd["IsWatchList"]),
                         IsRenewal = Convert.ToBoolean(rd["IsRenewal"]),
                         worksite_org_name = rd["worksite_org_name"].ToString(),
-                        DateCrt= rd["DateCrt"] == DBNull.Value ? (DateTime?)null : Convert.ToDateTime(rd["DateCrt"])
+                        DateCrt = rd["DateCrt"] == DBNull.Value ? (DateTime?)null : Convert.ToDateTime(rd["DateCrt"])
                     });
                 }
             }

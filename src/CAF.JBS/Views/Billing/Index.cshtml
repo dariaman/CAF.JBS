@@ -116,6 +116,17 @@
                     select.append('<option value="AC">AutoCollection</option>');
                     select.append('<option value="CC">CreditCard</option>');
                 });
+
+                this.api().columns([15]).every(function () {
+                    var column = this;
+                    var select = $('<select><option value=""> ... </option></select>')
+                        .appendTo($(column.footer()).empty())
+                        .on('change', function () {
+                            column.search(this.value).draw();
+                        });
+                    select.append('<option value="1">True</option>');
+                    select.append('<option value="0">False</option>');
+                });
             },
             dom: '<"top"B>tr<"bottom"ip>',
             language: {

@@ -108,6 +108,11 @@ namespace CAF.JBS.Controllers
                     var tmp = Regex.Replace(req.Search.Value, "[^a-zA-Z]", "");
                     FilterSql += " AND b.`PaymentSource`='" + tmp + "'";
                 }
+                else if (req.Field == "isHold" && !string.IsNullOrEmpty(req.Search.Value))
+                {
+                    var tmp = Regex.Replace(req.Search.Value, "[^0-1]", "");
+                    FilterSql += " AND COALESCE(NULLIF(b.`IsPending`,0),pb.`IsHoldBilling`)='" + tmp + "'";
+                }
                 else if (req.Field == "lastUploadDate" && !string.IsNullOrEmpty(req.Search.Value))
                 {
                     if (DateTime.TryParse(req.Search.Value, out tgl))

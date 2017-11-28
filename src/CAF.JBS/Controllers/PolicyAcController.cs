@@ -1,4 +1,5 @@
 ﻿using CAF.JBS.Data;
+using CAF.JBS.Models;
 using CAF.JBS.ViewModels;
 using DataTables.AspNet.AspNetCore;
 using DataTables.AspNet.Core;
@@ -27,6 +28,87 @@ namespace CAF.JBS.Controllers
             return View();
         }
 
+
+        public async Task<IActionResult> Edit(int id)
+        {
+            var polis = await (from p in _context.PolicyBillingModel
+                               join pa in _context.PolicyAcModel on p.policy_Id equals pa.PolicyId
+                               join c in _context.CustomerInfo on p.holder_id equals c.CustomerId
+                               join pd in _context.Product on p.product_id equals pd.product_id
+                               join b in _context.BankModel on pa.bank_id equals b.bank_id
+                               where p.policy_Id.Equals(id)
+                               select new PolicyCycleDateVM()
+                               {
+                                   policy_Id = p.policy_Id,
+                                   cycleDate = pa.cycleDate ?? 0 ,
+                                   CylceDateNotes = pa.cycleDateNote,
+                                   policy_no = p.policy_no,
+                                   commence_dt = p.commence_dt,
+                                   payment_method = p.payment_method,
+                                   premium_mode = p.premium_mode,
+                                   regular_premium = p.regular_premium,
+                                   Status = p.Policy_status,
+                                   product_Name = pd.product_description,
+                                   HolderName = c.CustomerName,
+                                   acc_no = pa.acc_no,
+                                   acc_name = pa.acc_name,
+                                   BankName = b.bank_code,
+                                   IsSkdr = pa.IsSKDR
+                               }).SingleOrDefaultAsync();
+            if (polis == null) return NotFound();
+
+            return PartialView(polis);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult Edit(int id, [Bind("policy_Id,cycleDate,CylceDateNotes")] PolicyCycleDateVM polisVM)
+        {
+            Boolean retval = false;
+            string message = "";
+
+            if (id != polisVM.policy_Id)
+            {
+                return NotFound();
+            }
+
+            if (polisVM.cycleDate < 0 || polisVM.cycleDate > 31)
+            {
+                message = " cycleDate harus diantara 0 - 31 ! ";
+                return Json(new { data = retval, message = message });
+            }
+
+            var polisAC = this.findPolicyModel(id);
+            if (polisAC == null)
+            {
+                message = " Polis Tidak ditemukan ! ";
+                return Json(new { data = retval, message = message });
+            }
+
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    polisAC.cycleDate = polisVM.cycleDate;
+                    if (polisVM.CylceDateNotes != "") polisAC.cycleDateNote = polisVM.CylceDateNotes;
+                    _context.Update(polisAC);
+                    _context.SaveChanges();
+                    retval = true;
+                    message = "sukses";
+                }
+                catch (DbUpdateConcurrencyException ex)
+                {
+                    retval = false;
+                    message = ex.Message;
+                }
+            }
+            return Json(new { data = retval, message = message });
+        }
+
+        private PolicyAcModel findPolicyModel(int id)
+        {
+            return _context.PolicyAcModel.SingleOrDefault(m => m.PolicyId == id); ;
+        }
 
         public IActionResult PageData(IDataTablesRequest request)
         {
@@ -126,6 +208,7 @@ namespace CAF.JBS.Controllers
                         acc_name = rd["acc_name"].ToString(),
                         bank_code = rd["bank_code"].ToString(),
                         cycleDate = rd["cycleDate"].ToString(),
+                        cycleDateNote = rd["cycleDateNote"].ToString(),
                         IsSKDR = Convert.ToBoolean(rd["IsSKDR"]),
                         DateCrt = rd["DateCrt"] == DBNull.Value ? (DateTime?)null : Convert.ToDateTime(rd["DateCrt"]),
                         DateUpdate = rd["DateUpdate"] == DBNull.Value ? (DateTime?)null : Convert.ToDateTime(rd["DateUpdate"]),
@@ -193,7 +276,8 @@ namespace CAF.JBS.Controllers
                             pa.`acc_no`,
                             pa.`acc_name`,
                             b.`bank_code`,
-                            pa.`cycleDate`,
+                            COALESCE(pa.`cycleDate`,0) as cycleDate,
+                            pa.`cycleDateNote`,
                             pa.`IsSKDR`,
                             pa.`DateCrt`,
                             pa.`DateUpdate`";

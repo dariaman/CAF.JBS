@@ -18,6 +18,8 @@ namespace CAF.JBS.Models
         public int holder_id { get; set; }
         public decimal regular_premium { get; set; }
         public int cycleDate { get; set; }
+        public string CylceDateNotes { get; set; }
+
         public string Policy_status { get; set; }
         public Nullable<DateTime> Policy_status_dateupdate { get; set; }
         public Boolean IsHoldBilling { get; set; }

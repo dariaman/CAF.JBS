@@ -67,6 +67,7 @@
         $('#myTable').dataTable({
             serverSide: true,
             processing: true,
+            pagingType : "full_numbers",
             initComplete: function () {
                 var r = $('#myTable tfoot tr');
                 $('#myTable thead').append(r);
@@ -138,7 +139,13 @@
                 },
                 { data: "payment_method", className: "dt-center"},
                 { data: "premium_mode", className: "dt-center" },
-                { data: "cycleDate", className: "dt-center" },
+                {
+                    data: "cycleDate",
+                    className: "dt-center",
+                    render: function (data, type, row) {
+                        return '<a data-toggle="modal" class="anchor-update" data-id=' + row.policy_Id + '>' + data + '</a>';
+                    }
+                },
                 { data: "cylceDateNotes" },
                 { data: "product_description" },
                 { data: "customerName" },
@@ -224,6 +231,16 @@
                 table.$('tr.selected').removeClass('selected');
                 $(this).addClass('selected');
             }
+        });
+
+        $('#myTable tbody').on('click', 'td .anchor-update', function () {
+            var tr = $(this).closest('tr');
+            var row = table.row(tr);
+            var url = '@Url.Action("Edit", "PolicyBilling")';
+            url += '/' + row.data().policy_Id;
+            $('#myModal').empty();
+            $('#myModal').load(url);
+            $('#myModal').modal('show');
         });
     });
 </script>

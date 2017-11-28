@@ -14,6 +14,8 @@ namespace CAF.JBS.ViewModels
         public string acc_name { get; set; }
         public string bank_code { get; set; }
         public string cycleDate { get; set; }
+        public string cycleDateNote { get; set; }
+
         public Boolean IsSKDR { get; set; }
         public DateTime? DateCrt { get; set; }
         public DateTime? DateUpdate { get; set; }

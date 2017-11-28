@@ -20,6 +20,8 @@ using MySQL.Data.Entity.Extensions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.Authorization;
 using DataTables.AspNet.AspNetCore;
+using Newtonsoft.Json.Serialization;
+using Newtonsoft.Json;
 
 namespace CAF.JBS
 {
@@ -75,7 +77,20 @@ namespace CAF.JBS
                                  .Build();
                 config.Filters.Add(new AuthorizeFilter(policy));
             });
-            //services.AddMvc();
+
+            //services.AddMvc()
+            //    .AddJsonOptions(options => {
+            //    // handle loops correctly
+            //    options.SerializerSettings.ReferenceLoopHandling =
+            //        Newtonsoft.Json.ReferenceLoopHandling.Ignore;
+            //    // use standard name conversion of properties
+            //    options.SerializerSettings.ContractResolver =
+            //        new CamelCasePropertyNamesContractResolver();
+            //    // include $id property in the output
+            //    options.SerializerSettings.PreserveReferencesHandling =
+            //        PreserveReferencesHandling.Objects;
+            //});
+
             services.AddMvcGrid();
             // Adds a default in-memory implementation of IDistributedCache.
             services.AddDistributedMemoryCache();

@@ -16,8 +16,9 @@ namespace CAF.JBS.Models
         public string acc_name { get; set; }
         public int bank_id { get; set; }
         public string bank_branch { get; set; }
-
+        [Required]
         public int? cycleDate { get; set; }
+        public string cycleDateNote { get; set; }
         public Boolean IsSKDR { get; set; }
         public DateTime? DateUpdate { get; set; }
     }
