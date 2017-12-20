@@ -13,7 +13,10 @@
 </style>
 <h2>Policy</h2>
 <br />
-<table id="myTable">
+<p align="right">
+    <input type="button" value="Refresh" class="btn btn-success" id="refresh" />
+</p>
+<table id="myTable" class="stripe">
     <thead>
         <tr>
             <th>PolicyID</th>
@@ -36,6 +39,7 @@
             <th>IsRenewal</th>
             <th>WorksiteName</th>
             <th style="min-width:80px;">DateCrt</th>
+            <th>AddPayment</th>
         </tr>
     </thead>
     <tfoot>
@@ -67,7 +71,7 @@
         $('#myTable').dataTable({
             serverSide: true,
             processing: true,
-            pagingType : "full_numbers",
+            pagingType: "full_numbers",
             initComplete: function () {
                 var r = $('#myTable tfoot tr');
                 $('#myTable thead').append(r);
@@ -137,7 +141,7 @@
                         return data == null ? "" : tgl.toLocaleDateString("en-GB", { year: "numeric", month: "short", day: "numeric" })
                     }
                 },
-                { data: "payment_method", className: "dt-center"},
+                { data: "payment_method", className: "dt-center" },
                 { data: "premium_mode", className: "dt-center" },
                 {
                     data: "cycleDate",
@@ -167,21 +171,21 @@
                     data: "isHoldBilling",
                     className: "dt-center",
                     render: function (data) {
-                        return (data ? "<span class='glyphicon glyphicon-ok text-success'></span>" : "");
+                        return (data ? "<span class='glyphicon glyphicon-ok text-success'></span>" : "<span class='glyphicon glyphicon-remove text-danger'></span>");
                     }
                 },
                 {
                     data: "isWatchList",
                     className: "dt-center",
                     render: function (data) {
-                        return (data ? "<span class='glyphicon glyphicon-ok text-success'></span>" : "");
+                        return (data ? "<span class='glyphicon glyphicon-ok text-success'></span>" : "<span class='glyphicon glyphicon-remove text-danger'></span>");
                     }
                 },
                 {
                     data: "isRenewal",
                     className: "dt-center",
                     render: function (data) {
-                        return (data ? "<span class='glyphicon glyphicon-ok text-success'></span>" : "");
+                        return (data ? "<span class='glyphicon glyphicon-ok text-success'></span>" : "<span class='glyphicon glyphicon-remove text-danger'></span>");
                     }
                 },
                 { data: "worksite_org_name", className: "dt-center" },
@@ -192,6 +196,14 @@
                     render: function (data) {
                         var tgl = new Date(data);
                         return data == null ? "" : tgl.toLocaleDateString("en-GB", { year: "numeric", month: "short", day: "numeric" })
+                    }
+                },
+                {
+                    //data: "AddPayment",
+                    className: "dt-center",
+                    render: function (data, type, row) {
+                        return '';
+                        //return '<a href=# data-toggle="modal" class="addPayment" data-id=' + row.policy_Id + '><span class="glyphicon glyphicon-plus text-success"></span></a>';
                     }
                 },
             ]
@@ -241,6 +253,21 @@
             $('#myModal').empty();
             $('#myModal').load(url);
             $('#myModal').modal('show');
+        });
+
+        $('#myTable tbody').on('click', 'td .addPayment', function () {
+            var tr = $(this).closest('tr');
+            var row = table.row(tr);
+            var url = '@Url.Action("AddPayment", "PolicyBilling")';
+            url += '/' + row.data().policy_Id;
+            $('#myModal').empty();
+            $('#myModal').load(url);
+            $('#myModal').modal('show');
+        });
+
+        $('#refresh').on('click', function () {
+            var table = $('#myTable').DataTable();
+            table.ajax.reload(null, false);
         });
     });
 </script>

@@ -3,131 +3,133 @@
 @{
     ViewData["Title"] = "Home Page";
 }
+<div class="container" style="margin: auto; padding: 20px;">
 
-<h2>Summary Billing</h2>
-<br />
-<br />
-<table class="table table-bordered table-striped">
-    <thead>
-        <tr>
-            <th rowspan="2" style="text-align:center;vertical-align:middle;">Billing Type</th>
-            <th class="bg-primary" colspan="3" style="text-align:center">Amount</th>
-            <th class="bg-primary" colspan="3" style="text-align:center">Count</th>
-            <th rowspan="2" style="text-align:center;vertical-align:middle;">Last Update</th>
-        </tr>
-        <tr>
-            <th>Paid</th>
-            <th>UnPaid</th>
-            <th>Total</th>
-            <th>Paid</th>
-            <th>UnPaid</th>
-            <th>Total</th>
-        </tr>
-    </thead>
-    <tbody>
-        <tr>
-            <td>@Model.ElementAt(0).DashName</td>
-            <td style="text-align:right;">@Model.ElementAt(0).PaidAmount.ToString("#,###")</td>
-            <td style="text-align:right;">@Model.ElementAt(0).UnPaidAmount.ToString("#,###")</td>
-            <td style="text-align:right;" class="success">@Model.ElementAt(0).TotalAmount.ToString("#,###")</td>
-            <td style="text-align:right;">@Model.ElementAt(0).PaidCount.ToString("#,###")</td>
-            <td style="text-align:right;">@Model.ElementAt(0).UnPaidCount.ToString("#,###")</td>
-            <td style="text-align:right;" class="success">@Model.ElementAt(0).TotalCount.ToString("#,###")</td>
-            <td style="text-align:center;">@Model.ElementAt(0).DateUpdate.Value.ToString("dd MMM yyyy hh:mm:ss")</td>
-        </tr>
-        <tr>
-            <td>@Model.ElementAt(1).DashName</td>
-            <td style="text-align:right;">@Model.ElementAt(1).PaidAmount.ToString("#,###")</td>
-            <td style="text-align:right;">@Model.ElementAt(1).UnPaidAmount.ToString("#,###")</td>
-            <td style="text-align:right;" class="success">@Model.ElementAt(1).TotalAmount.ToString("#,###")</td>
-            <td style="text-align:right;">@Model.ElementAt(1).PaidCount.ToString("#,###")</td>
-            <td style="text-align:right;">@Model.ElementAt(1).UnPaidCount.ToString("#,###")</td>
-            <td style="text-align:right;" class="success">@Model.ElementAt(1).TotalCount.ToString("#,###")</td>
-            <td style="text-align:center;">@Model.ElementAt(1).DateUpdate.Value.ToString("dd MMM yyyy hh:mm:ss")</td>
-        </tr>
-        <tr>
-            <td>@Model.ElementAt(2).DashName</td>
-            <td style="text-align:right;">@Model.ElementAt(2).PaidAmount.ToString("#,###")</td>
-            <td style="text-align:right;">@Model.ElementAt(2).UnPaidAmount.ToString("#,###")</td>
-            <td style="text-align:right;" class="success">@Model.ElementAt(2).TotalAmount.ToString("#,###")</td>
-            <td style="text-align:right;">@Model.ElementAt(2).PaidCount.ToString("#,###")</td>
-            <td style="text-align:right;">@Model.ElementAt(2).UnPaidCount.ToString("#,###")</td>
-            <td style="text-align:right;" class="success">@Model.ElementAt(2).TotalCount.ToString("#,###")</td>
-            <td style="text-align:center;">@Model.ElementAt(2).DateUpdate.Value.ToString("dd MMM yyyy hh:mm:ss")</td>
-        </tr>
-        <tr>
-            <td>@Model.ElementAt(3).DashName</td>
-            <td style="text-align:right;">@Model.ElementAt(3).PaidAmount.ToString("#,###")</td>
-            <td style="text-align:right;">@Model.ElementAt(3).UnPaidAmount.ToString("#,###")</td>
-            <td style="text-align:right;" class="success">@Model.ElementAt(3).TotalAmount.ToString("#,###")</td>
-            <td style="text-align:right;">@Model.ElementAt(3).PaidCount.ToString("#,###")</td>
-            <td style="text-align:right;">@Model.ElementAt(3).UnPaidCount.ToString("#,###")</td>
-            <td style="text-align:right;" class="success">@Model.ElementAt(3).TotalCount.ToString("#,###")</td>
-            <td style="text-align:center;">@Model.ElementAt(3).DateUpdate.Value.ToString("dd MMM yyyy hh:mm:ss")</td>
-        </tr>
-    </tbody>
-</table>
+    <h2>Summary Billing</h2>
+    <br />
+    <br />
+    <table class="table table-bordered table-striped">
+        <thead>
+            <tr>
+                <th rowspan="2" style="text-align:center;vertical-align:middle;">Billing Type</th>
+                <th class="bg-primary" colspan="3" style="text-align:center">Amount</th>
+                <th class="bg-primary" colspan="3" style="text-align:center">Count</th>
+                <th rowspan="2" style="text-align:center;vertical-align:middle;">Last Update</th>
+            </tr>
+            <tr>
+                <th>Paid</th>
+                <th>UnPaid</th>
+                <th>Total</th>
+                <th>Paid</th>
+                <th>UnPaid</th>
+                <th>Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>@Model.ElementAt(0).DashName</td>
+                <td style="text-align:right;">@Model.ElementAt(0).PaidAmount.ToString("#,###")</td>
+                <td style="text-align:right;">@Model.ElementAt(0).UnPaidAmount.ToString("#,###")</td>
+                <td style="text-align:right;" class="success">@Model.ElementAt(0).TotalAmount.ToString("#,###")</td>
+                <td style="text-align:right;">@Model.ElementAt(0).PaidCount.ToString("#,###")</td>
+                <td style="text-align:right;">@Model.ElementAt(0).UnPaidCount.ToString("#,###")</td>
+                <td style="text-align:right;" class="success">@Model.ElementAt(0).TotalCount.ToString("#,###")</td>
+                <td style="text-align:center;">@Model.ElementAt(0).DateUpdate.Value.ToString("dd MMM yyyy hh:mm:ss")</td>
+            </tr>
+            <tr>
+                <td>@Model.ElementAt(1).DashName</td>
+                <td style="text-align:right;">@Model.ElementAt(1).PaidAmount.ToString("#,###")</td>
+                <td style="text-align:right;">@Model.ElementAt(1).UnPaidAmount.ToString("#,###")</td>
+                <td style="text-align:right;" class="success">@Model.ElementAt(1).TotalAmount.ToString("#,###")</td>
+                <td style="text-align:right;">@Model.ElementAt(1).PaidCount.ToString("#,###")</td>
+                <td style="text-align:right;">@Model.ElementAt(1).UnPaidCount.ToString("#,###")</td>
+                <td style="text-align:right;" class="success">@Model.ElementAt(1).TotalCount.ToString("#,###")</td>
+                <td style="text-align:center;">@Model.ElementAt(1).DateUpdate.Value.ToString("dd MMM yyyy hh:mm:ss")</td>
+            </tr>
+            <tr>
+                <td>@Model.ElementAt(2).DashName</td>
+                <td style="text-align:right;">@Model.ElementAt(2).PaidAmount.ToString("#,###")</td>
+                <td style="text-align:right;">@Model.ElementAt(2).UnPaidAmount.ToString("#,###")</td>
+                <td style="text-align:right;" class="success">@Model.ElementAt(2).TotalAmount.ToString("#,###")</td>
+                <td style="text-align:right;">@Model.ElementAt(2).PaidCount.ToString("#,###")</td>
+                <td style="text-align:right;">@Model.ElementAt(2).UnPaidCount.ToString("#,###")</td>
+                <td style="text-align:right;" class="success">@Model.ElementAt(2).TotalCount.ToString("#,###")</td>
+                <td style="text-align:center;">@Model.ElementAt(2).DateUpdate.Value.ToString("dd MMM yyyy hh:mm:ss")</td>
+            </tr>
+            <tr>
+                <td>@Model.ElementAt(3).DashName</td>
+                <td style="text-align:right;">@Model.ElementAt(3).PaidAmount.ToString("#,###")</td>
+                <td style="text-align:right;">@Model.ElementAt(3).UnPaidAmount.ToString("#,###")</td>
+                <td style="text-align:right;" class="success">@Model.ElementAt(3).TotalAmount.ToString("#,###")</td>
+                <td style="text-align:right;">@Model.ElementAt(3).PaidCount.ToString("#,###")</td>
+                <td style="text-align:right;">@Model.ElementAt(3).UnPaidCount.ToString("#,###")</td>
+                <td style="text-align:right;" class="success">@Model.ElementAt(3).TotalCount.ToString("#,###")</td>
+                <td style="text-align:center;">@Model.ElementAt(3).DateUpdate.Value.ToString("dd MMM yyyy hh:mm:ss")</td>
+            </tr>
+        </tbody>
+    </table>
 
-<br /><br /><br />
+    <br /><br /><br />
 
-<table class="table table-bordered table-striped">
-    <thead>
-        <tr>
-            <th rowspan="2" style="text-align:center;vertical-align:middle;">Payment Method</th>
-            <th class="bg-primary" colspan="3" style="text-align:center">Amount</th>
-            <th class="bg-primary" colspan="3" style="text-align:center">Count</th>
-            <th rowspan="2" style="text-align:center;vertical-align:middle;">Last Update</th>
-        </tr>
-        <tr>
-            <th>Paid</th>
-            <th>UnPaid</th>
-            <th>Total</th>
-            <th>Paid</th>
-            <th>UnPaid</th>
-            <th>Total</th>
-        </tr>
-    </thead>
-    <tbody>
-        <tr>
-            <td>@Model.ElementAt(4).DashName</td>
-            <td style="text-align:right;">@Model.ElementAt(4).PaidAmount.ToString("#,###")</td>
-            <td style="text-align:right;">@Model.ElementAt(4).UnPaidAmount.ToString("#,###")</td>
-            <td style="text-align:right;" class="success">@Model.ElementAt(4).TotalAmount.ToString("#,###")</td>
-            <td style="text-align:right;">@Model.ElementAt(4).PaidCount.ToString("#,###")</td>
-            <td style="text-align:right;">@Model.ElementAt(4).UnPaidCount.ToString("#,###")</td>
-            <td style="text-align:right;" class="success">@Model.ElementAt(4).TotalCount.ToString("#,###")</td>
-            <td style="text-align:center;">@Model.ElementAt(4).DateUpdate.Value.ToString("dd MMM yyyy hh:mm:ss")</td>
-        </tr>
-        <tr>
-            <td>@Model.ElementAt(5).DashName</td>
-            <td style="text-align:right;">@Model.ElementAt(5).PaidAmount.ToString("#,###")</td>
-            <td style="text-align:right;">@Model.ElementAt(5).UnPaidAmount.ToString("#,###")</td>
-            <td style="text-align:right;" class="success">@Model.ElementAt(5).TotalAmount.ToString("#,###")</td>
-            <td style="text-align:right;">@Model.ElementAt(5).PaidCount.ToString("#,###")</td>
-            <td style="text-align:right;">@Model.ElementAt(5).UnPaidCount.ToString("#,###")</td>
-            <td style="text-align:right;" class="success">@Model.ElementAt(5).TotalCount.ToString("#,###")</td>
-            <td style="text-align:center;">@Model.ElementAt(5).DateUpdate.Value.ToString("dd MMM yyyy hh:mm:ss")</td>
-        </tr>
-        <tr>
-            <td>@Model.ElementAt(6).DashName</td>
-            <td style="text-align:right;">@Model.ElementAt(6).PaidAmount.ToString("#,###")</td>
-            <td style="text-align:right;">@Model.ElementAt(6).UnPaidAmount.ToString("#,###")</td>
-            <td style="text-align:right;" class="success">@Model.ElementAt(6).TotalAmount.ToString("#,###")</td>
-            <td style="text-align:right;">@Model.ElementAt(6).PaidCount.ToString("#,###")</td>
-            <td style="text-align:right;">@Model.ElementAt(6).UnPaidCount.ToString("#,###")</td>
-            <td style="text-align:right;" class="success">@Model.ElementAt(6).TotalCount.ToString("#,###")</td>
-            <td style="text-align:center;">@Model.ElementAt(6).DateUpdate.Value.ToString("dd MMM yyyy hh:mm:ss")</td>
-        </tr>
-        <tr>
-            <td>@Model.ElementAt(7).DashName</td>
-            <td style="text-align:right;">@Model.ElementAt(7).PaidAmount.ToString("#,###")</td>
-            <td style="text-align:right;">@Model.ElementAt(7).UnPaidAmount.ToString("#,###")</td>
-            <td style="text-align:right;" class="success">@Model.ElementAt(7).TotalAmount.ToString("#,###")</td>
-            <td style="text-align:right;">@Model.ElementAt(7).PaidCount.ToString("#,###")</td>
-            <td style="text-align:right;">@Model.ElementAt(7).UnPaidCount.ToString("#,###")</td>
-            <td style="text-align:right;" class="success">@Model.ElementAt(7).TotalCount.ToString("#,###")</td>
-            <td style="text-align:center;">@Model.ElementAt(7).DateUpdate.Value.ToString("dd MMM yyyy hh:mm:ss")</td>
-        </tr>
-       
-    </tbody>
-</table>
+    <table class="table table-bordered table-striped">
+        <thead>
+            <tr>
+                <th rowspan="2" style="text-align:center;vertical-align:middle;">Payment Method</th>
+                <th class="bg-primary" colspan="3" style="text-align:center">Amount</th>
+                <th class="bg-primary" colspan="3" style="text-align:center">Count</th>
+                <th rowspan="2" style="text-align:center;vertical-align:middle;">Last Update</th>
+            </tr>
+            <tr>
+                <th>Paid</th>
+                <th>UnPaid</th>
+                <th>Total</th>
+                <th>Paid</th>
+                <th>UnPaid</th>
+                <th>Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>@Model.ElementAt(4).DashName</td>
+                <td style="text-align:right;">@Model.ElementAt(4).PaidAmount.ToString("#,###")</td>
+                <td style="text-align:right;">@Model.ElementAt(4).UnPaidAmount.ToString("#,###")</td>
+                <td style="text-align:right;" class="success">@Model.ElementAt(4).TotalAmount.ToString("#,###")</td>
+                <td style="text-align:right;">@Model.ElementAt(4).PaidCount.ToString("#,###")</td>
+                <td style="text-align:right;">@Model.ElementAt(4).UnPaidCount.ToString("#,###")</td>
+                <td style="text-align:right;" class="success">@Model.ElementAt(4).TotalCount.ToString("#,###")</td>
+                <td style="text-align:center;">@Model.ElementAt(4).DateUpdate.Value.ToString("dd MMM yyyy hh:mm:ss")</td>
+            </tr>
+            <tr>
+                <td>@Model.ElementAt(5).DashName</td>
+                <td style="text-align:right;">@Model.ElementAt(5).PaidAmount.ToString("#,###")</td>
+                <td style="text-align:right;">@Model.ElementAt(5).UnPaidAmount.ToString("#,###")</td>
+                <td style="text-align:right;" class="success">@Model.ElementAt(5).TotalAmount.ToString("#,###")</td>
+                <td style="text-align:right;">@Model.ElementAt(5).PaidCount.ToString("#,###")</td>
+                <td style="text-align:right;">@Model.ElementAt(5).UnPaidCount.ToString("#,###")</td>
+                <td style="text-align:right;" class="success">@Model.ElementAt(5).TotalCount.ToString("#,###")</td>
+                <td style="text-align:center;">@Model.ElementAt(5).DateUpdate.Value.ToString("dd MMM yyyy hh:mm:ss")</td>
+            </tr>
+            <tr>
+                <td>@Model.ElementAt(6).DashName</td>
+                <td style="text-align:right;">@Model.ElementAt(6).PaidAmount.ToString("#,###")</td>
+                <td style="text-align:right;">@Model.ElementAt(6).UnPaidAmount.ToString("#,###")</td>
+                <td style="text-align:right;" class="success">@Model.ElementAt(6).TotalAmount.ToString("#,###")</td>
+                <td style="text-align:right;">@Model.ElementAt(6).PaidCount.ToString("#,###")</td>
+                <td style="text-align:right;">@Model.ElementAt(6).UnPaidCount.ToString("#,###")</td>
+                <td style="text-align:right;" class="success">@Model.ElementAt(6).TotalCount.ToString("#,###")</td>
+                <td style="text-align:center;">@Model.ElementAt(6).DateUpdate.Value.ToString("dd MMM yyyy hh:mm:ss")</td>
+            </tr>
+            <tr>
+                <td>@Model.ElementAt(7).DashName</td>
+                <td style="text-align:right;">@Model.ElementAt(7).PaidAmount.ToString("#,###")</td>
+                <td style="text-align:right;">@Model.ElementAt(7).UnPaidAmount.ToString("#,###")</td>
+                <td style="text-align:right;" class="success">@Model.ElementAt(7).TotalAmount.ToString("#,###")</td>
+                <td style="text-align:right;">@Model.ElementAt(7).PaidCount.ToString("#,###")</td>
+                <td style="text-align:right;">@Model.ElementAt(7).UnPaidCount.ToString("#,###")</td>
+                <td style="text-align:right;" class="success">@Model.ElementAt(7).TotalCount.ToString("#,###")</td>
+                <td style="text-align:center;">@Model.ElementAt(7).DateUpdate.Value.ToString("dd MMM yyyy hh:mm:ss")</td>
+            </tr>
+
+        </tbody>
+    </table>
+</div>

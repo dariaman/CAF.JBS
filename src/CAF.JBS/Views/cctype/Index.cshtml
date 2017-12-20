@@ -11,12 +11,12 @@
         width: 150px;
     }
 </style>
-
-<h2>Card Type</h2>
-<p style="text-align:right;">
-    <a class="btn btn-primary" asp-action="Create">ADD</a>
-</p>
-@(Html
+<div class="container" style="margin: auto; padding: 20px;">
+    <h2>Card Type</h2>
+    <p style="text-align:right;">
+        <a class="btn btn-primary" asp-action="Create">ADD</a>
+    </p>
+    @(Html
     .Grid(Model)
     .Build(columns =>
     {
@@ -31,4 +31,5 @@
     .Sortable()
     .Filterable()
     .Css("table-hover")
-)
+    )
+</div>

@@ -6,16 +6,16 @@
     ViewData["Title"] = "Card Issuer Bank";
 }
 
-<h2>Card Issuer Bank</h2>
 
-<p style="text-align:right;">
-    <a class="btn btn-primary" asp-action="Create">ADD</a>
-</p>
 
 @*@Html.AjaxGrid(Url.Action("GridPartial", new { param = "value" }))*@
+<div class="container" style="margin: auto; padding: 20px;">
+    <h2>Card Issuer Bank</h2>
 
-
-@(Html
+    <p style="text-align:right;">
+        <a class="btn btn-primary" asp-action="Create">ADD</a>
+    </p>
+    @(Html
     .Grid(Model)
     .Build(columns =>
     {
@@ -23,7 +23,7 @@
         columns.Add(model => model.TypeCard).Titled("Type");
         columns.Add(model => model.BankName).Titled("Acquirer Bank");
         columns.Add(model => model.Description).Titled("Description").Filterable(false);
-        columns.Add(model => "</a>  <a class='glyphicon glyphicon-pencil' href='./Prefixcard/Edit/" + model.Prefix + "'></a>"  +
+        columns.Add(model => "</a>  <a class='glyphicon glyphicon-pencil' href='./Prefixcard/Edit/" + model.Prefix + "'></a>" +
                             "</a>  <a class='glyphicon glyphicon-trash' href='./Prefixcard/Delete/" + model.Prefix + "'></a>").Encoded(false).Filterable(false);
     }).Empty("No data found")
     .Pageable(pager =>
@@ -34,4 +34,5 @@
     .Sortable()
     .Filterable()
     .Css("table-hover")
-)
+    )
+</div>

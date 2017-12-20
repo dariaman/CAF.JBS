@@ -5,29 +5,32 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<h2>Report</h2>
-<br />
-<form asp-action="DailyReconcile">
-    <table class="table table-bordered" style="width:600px;align-self:center;margin:auto;">
-        <tr><td colspan="3" class="bg-primary"><b>Daily Reconcile</b></td></tr>
-        <tr>
-            <td style="width:100px;">Tanggal</td>
-            <td><input asp-for="tgl" class="form-control" /></td>
-            <td style="width:50px;"><input type="submit" value="Download" class="btn btn-success"/></td>
-        </tr>
-    </table>
-</form>
-<br />
-<form asp-action="MonthlyBilling">
-    <table class="table table-bordered" style="width:600px;align-self:center;margin:auto;">
-        <tr><td colspan="3" class="bg-primary"><b>Monthly Billing</b></td></tr>
-        <tr>
-            <td style="width:100px;">Periode</td>
-            <td>
-                <b>Bulan</b> @Html.DropDownListFor(m => m.bln, Model.blnList, new { @class = "form-control", style = "width: 100px;display:inline;" })
-                <b>Tahun</b> @Html.DropDownListFor(m => m.thn, Model.thnList, new { @class = "form-control", style = "width: 100px;display:inline;" })
-            </td>
-            <td style="width:50px;"><input type="submit" value="Download" class="btn btn-success" /></td>
-        </tr>
-    </table>
-</form>
+<div class="container" style="margin: auto; padding: 20px;">
+    <center><h2>Report</h2></center>
+    <br />
+    <form asp-action="DailyReconcile">
+        
+        <table class="table table-bordered" style="width:600px;align-self:center;margin:auto;">
+            <tr><td colspan="3" class="bg-primary"><b>Daily Reconcile</b></td></tr>
+            <tr>
+                <td style="width:100px;">Tanggal</td>
+                <td><input asp-for="tgl" class="form-control" /></td>
+                <td style="width:50px;"><input type="submit" value="Download" class="btn btn-success" /></td>
+            </tr>
+        </table>
+    </form>
+    <br />
+    <form asp-action="MonthlyBilling">
+        <table class="table table-bordered" style="width:600px;align-self:center;margin:auto;">
+            <tr><td colspan="3" class="bg-primary"><b>Monthly Billing</b></td></tr>
+            <tr>
+                <td style="width:100px;">Periode</td>
+                <td>
+                    <b>Bulan</b> @Html.DropDownListFor(m => m.bln, Model.blnList, new { @class = "form-control", style = "width: 100px;display:inline;" })
+                    <b>Tahun</b> @Html.DropDownListFor(m => m.thn, Model.thnList, new { @class = "form-control", style = "width: 100px;display:inline;" })
+                </td>
+                <td style="width:50px;"><input type="submit" value="Download" class="btn btn-success" /></td>
+            </tr>
+        </table>
+    </form>
+</div>

@@ -32,6 +32,7 @@ namespace CAF.JBS.Models
         public string Source_download { get; set; }
         public string PaymentSource { get; set; }
         public int? BankIdDownload { get; set; }
+        public int? BankIdPaid { get; set; }
         public int? ReceiptID { get; set; }
         public int? ReceiptOtherID { get; set; } // untuk transaksi cashless
         public int? PaymentTransactionID { get; set; } // id transaction_bank di JBS

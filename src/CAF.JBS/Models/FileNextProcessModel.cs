@@ -24,5 +24,6 @@ namespace CAF.JBS.Models
         public int bankid { get; set; }
         public int id_billing_download { get; set; }
         public string deskripsi { get; set; }
+        public string stageTable { get; set; }
     }
 }

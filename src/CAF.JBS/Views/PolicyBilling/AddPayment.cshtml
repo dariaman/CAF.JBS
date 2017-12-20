@@ -1,0 +1,170 @@
+@model CAF.JBS.ViewModels.PolicyAddPayment
+
+
+@{
+    ViewData["Title"] = "Add Payment Bank Transfer";
+}
+
+<script>
+    $(document).ready(function () {
+        $('#total').html(jumlahTotal());
+
+        $('#Premi').on('keyup change', function (ev) {
+            $('#total').html(jumlahTotal());
+        });
+
+        $('#CashLess').on('keyup change', function (ev) {
+            $('#total').html(jumlahTotal());
+        });
+    });
+
+    function jumlahTotal() {
+        var premi = $('#Premi').val();
+        var CashLess = $('#CashLess').val();
+        var jlh = parseInt(premi) + parseInt(CashLess);
+        return (jlh);
+    }
+
+    $("#myModal").on("submit", "#form-edit", function (e) {
+        e.preventDefault();  // prevent standard form submission
+
+        var form = $(this);
+        $.ajax({
+            url: form.attr("action"),
+            method: form.attr("method"),  // post
+            data: form.serialize(),
+            success: function (data) {
+                if (data.data == true) {
+                    $('#myModal').modal('hide');
+                    var table = $('#myTable').DataTable();
+                    table.ajax.reload(null,false);
+                } else {
+                    alert(data.message);
+                }
+            }
+        });
+    });
+</script>
+
+<div class="modal-dialog" role="document">
+    <div class="modal-content">
+        <div class="modal-header" style="padding:15px;">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">X</button>
+            <h4><b>Add Payment </b></h4>
+        </div>
+        <div class="modal-body">
+            @using (Html.BeginForm("AddPayment", "PolicyBilling", FormMethod.Post, new { id = "form-edit" }))
+            {
+                @Html.ValidationSummary(true)
+                @Html.HiddenFor(m => m.PolicyId)
+                @Html.HiddenFor(m => m.BillingID)
+
+                <table class="table table-bordered">
+                    <tr>
+                        <td>Polis ID</td>
+                        <td>@Model.PolicyId</td>
+                    </tr>
+                    <tr>
+                        <td>Polis No</td>
+                        <td>@Model.policy_no</td>
+                    </tr>
+                    <tr>
+                        <td>Commence Date</td>
+                        <td>@Model.CommenceDate.ToString("dd MMM yyyy")</td>
+                    </tr>
+                    <tr>
+                        <td>Due Date</td>
+                        <td>@Model.DueDate.ToString("dd MMM yyyy")</td>
+                    </tr>
+
+                    <tr>
+                        <td>Product</td>
+                        <td>@Model.ProductDesc</td>
+                    </tr>
+                    <tr>
+                        <td>Status Polis</td>
+                        <td>@Model.StatusPolis</td>
+                    </tr>
+                    <tr>
+                        <td>Holder Name</td>
+                        <td>@Model.HolderName</td>
+                    </tr>
+                    <tr>
+                        <td>Payment Frequent</td>
+                        <td>@Model.PremiumMode Month</td>
+                    </tr>
+                    <tr>
+                        <td colspan="2" class="label-primary"></td>
+                    </tr>
+                    <tr>
+                        <td>BillingID</td>
+                        <td>@Model.BillingID</td>
+                    </tr>
+                    <tr>
+                        <td>Due Date Pre</td>
+                        <td>@Model.Due_date_pre.ToString("dd MMM yyyy")</td>
+                    </tr>
+                   
+                    <tr>
+                        <td>Paid Date</td>
+                        <td>
+                            <div class="form-group">
+                                <div class="col-md-9">
+                                    <input asp-for="PaidDate" type="date" class="form-control" />
+                                    <span asp-validation-for="PaidDate" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Reguler Premium</td>
+                        <td>
+                            <div class="form-group">
+                                <div class="col-md-9">
+                                    <input asp-for="Premi" type="number" class="form-control" />
+                                    <span asp-validation-for="Premi" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>CashLessFee Amount</td>
+                        <td>
+                            <div class="form-group">
+                                <div class="col-md-9">
+                                    <input asp-for="CashLess" type="number" class="form-control" />
+                                    <span asp-validation-for="CashLess" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Total</td>
+                        <td><label id="total" /></td>
+                    </tr>
+                    <tr>
+                        <td>Paid Amount</td>
+                        <td>
+                            <div class="form-group">
+                                <div class="col-md-9">
+                                    <input asp-for="PaidAmount" type="number" class="form-control" />
+                                    <span asp-validation-for="PaidAmount" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+
+                <div class="form-group" style="text-align:right;">
+                    <input type="submit" value="save" class="btn btn-success" />
+                </div>
+            }
+        </div>
+    </div>
+    <div class="modal-footer">
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

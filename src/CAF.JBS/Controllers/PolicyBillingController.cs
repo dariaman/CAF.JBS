@@ -12,6 +12,7 @@ using System.Data;
 using System.Text.RegularExpressions;
 using DataTables.AspNet.Core;
 using DataTables.AspNet.AspNetCore;
+using MySql.Data.MySqlClient;
 
 namespace CAF.JBS.Controllers
 {
@@ -100,6 +101,160 @@ namespace CAF.JBS.Controllers
             return Json(new { data = retval, message = message });
         }
 
+        public ActionResult AddPayment(int id)
+        {
+            var cmd = _context.Database.GetDbConnection().CreateCommand();
+            cmd.CommandText = @"
+SELECT pb.`policy_Id`,pb.`policy_no`,pb.`premium_mode`,pb.`commence_dt`,pb.`due_dt`,pb.`Policy_status`,
+pd.`product_description`,ci.`CustomerName`,
+b.`BillingID`, b.`due_dt_pre`,b.`policy_regular_premium`,b.`cashless_fee_amount`,b.`TotalAmount`,
+pb.`cashless_fee_amount` AS PolisCashless,pb.`regular_premium` AS polisPremi,pt.`due_dt_pre` AS lastDueDatePre
+FROM `policy_billing` pb
+INNER JOIN `product` pd ON pd.`product_id`=pb.`product_id`
+INNER JOIN `customer_info` ci ON ci.`CustomerId`=pb.`holder_id`
+LEFT JOIN (
+	SELECT * FROM `billing` bl
+	WHERE bl.`status_billing`='A' AND bl.`policy_id`=@polis
+	ORDER BY bl.`recurring_seq` 
+	LIMIT 1
+)b ON pb.`policy_Id`=b.policy_id
+LEFT JOIN `policy_last_trans` pt ON pt.`policy_Id`=pb.`policy_Id`
+WHERE pb.`policy_Id`=@polis";
+            cmd.Parameters.Add(new MySqlParameter("@polis", MySqlDbType.Int32) { Value = id });
+            var polix = new PolicyAddPayment();
+            try
+            {
+                cmd.Connection.Open();
+                using (var rd = cmd.ExecuteReader())
+                {
+                    while (rd.Read())
+                    {
+                        polix = new PolicyAddPayment() {
+                            BillingID= rd["BillingID"].ToString(),
+                            PolicyId = rd["policy_Id"].ToString(),
+                            policy_no = rd["policy_no"].ToString(),
+                            StatusPolis = rd["Policy_status"].ToString(),
+                            CommenceDate = Convert.ToDateTime(rd["commence_dt"]),
+                            DueDate = Convert.ToDateTime(rd["due_dt"]),
+                            ProductDesc = rd["product_description"].ToString(),
+                            PremiumMode = rd["premium_mode"].ToString(),
+                            SourcePayment = "Bank Transfer",
+                            HolderName = rd["CustomerName"].ToString(),
+                            PaidAmount= Convert.ToDecimal(rd["TotalAmount"]),
+                            PaidDate=DateTime.Now.Date,
+                            BillingDate = DateTime.Now.Date,
+                            CashLess = rd["BillingID"] == DBNull.Value ? Convert.ToDecimal(rd["PolisCashless"]) : 
+                                Convert.ToDecimal(rd["cashless_fee_amount"]),
+                            Premi = rd["BillingID"] == DBNull.Value ? Convert.ToDecimal(rd["regular_premium"]) :
+                                Convert.ToDecimal(rd["policy_regular_premium"]),
+                            Due_date_pre = rd["BillingID"] == DBNull.Value ? Convert.ToDateTime(rd["lastDueDatePre"]) :
+                                Convert.ToDateTime(rd["due_dt_pre"]),
+                        };
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+            finally
+            {
+                cmd.Connection.Close();
+            }
+
+            return PartialView(polix);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult AddPayment(int id, [Bind("PolicyId,BillingID,PaidDate,Premi,CashLess,PaidAmount")] PolicyAddPaymentSave polisVM)
+        {
+            var polis = this.findPolicyModel(id);
+            var billing = this.findBillingAktif(polisVM.BillingID ?? 0);
+
+            if (billing == null)
+            {
+                var PolisBill = this.findPolisBillingAktif(polisVM.PolicyId);
+                // Create Billing and Paid
+                if (PolisBill == null) CreateBilling(polisVM.PolicyId);
+                billing = this.findPolisBillingAktif(polisVM.PolicyId);
+
+                if (billing == null) throw new Exception("Gagal Create Billing");
+
+                billing.paid_date = polisVM.PaidDate;
+                billing.BillingDate= polisVM.PaidDate.Date;
+                billing.IsDownload = false;
+                billing.IsClosed = true;
+                billing.status_billing = "P";
+                billing.cancel_date = null;
+                billing.PaymentSource = "BT";
+                billing.BankIdPaid = 1;
+                billing.PaidAmount = polisVM.PaidAmount;
+
+                billing.ReceiptID = 0;
+                billing.ReceiptOtherID = 0;
+                billing.PaymentTransactionID = 0;
+
+                billing.UserUpdate = "";
+                billing.DateUpdate = DateTime.Now;
+
+            }
+            else
+            {
+                // Update Billing Paid
+
+            }
+            return PartialView();
+        }
+
+        private void CreateBilling(int polisID)
+        {
+            var cmd = _context.Database.GetDbConnection().CreateCommand();
+            cmd.CommandType = CommandType.Text;
+            cmd.CommandText = @"INSERT INTO `billing`(`BillingID`,`policy_id`,`recurring_seq`,`due_dt_pre`,`policy_regular_premium`,`cashless_fee_amount`,`TotalAmount`)
+    SELECT 
+		1 AS bill_id,
+		pb.`policy_Id`,
+		1 AS rec_seq,
+		CASE WHEN DAY(pb.`commence_dt`)=31 
+			THEN LAST_DAY(DATE_ADD(COALESCE(bx.`due_dt_pre`,pt.`due_dt_pre`,pb.`commence_dt`), INTERVAL pb.premium_mode MONTH)) 
+		     WHEN DAY(pb.`commence_dt`)>28 AND MONTH(DATE_ADD(COALESCE(bx.`due_dt_pre`,pt.`due_dt_pre`,pb.`commence_dt`), INTERVAL pb.premium_mode MONTH))=2
+			THEN LAST_DAY(DATE_ADD(COALESCE(bx.`due_dt_pre`,pt.`due_dt_pre`,pb.`commence_dt`), INTERVAL pb.premium_mode MONTH))
+		ELSE DATE_ADD(COALESCE(bx.`due_dt_pre`,pt.`due_dt_pre`,pb.`commence_dt`), INTERVAL pb.premium_mode MONTH)
+		END AS due_dt_pre,
+		COALESCE(pp.premium_amount,pb.`regular_premium`) AS regular_premium,
+		pb.`cashless_fee_amount`,
+		COALESCE(pp.premium_amount,pb.`regular_premium`) + pb.`cashless_fee_amount`
+	FROM `policy_billing` pb
+	INNER JOIN `product` pd ON pd.`product_id`=pb.`product_id`
+	LEFT JOIN `policy_prerenewal` pp ON pp.policy_Id=pb.policy_Id 
+		AND LAST_DAY(pp.after_commence_dt) <= LAST_DAY(NOW())
+		AND pp.premium_amount <> pb.`regular_premium`
+	LEFT JOIN `policy_last_trans` pt ON pt.policy_Id=pb.policy_Id
+	LEFT JOIN(
+		SELECT MAX(b.`recurring_seq`) AS recurring_seq, b.`policy_id`
+		FROM `billing` b
+		LEFT JOIN `policy_billing` pb ON pb.`policy_Id`=b.`policy_id`
+		WHERE pb.`policy_Id`=@polisID
+		GROUP BY pb.`policy_Id`
+	)a ON a.policy_id=pb.`policy_Id`
+	LEFT JOIN `billing` bx ON bx.`recurring_seq`=a.recurring_seq AND pb.`policy_Id`=bx.`policy_id`
+	WHERE pb.`policy_Id`=@polisID;";
+            cmd.Parameters.Clear();
+            cmd.Parameters.Add(new MySqlParameter("@polisID", MySqlDbType.Int32) { Value = polisID });
+
+            if (cmd.Connection.State == ConnectionState.Closed) cmd.Connection.Open();
+            try
+            {
+                cmd.ExecuteNonQuery();
+
+            }catch(Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+            finally { cmd.Connection.Close(); }
+        }
+
         private bool PolicyModelExists(int id)
         {
             return _context.PolicyBillingModel.Any(e => e.policy_Id == id);
@@ -108,6 +263,18 @@ namespace CAF.JBS.Controllers
         private PolicyBillingModel findPolicyModel(int id)
         {
             return _context.PolicyBillingModel.SingleOrDefault(m => m.policy_Id == id); ;
+        }
+
+        private BillingModel findBillingAktif(int id)
+        {
+            return _context.BillingModel.FirstOrDefault(m => m.BillingID == id && m.status_billing!="P");
+        }
+
+        private BillingModel findPolisBillingAktif(int id)
+        {
+            return _context.BillingModel
+                .OrderBy(b => new {b.policy_id, b.recurring_seq })
+                .SingleOrDefault(m => m.policy_id == id && m.status_billing != "P");
         }
 
         public IActionResult PageData(IDataTablesRequest request)

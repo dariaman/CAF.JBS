@@ -10,6 +10,8 @@ using CAF.JBS.Models;
 using CAF.JBS.ViewModels;
 using System.Data;
 using System.IO;
+using System.Diagnostics;
+using MySql.Data.MySqlClient;
 
 namespace CAF.JBS.Controllers
 {
@@ -18,12 +20,14 @@ namespace CAF.JBS.Controllers
         private readonly JbsDbContext _context;
         private readonly string FileResult;   //folder Backup File Result dari Bank
         private FileSettings filesettings;
+        private readonly string ConsoleExecResult;
 
         public UploadController(JbsDbContext context)
         {
             _context = context;
             filesettings = new FileSettings();
             FileResult = filesettings.UploadSchedule;
+            ConsoleExecResult = filesettings.FileExecresult;
         }
 
         public IActionResult Index()
@@ -84,9 +88,15 @@ namespace CAF.JBS.Controllers
             if (UploadFile.tglProses < tgl)
                 ModelState.AddModelError("tglProses", " Tgl Proses harus mulai dari tanggal sekarang Atau setelahnya .... ");
 
+            var FileNextProses = _context.FileNextProcessModel.SingleOrDefault(m => m.id == id);
+
+            if (FileNextProses.FileName != null) ModelState.AddModelError("FileName", " File sudah pernah di upload, silahkan di remove dulu !");
+
+            var fileUpload = new FileInfo(FileResult + FileNextProses.FileName);
+            if(fileUpload.Exists) ModelState.AddModelError("FileName", " File dengan nama file tersebut sudah ada, silahkan ubah nama file Upload !");
+
             if (ModelState.IsValid)
             {
-                var FileNextProses = _context.FileNextProcessModel.SingleOrDefault(m => m.id == id);
                 FileNextProses.tglProses = UploadFile.tglProses;
                 FileNextProses.FileName = UploadFile.FileName.FileName.ToString();
                 _context.Update(FileNextProses);
@@ -96,6 +106,29 @@ namespace CAF.JBS.Controllers
                 {
                     UploadFile.FileName.CopyTo(fileStream);
                 }
+
+                // Proses insert File by Console
+                foreach (Process proc in Process.GetProcessesByName("ExecFileBilling")) { proc.Kill(); }
+                try
+                {
+                    var process = new Process();
+                    process.StartInfo.FileName = ConsoleExecResult;
+                    process.StartInfo.Arguments = @" upload " + id.ToString()+ " /c";
+                    process.EnableRaisingEvents = true;
+                    process.StartInfo.UseShellExecute = false;
+                    process.StartInfo.RedirectStandardOutput = true;
+
+                    process.Start();
+                    process.WaitForExit();
+                }
+                catch (Exception ex) { throw ex; }
+
+                try
+                {
+                    foreach (Process proc in Process.GetProcessesByName("ExecFileBilling")) { proc.Kill(); }
+                }
+                catch (Exception ex) { throw ex; }
+
                 return RedirectToAction("index");
             }
             return View("UploadResult", UploadFile);
@@ -109,10 +142,46 @@ namespace CAF.JBS.Controllers
             FileInfo filex = new FileInfo(FileResult + FileNextProses.FileName);
             if (filex.Exists) System.IO.File.Delete(filex.ToString());
 
-            FileNextProses.tglProses = null;
-            FileNextProses.FileName = null;
-            _context.Update(FileNextProses);
-            _context.SaveChanges();
+            try
+            {
+                var cmd = _context.Database.GetDbConnection().CreateCommand();
+                cmd.CommandType = CommandType.Text;
+                cmd.Connection.Open();
+                if (id == 1 || id == 2)
+                {
+                    cmd.CommandText = @"DELETE up
+                                FROM `UploadBcaCC` up
+                                INNER JOIN `FileNextProcess` fp ON up.`FileName`=fp.`FileName`
+                                WHERE fp.id=@idx ;";
+                    cmd.Parameters.Clear();
+                    cmd.Parameters.Add(new MySqlParameter("@idx", MySqlDbType.Int32) { Value = id });
+                    cmd.ExecuteNonQuery();
+                }
+                else
+                {
+                    cmd.Parameters.Clear();
+                    cmd.CommandText = @"DELETE FROM " + FileNextProses.stageTable + " ;";
+                    cmd.ExecuteNonQuery();
+                }
+
+                cmd.Connection.Close();
+            }
+            catch(Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+
+            try
+            {
+                FileNextProses.tglProses = null;
+                FileNextProses.FileName = null;
+                _context.Update(FileNextProses);
+                _context.SaveChanges();
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
 
             return RedirectToAction("index");
         }

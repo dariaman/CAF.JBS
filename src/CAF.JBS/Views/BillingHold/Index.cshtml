@@ -16,14 +16,14 @@
     }
 </style>
 
+<div class="container" style="margin: auto; padding: 20px;">
+    <h2>Billing Hold</h2>
 
-<h2>Billing Hold</h2>
 
-
-<p style="text-align:right;">
-    <a class="btn btn-primary" asp-action="Create">ADD</a>
-</p>
-@(Html
+    <p style="text-align:right;">
+        <a class="btn btn-primary" asp-action="Create">ADD</a>
+    </p>
+    @(Html
     .Grid(Model)
     .Build(columns =>
     {
@@ -31,7 +31,7 @@
         columns.Add(model => model.policy_No).Titled("PolicyNo").Css("colPolicyNo");
         columns.Add(model => model.ReleaseDate).Titled("Unhold Date").Formatted("{0: dd MMM yyyy}").Css("coldate");
         columns.Add(model => model.Description).Titled("Description");
-        columns.Add(model => "<a class='glyphicon glyphicon-pencil' href='./BillingHold/Edit/" + model.policy_Id + "'>"+
+        columns.Add(model => "<a class='glyphicon glyphicon-pencil' href='./BillingHold/Edit/" + model.policy_Id + "'>" +
                             "</a>  <a class='glyphicon glyphicon-trash' href='./BillingHold/Delete/" + model.policy_Id + "'></a>")
         .Encoded(false).Filterable(false);
     }).Empty("No data found")
@@ -43,4 +43,5 @@
     .Sortable()
     .Filterable()
     .Css("table-hover")
-)
+    )
+</div>

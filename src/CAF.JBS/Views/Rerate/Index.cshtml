@@ -13,11 +13,13 @@
         text-align:center;
     }
 </style>
-<h2>Rerate Premi</h2>
-<p align="right">
-    <input type="button" value="Download Data" class="btn btn-success" onclick="location.href='@Url.Action("Download", "Rerate")'" />
-</p>
-@(Html
+
+<div class="container" style="margin: auto; padding: 20px;">
+    <h2>Rerate Premi</h2>
+    <p align="right">
+        <input type="button" value="Download Data" class="btn btn-success" onclick="location.href='@Url.Action("Download", "Rerate")'" />
+    </p>
+    @(Html
     .Grid(Model)
     .Build(columns =>
     {
@@ -34,4 +36,5 @@
     .Sortable()
     .Filterable()
     .Css("table-hover")
-)
+    )
+</div>
