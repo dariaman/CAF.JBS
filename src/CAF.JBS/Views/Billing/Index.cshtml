@@ -13,7 +13,9 @@
 </style>
 <h2>Billing Recurring</h2>
 <br />
-
+<p align="right">
+    <input type="button" value="Refresh" class="btn btn-success" id="refresh" />
+</p>
 <table id="myTable" class="stripe">
     <thead>
         <tr>
@@ -260,5 +262,11 @@
                 $(this).addClass('selected');
             }
         });
+
+        $('#refresh').on('click', function () {
+            var table = $('#myTable').DataTable();
+            table.ajax.reload(null, false);
+        });
+
     });
 </script>

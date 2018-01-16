@@ -98,6 +98,10 @@ namespace CAF.JBS.Controllers
         [HttpGet]
         public ActionResult Index()
         {
+            var tglSistem = CekJobJalan().Value;
+            if (tglSistem == null) return View("error");
+            if (tglSistem.Date < DateTime.Now.Date) return View("error");
+
             DownloadBillingVM DownloadBillVM = new DownloadBillingVM();
             DownloadBillVM.BillingSummary = (from cd in _jbsDB.BillingSummary
                                              select new BillingSummary()
@@ -396,7 +400,7 @@ namespace CAF.JBS.Controllers
                                 }
                             }
                         }
-                    }                    
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -712,7 +716,7 @@ namespace CAF.JBS.Controllers
             }
         }
         #endregion
-        
+
         public FileStreamResult DownloadVA()
         {
             string[] files = Directory.GetFiles(DirResult, "VARegulerPremi*.xlsx", SearchOption.TopDirectoryOnly);
@@ -1258,6 +1262,7 @@ WHERE fl.`id`=@id";
                     if (lst.polisNo == null) throw new Exception("Submit Upload ==>> PolisNo null");
                     if (!((lst.BillCode == "B") && (lst.BillingID == string.Empty))) lst.PaymentTransactionID = InsertTransactionBank(ref cmd, lst); // transaksi histori di JBS
                     if (lst.IsSuccess) // transaksi sukses
+
                     {
                         if ((lst.BillCode != "B") && (lst.BillingID == string.Empty)) throw new Exception("Submit Upload (PolisNo " + lst.polisNo + ")==>> Billcode null");
                         if (lst.BillCode == "Q")
@@ -1544,7 +1549,7 @@ WHERE fl.`id`=@id";
                         st.ApprovalCode = st.Description;
                         if (st.Description == "00")
                         {
-                            st.ApprovalCode = tmp.Substring(tmp.Length - 8).Substring(0,6);
+                            st.ApprovalCode = tmp.Substring(tmp.Length - 8).Substring(0, 6);
                             st.IsSuccess = true;
                         }
 
@@ -1585,13 +1590,14 @@ WHERE fl.`id`=@id";
                         st.ApprovalCode = tmp.Substring(674, 46).Trim();
 
                         st.IsSuccess = (st.ApprovalCode.ToLower() == "success") ? true : false;
-                        if (!st.IsSuccess) st.Description = tmp.Substring(720, tmp.Length- 720).Trim();
+                        if (!st.IsSuccess) st.Description = tmp.Substring(720, tmp.Length - 720).Trim();
 
                         var acc = tmp.Substring(306, 244).Trim().Split('/');
-                        if (acc.Length == 2) {
+                        if (acc.Length == 2)
+                        {
                             st.ACCno = acc[0].Trim();
                             st.ACCname = acc[1].Replace("(IDR)", string.Empty).Trim();
-                        }                        
+                        }
                         DateTime time;
                         if (!DateTime.TryParseExact(tmp.Substring(0, 19).Trim(), "yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture, DateTimeStyles.None, out time)) continue;
                         st.tgl = time;
@@ -2165,7 +2171,7 @@ WHERE fl.`id`=@id";
                 cm.Parameters.Add(new MySqlParameter("@tgl", MySqlDbType.DateTime) { Value = tgl });
                 cm.Parameters.Add(new MySqlParameter("@bankid", MySqlDbType.Int32) { Value = bankID });
                 cm.Parameters.Add(new MySqlParameter("@quoteID", MySqlDbType.Int32) { Value = QuoteID });
-                cm.Parameters.Add(new MySqlParameter("@appCode", MySqlDbType.VarChar) { Value = (PaymentSource=="VA" ? "VA" : "UP4Y1") });
+                cm.Parameters.Add(new MySqlParameter("@appCode", MySqlDbType.VarChar) { Value = (PaymentSource == "VA" ? "VA" : "UP4Y1") });
                 cm.ExecuteNonQuery();
 
                 cm.Parameters.Clear();
@@ -2858,7 +2864,8 @@ SELECT LAST_INSERT_ID();";
 
             string SubjectEmail = string.Format(@"JAGADIRI: Nomor Quotation: {0} TERBAYAR", emailQ.RefNo);
             string cetakPolis = "";
-            if ((emailQ.CetakPolisAmount != null) && (emailQ.CetakPolisAmount > 0)) { 
+            if ((emailQ.CetakPolisAmount != null) && (emailQ.CetakPolisAmount > 0))
+            {
                 cetakPolis = string.Format(@"<tr><td>Biaya Cetak Polis</td>  <td>: IDR {0}</td></tr>", Convert.ToDecimal(emailQ.CetakPolisAmount).ToString("#,###"));
             }
             string BodyMessage = string.Format(@"Dengan Hormat {0} {1},
@@ -2986,6 +2993,22 @@ EmailRefund.PolicyNo, EmailRefund.CustomerName, EmailRefund.ProductName, EmailRe
             }
 
             return View(fls);
+        }
+
+        public DateTime? CekJobJalan()
+        {
+            DateTime? tgl = null;
+            var cmd = _jbsDB.Database.GetDbConnection().CreateCommand();
+            cmd.CommandType = CommandType.Text;
+            cmd.CommandText = @"SELECT g.`Tgl` FROM `GeneralSetting` g";
+            try
+            {
+                if (cmd.Connection.State == ConnectionState.Closed) cmd.Connection.Open();
+                tgl = Convert.ToDateTime(cmd.ExecuteScalar());
+            }
+            catch (Exception ex) { throw new Exception(ex.Message); }
+            finally { cmd.Connection.Close(); }
+            return tgl;
         }
 
     }

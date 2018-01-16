@@ -4,9 +4,9 @@
     ViewData["Title"] = "Upload Billing";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
-
 <form asp-action="Download">
     <div class="container" style="margin: auto; padding: 20px;">
+        @Vereyon.Web.FlashMessageHtmlHelper.RenderFlashMessages(Html)
         <div class="panel panel-primary" style="margin: auto;width:1100px;">
             <div class="panel-heading">Upload Billing</div>
             <div class="panel-body">
@@ -16,19 +16,21 @@
                         <tr>
                             <th style="width:200px;">Bank Collector</th>
                             <th>File Billing</th>
-                            <th>Tgl di Proses</th>
+                            <th>Tgl Proses</th>
                             <th style="width:150px;"></th>
+                            <th></th>
                         </tr>
                     </thead>
                     @for (int i = 0; i < Model.Count; i++)
                     {
                         <tr>
                             <td>@Model[i].deskripsi</td>
-                            <td>@if (@Model[i].FileName != "")
-                            {
-                                @Html.ActionLink(@Model[i].FileName, "DownloadFile", new { fileName = @Model[i].FileName });
+                            <td>
+                                @if (@Model[i].FileName != "")
+                                {
+                                    @Html.ActionLink(@Model[i].FileName, "DownloadFile", new { fileName = @Model[i].FileName });
 
-                            }
+                                }
                             </td>
                             <td>
                                 @if (@Model[i].tglProses != null)
@@ -36,20 +38,41 @@
                                     @Model[i].tglProses.Value.ToString("dddd, dd MMM yyyy")
                                 }
                             </td>
-                            <td>
+                            <td align="center">
                                 @if ((@Model[i].billCountDwd > 0) && (@Model[i].FileName == ""))
                                 {
                                     @Html.ActionLink("Upload", "UploadResult", new { id = @Model[i].id }, new { @class = "btn btn-success" })
                                 }
                                 @if (@Model[i].FileName != "")
                                 {
-                                    @Html.ActionLink("Remove", "RemoveFile", new { id = @Model[i].id }, new { @class = "btn btn-danger" })
-
+                                    @Html.ActionLink("Remove", "RemoveFile",
+                                    new { id = @Model[i].id },
+                                    new { @class = "btn btn-danger", onclick = "return confirm('Yakin untuk hapus File Upload " + @Model[i].deskripsi + "');" }
+                                    )
                                 }
+                            </td>
+
+                            <td align="center">
+                                @if (@Model[i].FileName != "" && User.Identity.Name == "dariaman.siagian@jagadiri.co.id")
+                                {
+                                    @Html.ActionLink("Execute", "Execute",
+                                    new { id = @Model[i].id },
+                                    new { @class = "btn btn-primary", onclick = "return confirm('Yakin untuk eksekusi File " + @Model[i].deskripsi + "');" }
+                                    )
+                                }
+
                             </td>
                         </tr>
                     }
                 </table>
+                <div>
+                </div>
+                <center>
+                    @if (User.Identity.Name == "dariaman.siagian@jagadiri.co.id")
+                    {
+                        @Html.ActionLink(linkText: "Submit", actionName: "ExecuteAll", routeValues: null, htmlAttributes: new { @class = "btn btn-warning" , onclick = "return confirm('Yakin untuk eksekusi Semua File ');" })
+                    }
+                </center>
             </div>
         </div>
     </div>

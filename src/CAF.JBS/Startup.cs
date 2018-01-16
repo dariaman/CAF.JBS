@@ -22,6 +22,8 @@ using Microsoft.AspNetCore.Mvc.Authorization;
 using DataTables.AspNet.AspNetCore;
 using Newtonsoft.Json.Serialization;
 using Newtonsoft.Json;
+using Microsoft.AspNetCore.Mvc.ViewFeatures;
+using Microsoft.AspNetCore.Http;
 
 namespace CAF.JBS
 {
@@ -49,6 +51,10 @@ namespace CAF.JBS
             services.AddDbContext<Life21DbContext>(options => options.UseMySQL(Configuration.GetConnectionString("life21")));
             services.AddDbContext<Life21pDbContext>(options => options.UseMySQL(Configuration.GetConnectionString("life21p")));
             services.AddDbContext<UserDbContext>(options => options.UseMySQL(Configuration.GetConnectionString("jbsUser")));
+
+            services.AddSingleton<ITempDataProvider, CookieTempDataProvider>();
+            services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+            services.AddScoped<Vereyon.Web.IFlashMessage, Vereyon.Web.FlashMessage>();
 
             services.AddIdentity<ApplicationUser, IdentityRole>(
                 options =>
@@ -78,7 +84,7 @@ namespace CAF.JBS
                 config.Filters.Add(new AuthorizeFilter(policy));
             });
 
-            //services.AddMvc()
+            services.AddMvc();
             //    .AddJsonOptions(options => {
             //    // handle loops correctly
             //    options.SerializerSettings.ReferenceLoopHandling =

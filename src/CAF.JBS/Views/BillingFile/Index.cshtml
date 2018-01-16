@@ -69,6 +69,7 @@
 
 <form asp-action="Download">
     <div class="container" style="margin: auto; padding: 20px;">
+        @Vereyon.Web.FlashMessageHtmlHelper.RenderFlashMessages(Html)
         <div class="panel panel-primary" style="margin: auto;width:1100px;">
             <div class="panel-heading">Download Billing</div>
             <div class="panel-body">
@@ -383,7 +384,7 @@
         </div>
 
             <div class="panel-footer" style="margin: auto; text-align:center; padding: 10px;">
-                <input type="submit" value="Create File" class="btn btn-success" />
+                <input type="submit" value="Create File" class="btn btn-success" onclick="return confirm('Opsi data download sudah benar ?')"/>
             </div>
         </div>            
     </div>

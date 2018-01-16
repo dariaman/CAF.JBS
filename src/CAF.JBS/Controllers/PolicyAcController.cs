@@ -11,16 +11,19 @@ using System.Data;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using Vereyon.Web;
 
 namespace CAF.JBS.Controllers
 {
     public class PolicyAcController : Controller
     {
         private readonly JbsDbContext _context;
+        //private IFlashMessage flashMessage;
 
         public PolicyAcController(JbsDbContext context)
         {
             _context = context;
+            //flashMessage = flash;
         }
 
         public IActionResult Index()

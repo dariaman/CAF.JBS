@@ -31,8 +31,10 @@ namespace CAF.JBS
 
         public string BCAva { get; private set; }
 
+        public string DirCommand { get; private set; }
         public string GenFileXls { get; private set; }
         public string FileExecresult { get; private set; }
+        
 
         private IConfigurationRoot Configuration { get; set; }
         private IHostingEnvironment _env;
@@ -44,6 +46,7 @@ namespace CAF.JBS
                     .AddJsonFile("appsettings.json");
             Configuration = builder.Build();
 
+            DirCommand = Configuration.GetValue<string>("FileSetting:FileCommand");
             GenFileXls = Configuration.GetValue<string>("FileSetting:FileGenExcel");
             FileExecresult = Configuration.GetValue<string>("FileSetting:FileExecresult");
 

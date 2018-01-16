@@ -25,10 +25,11 @@
         return (jlh);
     }
 
-    $("#myModal").on("submit", "#form-edit", function (e) {
+    $("#savedata").on("click", function (e) {
         e.preventDefault();  // prevent standard form submission
+        $("#savedata").attr("disabled", true);
 
-        var form = $(this);
+        var form = $('#form-edit');
         $.ajax({
             url: form.attr("action"),
             method: form.attr("method"),  // post
@@ -40,6 +41,7 @@
                     table.ajax.reload(null,false);
                 } else {
                     alert(data.message);
+                    $("#savedata").attr("disabled", false);
                 }
             }
         });
@@ -156,7 +158,7 @@
                 </table>
 
                 <div class="form-group" style="text-align:right;">
-                    <input type="submit" value="save" class="btn btn-success" />
+                    <input type="button" value="save" class="btn btn-success" id="savedata" />
                 </div>
             }
         </div>

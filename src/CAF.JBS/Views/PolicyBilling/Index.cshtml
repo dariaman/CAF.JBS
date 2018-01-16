@@ -199,11 +199,11 @@
                     }
                 },
                 {
-                    //data: "AddPayment",
+                    data: "AddPayment",
                     className: "dt-center",
                     render: function (data, type, row) {
-                        return '';
-                        //return '<a href=# data-toggle="modal" class="addPayment" data-id=' + row.policy_Id + '><span class="glyphicon glyphicon-plus text-success"></span></a>';
+                        //return '';
+                        return '<a href=# data-toggle="modal" class="addPayment" data-id=' + row.policy_Id + '><span class="glyphicon glyphicon-plus text-success"></span></a>';
                     }
                 },
             ]
@@ -250,6 +250,7 @@
             var row = table.row(tr);
             var url = '@Url.Action("Edit", "PolicyBilling")';
             url += '/' + row.data().policy_Id;
+
             $('#myModal').empty();
             $('#myModal').load(url);
             $('#myModal').modal('show');
@@ -260,9 +261,16 @@
             var row = table.row(tr);
             var url = '@Url.Action("AddPayment", "PolicyBilling")';
             url += '/' + row.data().policy_Id;
-            $('#myModal').empty();
-            $('#myModal').load(url);
-            $('#myModal').modal('show');
+            $.get('@Url.Action("CekUserAdmin", "PolicyBilling")', function (data) {
+                if (data.data == false) {
+                    alert(data.message);
+                }
+                else {
+                    $('#myModal').empty();
+                    $('#myModal').load(url);
+                    $('#myModal').modal('show');
+                }
+            })
         });
 
         $('#refresh').on('click', function () {

@@ -49,7 +49,8 @@
     "NonFactors.Grid.Mvc6": "1.4.0",
     "SapientGuardian.EntityFrameworkCore.MySql": "7.1.23",
     "Sendgrid": "9.9.0",
-    "System.Linq.Dynamic": "1.0.7"
+    "System.Linq.Dynamic": "1.0.7",
+    "Vereyon.Web.FlashMessageCore": "1.0.0"
   },
 
   "tools": {

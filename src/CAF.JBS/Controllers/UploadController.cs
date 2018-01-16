@@ -12,6 +12,7 @@ using System.Data;
 using System.IO;
 using System.Diagnostics;
 using MySql.Data.MySqlClient;
+using Vereyon.Web;
 
 namespace CAF.JBS.Controllers
 {
@@ -21,13 +22,17 @@ namespace CAF.JBS.Controllers
         private readonly string FileResult;   //folder Backup File Result dari Bank
         private FileSettings filesettings;
         private readonly string ConsoleExecResult;
+        private readonly string DirCommand;
+        private IFlashMessage flashMessage;
 
-        public UploadController(JbsDbContext context)
+        public UploadController(JbsDbContext context, IFlashMessage flash)
         {
             _context = context;
             filesettings = new FileSettings();
             FileResult = filesettings.UploadSchedule;
             ConsoleExecResult = filesettings.FileExecresult;
+            DirCommand = filesettings.DirCommand;
+            flashMessage = flash;
         }
 
         public IActionResult Index()
@@ -98,30 +103,33 @@ namespace CAF.JBS.Controllers
             if (ModelState.IsValid)
             {
                 FileNextProses.tglProses = UploadFile.tglProses;
-                FileNextProses.FileName = UploadFile.FileName.FileName.ToString();
-                _context.Update(FileNextProses);
-                _context.SaveChanges();
-
-                using (var fileStream = new FileStream(FileResult + FileNextProses.FileName, FileMode.Create))
-                {
-                    UploadFile.FileName.CopyTo(fileStream);
-                }
+                FileNextProses.FileName = UploadFile.FileName.FileName.ToString() + Guid.NewGuid().ToString().Substring(0, 8);
 
                 // Proses insert File by Console
                 foreach (Process proc in Process.GetProcessesByName("ExecFileBilling")) { proc.Kill(); }
                 try
                 {
                     var process = new Process();
-                    process.StartInfo.FileName = ConsoleExecResult;
-                    process.StartInfo.Arguments = @" upload " + id.ToString()+ " /c";
-                    process.EnableRaisingEvents = true;
+                    process.StartInfo.FileName = "dotnet";
+                    process.StartInfo.WorkingDirectory = DirCommand;
+                    process.StartInfo.Arguments = ConsoleExecResult + " upload " + id.ToString();
                     process.StartInfo.UseShellExecute = false;
-                    process.StartInfo.RedirectStandardOutput = true;
+                    process.StartInfo.CreateNoWindow = true;
 
                     process.Start();
                     process.WaitForExit();
+
+                    _context.Update(FileNextProses);
+                    _context.SaveChanges();
+
+                    using (var fileStream = new FileStream(FileResult + FileNextProses.FileName, FileMode.Create))
+                    {
+                        UploadFile.FileName.CopyTo(fileStream);
+                    }
+
+                    flashMessage.Confirmation("Sukses");
                 }
-                catch (Exception ex) { throw ex; }
+                catch (Exception ex) { flashMessage.Danger(ex.Message); }
 
                 try
                 {
@@ -140,49 +148,101 @@ namespace CAF.JBS.Controllers
             var FileNextProses = _context.FileNextProcessModel.SingleOrDefault(m => m.id == id);
 
             FileInfo filex = new FileInfo(FileResult + FileNextProses.FileName);
-            if (filex.Exists) System.IO.File.Delete(filex.ToString());
-
-            try
+            if (filex.Exists)
             {
+                System.IO.File.Delete(filex.ToString());
                 var cmd = _context.Database.GetDbConnection().CreateCommand();
-                cmd.CommandType = CommandType.Text;
-                cmd.Connection.Open();
-                if (id == 1 || id == 2)
+                try
                 {
-                    cmd.CommandText = @"DELETE up
+                    cmd.CommandType = CommandType.Text;
+                    cmd.Connection.Open();
+                    if (id == 1 || id == 2)
+                    {
+                        cmd.CommandText = @"DELETE up
                                 FROM `UploadBcaCC` up
                                 INNER JOIN `FileNextProcess` fp ON up.`FileName`=fp.`FileName`
                                 WHERE fp.id=@idx ;";
-                    cmd.Parameters.Clear();
-                    cmd.Parameters.Add(new MySqlParameter("@idx", MySqlDbType.Int32) { Value = id });
-                    cmd.ExecuteNonQuery();
+                        cmd.Parameters.Clear();
+                        cmd.Parameters.Add(new MySqlParameter("@idx", MySqlDbType.Int32) { Value = id });
+                        cmd.ExecuteNonQuery();
+                    }
+                    else
+                    {
+                        cmd.Parameters.Clear();
+                        cmd.CommandText = @"DELETE FROM " + FileNextProses.stageTable + " ;";
+                        cmd.ExecuteNonQuery();
+                    }
                 }
-                else
+                catch (Exception ex)
                 {
-                    cmd.Parameters.Clear();
-                    cmd.CommandText = @"DELETE FROM " + FileNextProses.stageTable + " ;";
-                    cmd.ExecuteNonQuery();
+                    flashMessage.Danger(ex.Message);
                 }
+                finally { cmd.Connection.Close(); }
 
-                cmd.Connection.Close();
+                try
+                {
+                    FileNextProses.tglProses = null;
+                    FileNextProses.FileName = null;
+                    _context.Update(FileNextProses);
+                    _context.SaveChanges();
+                    flashMessage.Confirmation("Sukses");
+                }
+                catch (Exception ex)
+                {
+                    flashMessage.Danger(ex.Message);
+                }
             }
-            catch(Exception ex)
+            else
             {
-                throw new Exception(ex.Message);
+                flashMessage.Danger("File Not Found");
             }
 
+            return RedirectToAction("index");
+        }
+
+        [HttpGet]
+        public ActionResult Execute(int id)
+        {
+            if(User.Identity.Name!="dariaman.siagian@jagadiri.co.id") return RedirectToAction("index");
+
+            foreach (Process proc in Process.GetProcessesByName("ExecFileBilling")) { proc.Kill(); }
             try
             {
-                FileNextProses.tglProses = null;
-                FileNextProses.FileName = null;
-                _context.Update(FileNextProses);
-                _context.SaveChanges();
-            }
-            catch (Exception ex)
-            {
-                throw new Exception(ex.Message);
-            }
+                var process = new Process();
+                process.StartInfo.FileName = "dotnet";
+                process.StartInfo.WorkingDirectory = DirCommand;
+                process.StartInfo.Arguments = ConsoleExecResult + " exec " + id.ToString();
+                process.StartInfo.UseShellExecute = false;
+                process.StartInfo.CreateNoWindow = true;
 
+                process.Start();
+                process.WaitForExit();
+                flashMessage.Confirmation("Sukses");
+            }
+            catch (Exception ex) { flashMessage.Danger(ex.Message); }
+            return RedirectToAction("index");
+        }
+
+        [HttpGet]
+        public ActionResult ExecuteAll()
+        {
+            if (User.Identity.Name != "dariaman.siagian@jagadiri.co.id") return RedirectToAction("index");
+
+            foreach (Process proc in Process.GetProcessesByName("ExecFileBilling")) { proc.Kill(); }
+            try
+            {
+                var process = new Process();
+                process.StartInfo.FileName = "dotnet";
+                process.StartInfo.WorkingDirectory = DirCommand;
+                process.StartInfo.Arguments = ConsoleExecResult + " exec ";
+                process.StartInfo.UseShellExecute = false;
+                process.StartInfo.CreateNoWindow = true;
+
+                process.Start();
+                process.WaitForExit();
+                flashMessage.Confirmation("Sukses");
+            }
+            catch (Exception ex) { flashMessage.Danger(ex.Message); }
             return RedirectToAction("index");
         }
 
