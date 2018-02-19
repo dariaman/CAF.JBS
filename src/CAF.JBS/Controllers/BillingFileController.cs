@@ -2995,7 +2995,7 @@ EmailRefund.PolicyNo, EmailRefund.CustomerName, EmailRefund.ProductName, EmailRe
             return View(fls);
         }
 
-        public DateTime? CekJobJalan()
+        private DateTime? CekJobJalan()
         {
             DateTime? tgl = null;
             var cmd = _jbsDB.Database.GetDbConnection().CreateCommand();

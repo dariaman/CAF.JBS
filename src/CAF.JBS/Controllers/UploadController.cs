@@ -53,7 +53,7 @@ namespace CAF.JBS.Controllers
                     StagingUploadx.Add(new UploadResultIndexVM()
                     {
                         id = Convert.ToInt32(rd["id"]),
-                        deskripsi= rd["deskripsi"].ToString(),
+                        deskripsi = rd["deskripsi"].ToString(),
                         FileName = rd["FileName"].ToString(),
                         tglProses = (rd["tglProses"] == DBNull.Value) ? (DateTime?)null : Convert.ToDateTime(rd["tglProses"]),
                         billCountDwd = Convert.ToInt32(rd["BillingCountDWD"])
@@ -98,12 +98,19 @@ namespace CAF.JBS.Controllers
             if (FileNextProses.FileName != null) ModelState.AddModelError("FileName", " File sudah pernah di upload, silahkan di remove dulu !");
 
             var fileUpload = new FileInfo(FileResult + FileNextProses.FileName);
-            if(fileUpload.Exists) ModelState.AddModelError("FileName", " File dengan nama file tersebut sudah ada, silahkan ubah nama file Upload !");
+            if (fileUpload.Exists) ModelState.AddModelError("FileName", " File dengan nama file tersebut sudah ada, silahkan ubah nama file Upload !");
 
             if (ModelState.IsValid)
             {
                 FileNextProses.tglProses = UploadFile.tglProses;
                 FileNextProses.FileName = UploadFile.FileName.FileName.ToString() + Guid.NewGuid().ToString().Substring(0, 8);
+                _context.Update(FileNextProses);
+                _context.SaveChanges();
+
+                using (var fileStream = new FileStream(FileResult + FileNextProses.FileName, FileMode.Create))
+                {
+                    UploadFile.FileName.CopyTo(fileStream);
+                }
 
                 // Proses insert File by Console
                 foreach (Process proc in Process.GetProcessesByName("ExecFileBilling")) { proc.Kill(); }
@@ -119,17 +126,20 @@ namespace CAF.JBS.Controllers
                     process.Start();
                     process.WaitForExit();
 
+                    flashMessage.Confirmation("Sukses");
+                }
+                catch (Exception ex)
+                {
+                    var fileupload = new FileInfo(FileResult + FileNextProses.FileName);
+                    if (fileupload.Exists) fileupload.Delete();
+
+                    FileNextProses.tglProses = null;
+                    FileNextProses.FileName = null;
                     _context.Update(FileNextProses);
                     _context.SaveChanges();
 
-                    using (var fileStream = new FileStream(FileResult + FileNextProses.FileName, FileMode.Create))
-                    {
-                        UploadFile.FileName.CopyTo(fileStream);
-                    }
-
-                    flashMessage.Confirmation("Sukses");
+                    flashMessage.Danger(ex.Message);
                 }
-                catch (Exception ex) { flashMessage.Danger(ex.Message); }
 
                 try
                 {
@@ -148,54 +158,42 @@ namespace CAF.JBS.Controllers
             var FileNextProses = _context.FileNextProcessModel.SingleOrDefault(m => m.id == id);
 
             FileInfo filex = new FileInfo(FileResult + FileNextProses.FileName);
-            if (filex.Exists)
+            if (filex.Exists) filex.Delete();
+
+            var cmd = _context.Database.GetDbConnection().CreateCommand();
+            try
             {
-                System.IO.File.Delete(filex.ToString());
-                var cmd = _context.Database.GetDbConnection().CreateCommand();
-                try
+                cmd.CommandType = CommandType.Text;
+                cmd.Connection.Open();
+                if (id == 1 || id == 2)
                 {
-                    cmd.CommandType = CommandType.Text;
-                    cmd.Connection.Open();
-                    if (id == 1 || id == 2)
-                    {
-                        cmd.CommandText = @"DELETE up
+                    cmd.CommandText = @"DELETE up
                                 FROM `UploadBcaCC` up
                                 INNER JOIN `FileNextProcess` fp ON up.`FileName`=fp.`FileName`
                                 WHERE fp.id=@idx ;";
-                        cmd.Parameters.Clear();
-                        cmd.Parameters.Add(new MySqlParameter("@idx", MySqlDbType.Int32) { Value = id });
-                        cmd.ExecuteNonQuery();
-                    }
-                    else
-                    {
-                        cmd.Parameters.Clear();
-                        cmd.CommandText = @"DELETE FROM " + FileNextProses.stageTable + " ;";
-                        cmd.ExecuteNonQuery();
-                    }
+                    cmd.Parameters.Clear();
+                    cmd.Parameters.Add(new MySqlParameter("@idx", MySqlDbType.Int32) { Value = id });
+                    cmd.ExecuteNonQuery();
                 }
-                catch (Exception ex)
+                else
                 {
-                    flashMessage.Danger(ex.Message);
+                    cmd.Parameters.Clear();
+                    cmd.CommandText = @"DELETE FROM " + FileNextProses.stageTable + " ;";
+                    cmd.ExecuteNonQuery();
                 }
-                finally { cmd.Connection.Close(); }
+            }
+            catch (Exception ex) { flashMessage.Danger(ex.Message); }
+            finally { cmd.Connection.Close(); }
 
-                try
-                {
-                    FileNextProses.tglProses = null;
-                    FileNextProses.FileName = null;
-                    _context.Update(FileNextProses);
-                    _context.SaveChanges();
-                    flashMessage.Confirmation("Sukses");
-                }
-                catch (Exception ex)
-                {
-                    flashMessage.Danger(ex.Message);
-                }
-            }
-            else
+            try
             {
-                flashMessage.Danger("File Not Found");
+                FileNextProses.tglProses = null;
+                FileNextProses.FileName = null;
+                _context.Update(FileNextProses);
+                _context.SaveChanges();
+                flashMessage.Confirmation("Sukses");
             }
+            catch (Exception ex) { flashMessage.Danger(ex.Message); }
 
             return RedirectToAction("index");
         }
@@ -203,7 +201,7 @@ namespace CAF.JBS.Controllers
         [HttpGet]
         public ActionResult Execute(int id)
         {
-            if(User.Identity.Name!="dariaman.siagian@jagadiri.co.id") return RedirectToAction("index");
+            if (User.Identity.Name != "dariaman.siagian@jagadiri.co.id") return RedirectToAction("index");
 
             foreach (Process proc in Process.GetProcessesByName("ExecFileBilling")) { proc.Kill(); }
             try

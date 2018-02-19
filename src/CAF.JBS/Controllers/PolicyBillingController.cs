@@ -126,17 +126,34 @@ namespace CAF.JBS.Controllers
             var cmd = _context.Database.GetDbConnection().CreateCommand();
             cmd.CommandText = @"
 SELECT pb.`policy_Id`,pb.`policy_no`,pb.`premium_mode`,pb.`commence_dt`,pb.`due_dt`,pb.`Policy_status`,pd.`product_description`,ci.`CustomerName`,
-b.`BillingID`, b.`due_dt_pre`,b.`policy_regular_premium`,b.`cashless_fee_amount`,b.`TotalAmount`,
-pb.`cashless_fee_amount` AS PolisCashless,pb.`regular_premium` AS polisPremi,pt.`due_dt_pre` AS lastDueDatePre
+b.`BillingID`, 
+COALESCE(b.`due_dt_pre`,DATE_ADD(COALESCE(b2.`due_dt_pre`,pt.`due_dt_pre`,pb.`commence_dt`), INTERVAL pb.`premium_mode` MONTH)) AS due_dt_pre,
+b.`policy_regular_premium`,b.`cashless_fee_amount`,b.`TotalAmount`,
+pb.`cashless_fee_amount` AS PolisCashless,pb.`regular_premium` AS polisPremi
+
 FROM `policy_billing` pb
 INNER JOIN `product` pd ON pd.`product_id`=pb.`product_id`
 INNER JOIN `customer_info` ci ON ci.`CustomerId`=pb.`holder_id`
 LEFT JOIN (
-	SELECT * FROM `billing` bl
+    SELECT bl.`policy_id`,
+		bl.`BillingID`, 
+		bl.`due_dt_pre`,
+		bl.`policy_regular_premium`,
+		bl.`cashless_fee_amount`,
+		bl.`TotalAmount`
+	FROM `billing` bl
 	WHERE bl.`status_billing`='A' AND bl.`policy_id`=@polis
-	ORDER BY bl.`recurring_seq` 
+	ORDER BY bl.`due_dt_pre` ASC
 	LIMIT 1
 )b ON pb.`policy_Id`=b.policy_id
+LEFT JOIN (
+	SELECT bz.`policy_id`,
+		bz.`due_dt_pre`
+	FROM `billing` bz
+	WHERE bz.`policy_id`=@polis
+	ORDER BY bz.`due_dt_pre`  DESC
+	LIMIT 1
+)b2 ON pb.`policy_Id`=b2.policy_id
 LEFT JOIN `policy_last_trans` pt ON pt.`policy_Id`=pb.`policy_Id`
 WHERE pb.`policy_Id`=@polis";
             cmd.Parameters.Add(new MySqlParameter("@polis", MySqlDbType.Int32) { Value = id });
@@ -169,8 +186,7 @@ WHERE pb.`policy_Id`=@polis";
                                 Convert.ToDecimal(rd["cashless_fee_amount"]),
                             Premi = rd["BillingID"] == DBNull.Value ? Convert.ToDecimal(rd["polisPremi"]) :
                                 Convert.ToDecimal(rd["policy_regular_premium"]),
-                            Due_date_pre = rd["BillingID"] == DBNull.Value ? Convert.ToDateTime(rd["lastDueDatePre"]) :
-                                Convert.ToDateTime(rd["due_dt_pre"]),
+                            Due_date_pre = rd["due_dt_pre"] == DBNull.Value ? DateTime.Now.Date : Convert.ToDateTime(rd["due_dt_pre"]),
                         };
                     }
                 }
