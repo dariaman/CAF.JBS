@@ -62,7 +62,8 @@ namespace CAF.JBS.Controllers
                 {
                     policy_Id = Convert.ToInt32(FindPolicyID(HoldViewModel.policy_No)),
                     ReleaseDate = HoldViewModel.ReleaseDate.AddDays(1),
-                    Description = HoldViewModel.Description
+                    Description = HoldViewModel.Description,
+                    UserCrt= User.Identity.Name
                 };
                 _context.BillingHoldModel.Add(model);
                 await _context.SaveChangesAsync();
@@ -101,10 +102,13 @@ namespace CAF.JBS.Controllers
             {
                 try
                 {
-                    BillingHoldModel HoldModel = new BillingHoldModel();
-                    HoldModel.policy_Id = id;
+                    //BillingHoldModel HoldModel = new BillingHoldModel();
+                    //HoldModel.policy_Id = id;
+                    var HoldModel = _context.BillingHoldModel.SingleOrDefault(m => m.policy_Id == id);
                     HoldModel.ReleaseDate = HoldViewModel.ReleaseDate.AddDays(1);
                     HoldModel.Description = HoldViewModel.Description;
+                    HoldModel.UserUpdate = User.Identity.Name;
+                    HoldModel.DateUpdate = DateTime.Now;
                     _context.Update(HoldModel);
                     await _context.SaveChangesAsync();
                 }

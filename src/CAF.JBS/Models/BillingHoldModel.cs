@@ -15,5 +15,9 @@ namespace CAF.JBS.Models
         [DataType(DataType.Date)]
         public DateTime ReleaseDate { get; set; }
         public string Description { get; set; }
+
+        public string UserCrt { get; set; }
+        public string UserUpdate { get; set; }
+        public DateTime? DateUpdate { get; set; }
     }
 }
