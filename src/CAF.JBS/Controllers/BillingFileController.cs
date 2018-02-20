@@ -1365,27 +1365,6 @@ WHERE fl.`id`=@id";
                                         }
                                     }
                                 }
-                                /////////////////////////////////// Untuk Refund=================================
-                                //if (lst.BillCode == "B")
-                                //{
-                                //    if (bil.status_billing == "C" && (bil.due_dt_pre.AddMonths(-1 * polis.premium_mode) >= DateTime.Now.Date))
-                                //    {
-                                //        PolicyRefundVM pr = new PolicyRefundVM();
-                                //        pr.PolicyId = lst.PolicyId ?? 0;
-                                //        pr.receiptId = lst.receipt_id;
-                                //        pr.receiptOtherId = lst.receipt_other_id ?? 0;
-                                //        pr.regularPremium = bil.policy_regular_premium;
-                                //        pr.singlePremium = 0;
-                                //        pr.refundDate = lst.TglSkrg;
-                                //        pr.refundType = 2;
-                                //        pr.totalAmount = bil.policy_regular_premium;
-                                //        pr.commenceDate = polis.commence_dt;
-                                //        lst.PolisRefundId = InsertPolisRefund(ref cmd2, pr);
-                                //        await AsyncSendEmailRefundCancelRecurring(Convert.ToInt32(lst.BillingID));
-
-                                //        lst.StatusBilling = "R"; // status billing menjadi refund
-                                //    }
-                                //}
                                 UpdateBillingJBS(ref cmd, lst);
                                 UpdateLastTransJBS(ref cmd, lst);
                                 await AsyncSendEmailThanksRecurring(Convert.ToInt32(lst.BillingID));
