@@ -14,18 +14,43 @@ using DataTables.AspNet.AspNetCore;
 using MySql.Data.MySqlClient;
 using Microsoft.AspNetCore.Authorization;
 using Vereyon.Web;
+using Microsoft.Extensions.Configuration;
+using System.IO;
+using System.Diagnostics;
 
 namespace CAF.JBS.Controllers
 {
     public class PolicyBillingController : Controller
     {
         private readonly JbsDbContext _context;
+        private readonly Life21DbContext _contextLife21;
         private IFlashMessage flashMessage;
 
-        public PolicyBillingController(JbsDbContext context, IFlashMessage flash)
+        private readonly string EmailCAF, EmailPHS, EmailFA, EmailCS, EmailBilling;
+
+        private FileSettings filesettings;
+        private readonly string DirCommand;
+        private readonly string ConsoleExecResult;
+
+        public PolicyBillingController(JbsDbContext context, Life21DbContext Life21, IFlashMessage flash)
         {
+            filesettings = new FileSettings();
             _context = context;
+            _contextLife21 = Life21;
             this.flashMessage = flash;
+
+            var builder = new ConfigurationBuilder()
+                     .SetBasePath(Directory.GetCurrentDirectory())
+                    .AddJsonFile("appsettings.json");
+            var Configuration = builder.Build();
+
+            EmailCAF = Configuration.GetValue<string>("Email:EmailCAF");
+            EmailPHS = Configuration.GetValue<string>("Email:EmailPHS");
+            EmailFA = Configuration.GetValue<string>("Email:EmailFA");
+            EmailCS = Configuration.GetValue<string>("Email:EmailCS");
+            EmailBilling = Configuration.GetValue<string>("Email:EmailBilling");
+            DirCommand = filesettings.DirCommand;
+            ConsoleExecResult = filesettings.FileExecresult;
         }
 
         // GET: PolicyBilling
@@ -104,22 +129,6 @@ namespace CAF.JBS.Controllers
             return Json(new { data = retval, message = message });
         }
 
-        public ActionResult CekUserAdmin()
-        {
-            Boolean retval = false;
-            string message = "";
-            if (User.Identity.Name == "dariaman.siagian@jagadiri.co.id")
-            {
-                retval = true;
-                message = "";
-            }
-            else
-            {
-                retval = false;
-                message = "Action belum ready !!";
-            }
-            return Json(new { data = retval, message = message });
-        }
         public ActionResult AddPayment(int id)
         {
 
@@ -142,7 +151,7 @@ LEFT JOIN (
 		bl.`cashless_fee_amount`,
 		bl.`TotalAmount`
 	FROM `billing` bl
-	WHERE bl.`status_billing`='A' AND bl.`policy_id`=@polis
+	WHERE bl.`status_billing`<>'P' AND bl.`policy_id`=@polis
 	ORDER BY bl.`due_dt_pre` ASC
 	LIMIT 1
 )b ON pb.`policy_Id`=b.policy_id
@@ -205,70 +214,64 @@ WHERE pb.`policy_Id`=@polis";
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult AddPayment(int id, [Bind("PolicyId,BillingID,PaidDate,Premi,CashLess,PaidAmount")] PolicyAddPaymentSave polisVM)
+        public ActionResult AddPayment(int id, [Bind("PolicyId,BillingID,PaidDate,SourcePayment,PaidAmount")] PolicyAddPaymentSave polisVM)
         {
-            if (User.Identity.Name != "dariaman.siagian@jagadiri.co.id")
-            {
-                flashMessage.Danger("Proses tidak dapat akses");
-                return RedirectToAction("index");
-            }
-
             Boolean retval = false;
             string message = "";
-            var polis = this.findPolicyModel(id);
-            var billing = this.findBillingAktif(polis.policy_Id);
 
-            if (billing == null)
-            {
-                // Create New Billing
-                var cmd = _context.Database.GetDbConnection().CreateCommand();
-                cmd.CommandType = CommandType.StoredProcedure;
-                cmd.CommandText = "CreateNewBillingRecurring";
-                cmd.Parameters.Add(new MySqlParameter("@polisId", MySqlDbType.Int32) { Value = polis.policy_Id });
-                try
-                {
-                    cmd.Connection.Open();
-                    cmd.ExecuteNonQuery();
-                }
-                catch (Exception ex)
-                {
-                    retval = false;
-                    message = ex.Message;
-                    //flashMessage.Danger("ex.Message");
-                }
-                finally { cmd.Connection.Close(); }
-            }
+            var cmdx = _context.Database;
+            var cmd = _context.Database.GetDbConnection().CreateCommand();
+            cmdx.OpenConnection(); cmdx.BeginTransaction(); // jbs
 
-            billing = this.findBillingAktif(polis.policy_Id);
-            // Proses Update pembayaran, setelah create billing
-            if (billing == null)
-            {
-                retval = false;
-                message = "Proses Error Setelah Create Billing";
-            }
-
+            cmd.CommandType = CommandType.StoredProcedure;
+            cmd.CommandText = "add_payment_recurring";
+            cmd.Parameters.Clear();
+            cmd.Parameters.Add(new MySqlParameter("@polis_idx", MySqlDbType.Int32) { Value = polisVM.PolicyId });
+            cmd.Parameters.Add(new MySqlParameter("@paid_datex", MySqlDbType.DateTime) { Value = polisVM.PaidDate });
+            cmd.Parameters.Add(new MySqlParameter("@source_paymentx", MySqlDbType.VarChar) { Value = polisVM.SourcePayment });
+            cmd.Parameters.Add(new MySqlParameter("@user_life21", MySqlDbType.VarChar) { Value = "2000" });
+            cmd.Parameters.Add(new MySqlParameter("@user_jbs", MySqlDbType.VarChar) { Value = User.Identity.Name });
             try
             {
-                billing.paid_date = polisVM.PaidDate;
-                billing.LastUploadDate = polisVM.PaidDate;
-                billing.PaidAmount = polisVM.PaidAmount;
-                billing.BankIdPaid = 1; // dianggap bayar ke Akun BCA (Transfer Manual)
-                billing.status_billing = "P";
-                billing.IsClosed = true;
-                billing.IsDownload = false;
-                billing.IsPending = false;
-                billing.BillingDate = polisVM.PaidDate;
-                billing.PaymentSource = "BT";
-                _context.Update(billing);
-                _context.SaveChanges();
-                retval = true;
-                message = "sukses";
+                int bill;
+                var billing_id = cmd.ExecuteScalar().ToString();
+                if (int.TryParse(billing_id, out bill))
+                {
+                    systemEmailQueueModel emailSent = new systemEmailQueueModel();
+                    SetEmailThanksRecurring(bill, "UploadCCResult", ref emailSent);
+
+                    cmd.CommandType = CommandType.Text;
+                    cmd.Parameters.Clear();
+                    cmd.CommandText = @"INSERT INTO `prod_life21`.`system_email_queue`(`email_to`, `email_subject`, `email_body`,`email_created_dt`, `email_status`, `email_bcc`, `email_type`)
+                    VALUES (@email_to, @email_subject, @email_body, @tgl, 'P', @email_bcc, 'UploadCCResult')";
+                    cmd.Parameters.Add(new MySqlParameter("@email_to", MySqlDbType.VarChar) { Value = emailSent.email_to });
+                    cmd.Parameters.Add(new MySqlParameter("@email_subject", MySqlDbType.VarChar) { Value = emailSent.email_subject });
+                    cmd.Parameters.Add(new MySqlParameter("@email_body", MySqlDbType.Text) { Value = emailSent.email_body });
+                    cmd.Parameters.Add(new MySqlParameter("@tgl", MySqlDbType.DateTime) { Value = DateTime.Now });
+                    cmd.Parameters.Add(new MySqlParameter("@email_bcc", MySqlDbType.VarChar) { Value = emailSent.email_bcc });
+                    cmd.ExecuteNonQuery();
+
+                    cmdx.CommitTransaction();
+                    retval = true;
+                    message = "sukses";
+                }
+                else
+                {
+                    throw new Exception("Salah billing id");
+                }
             }
             catch (Exception ex)
             {
                 retval = false;
                 message = ex.Message;
+                if (cmdx.CurrentTransaction != null) cmdx.RollbackTransaction();
             }
+            finally
+            {
+                if (cmdx.CurrentTransaction != null) cmdx.RollbackTransaction();
+                cmd.Connection.Close();
+            }
+
             return Json(new { data = retval, message = message });
         }
 
@@ -289,13 +292,6 @@ WHERE pb.`policy_Id`=@polis";
                 .OrderBy(b => new { b.policy_id, b.recurring_seq })
                 .FirstOrDefault(m => m.policy_id == polisid && m.status_billing != "P");
         }
-
-        //private BillingModel findPolisBillingAktif(int id)
-        //{
-        //    return _context.BillingModel
-        //        .OrderBy(b => new {b.policy_id, b.recurring_seq })
-        //        .SingleOrDefault(m => m.policy_id == id && m.status_billing != "P");
-        //}
 
         public IActionResult PageData(IDataTablesRequest request)
         {
@@ -517,6 +513,44 @@ WHERE pb.`policy_Id`=@polis";
                             pb.`IsRenewal`,
                             pb.`worksite_org_name`,pb.`DateCrt`";
             return select;
+        }
+
+        public void SetEmailThanksRecurring(int BillID, string TipeEmail, ref systemEmailQueueModel emailSent)
+        {
+            EmailThanksRecurringVM EmailThanks;
+            EmailThanks = (from b in _context.BillingModel
+                           join pb in _context.PolicyBillingModel on b.policy_id equals pb.policy_Id
+                           join ci in _context.CustomerInfo on pb.holder_id equals ci.CustomerId
+                           join pd in _context.Product on pb.product_id equals pd.product_id
+                           where b.BillingID == BillID
+                           select new EmailThanksRecurringVM()
+                           {
+                               PolicyNo = pb.policy_no,
+                               CustomerName = ci.CustomerName,
+                               Salam = (ci.IsLaki == true) ? "Bapak" : "Ibu",
+                               CustomerEmail = ci.Email,
+                               ProductName = pd.product_description,
+                               PremiAmount = b.TotalAmount
+                           }).SingleOrDefault();
+            string SubjectEmail = string.Format(@"JAGADIRI: Penerimaan Premi Regular {0} {1} {2}", EmailThanks.ProductName, EmailThanks.PolicyNo, EmailThanks.CustomerName.ToUpper());
+            string BodyMessage = string.Format(@"Salam hangat {0} {1},<br>
+<p style='text-align:justify'>Bersama surat ini kami ingin mengucapkan terima kasih atas pembayaran Premi Regular untuk Polis {2} dengan nomor polis {3} sejumlah IDR {4} yang telah kami terima. Pembayaran Premi tersebut secara otomatis akan membuat Polis Asuransi Anda tetap aktif dan memberikan manfaat perlindungan maksimal bagi Anda dan keluarga.</p>
+<br>Sukses selalu,
+<br>JAGADIRI ", EmailThanks.Salam, EmailThanks.CustomerName.ToUpper(), EmailThanks.ProductName, EmailThanks.PolicyNo, EmailThanks.PremiAmount.ToString("#,###"));
+            try
+            {
+                emailSent.email_body = BodyMessage;
+                emailSent.email_subject = SubjectEmail;
+                emailSent.email_to = EmailThanks.CustomerEmail;
+                emailSent.email_bcc = this.EmailPHS;
+                emailSent.email_type = TipeEmail;
+                emailSent.email_status = "P";
+                emailSent.email_created_dt = DateTime.Now;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("SetEmailThanksRecurring => (BillID = " + BillID.ToString() + ") " + ex.Message);
+            }
         }
     }
 }

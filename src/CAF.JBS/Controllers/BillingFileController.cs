@@ -98,10 +98,6 @@ namespace CAF.JBS.Controllers
         [HttpGet]
         public ActionResult Index()
         {
-            var tglSistem = CekJobJalan().Value;
-            if (tglSistem == null) return View("error");
-            if (tglSistem.Date < DateTime.Now.Date) return View("error");
-
             DownloadBillingVM DownloadBillVM = new DownloadBillingVM();
             DownloadBillVM.BillingSummary = (from cd in _jbsDB.BillingSummary
                                              select new BillingSummary()
@@ -1310,6 +1306,7 @@ WHERE fl.`id`=@id";
                                     Rcpto.type_id = 3; // untuk recurring type harus 3
                                     Rcpto.acquirer_bank_id = lst.BankidPaid;
                                     lst.receipt_other_id = InsertReceiptOther(ref cmd2, Rcpto);
+                                    lst.policy_note_receiptOther = InsertPolicyNoteReceiptOther(ref cmd2, Rcpto, tglSekarang, 0);
                                 }
 
                                 Rcpt.receipt_policy_id = lst.PolicyId;
@@ -1323,6 +1320,7 @@ WHERE fl.`id`=@id";
                                 Rcpt.due_date_pre = lst.Due_Date_Pre;
 
                                 lst.receipt_id = InsertReceipt(ref cmd2, Rcpt);
+                                lst.policy_note_receipt = InsertPolicyNoteReceipt(ref cmd2, Rcpt, tglSekarang);
 
                                 Life21Tran.policy_id = lst.PolicyId;
                                 Life21Tran.ACC_Name = bil.AccName;
@@ -1372,7 +1370,6 @@ WHERE fl.`id`=@id";
                             else
                             { // Billing Others >> insert Receipt Other (pasti CC) 
                               // untuk billing other, melakukan UPDATE CC transaction karena tagihan berasal dari Life21
-
                                 Rcpto.policy_id = lst.PolicyId;
                                 Rcpto.receipt_amount = lst.amount;
                                 Rcpto.receipt_date = tglSekarang;
@@ -1383,6 +1380,7 @@ WHERE fl.`id`=@id";
                                 Rcpto.acquirer_bank_id = lst.BankidPaid;
 
                                 lst.receipt_other_id = InsertReceiptOther(ref cmd2, Rcpto);
+                                lst.policy_note_receiptOther = InsertPolicyNoteReceiptOther(ref cmd2, Rcpto, tglSekarang, Rcpto.type_id);
                                 Life21Tran.receipt_other_id = (lst.receipt_other_id ?? 0);
 
                                 UpdateCCTransaction(ref cmd2, Life21Tran);
@@ -1391,12 +1389,6 @@ WHERE fl.`id`=@id";
                             }
                         }
                     }
-                    //else // transaksi Gagal
-                    //{
-                    //    if (string.IsNullOrEmpty(lst.BillingID.Trim())) continue;
-                    //    BukaFlagDownloadBilling(ref cmd, lst);
-                    //    if (lst.PaymentSource == "AC") InsertPolisHold(ref cmd, lst.BillCode, lst.polisNo, DateTime.Now.AddDays(15));
-                    //}
 
                     cmdx.CommitTransaction();
                     cmdx2.CommitTransaction();
@@ -1768,7 +1760,6 @@ WHERE fl.`id`=@id";
                                     (ws.Cells[row, 4].Value == null) || // ACC No
                                     (ws.Cells[row, 7].Value == null) || // No Polis / Bill
                                     (ws.Cells[row, 8].Value == null) || // Amoun
-                                    (ws.Cells[row, 9].Value == null) || // Approval Code code
                                     (ws.Cells[row, 10].Value == null)) // Desc
                                     continue;
 
@@ -1781,7 +1772,7 @@ WHERE fl.`id`=@id";
                                 if (!decimal.TryParse(ws.Cells[row, 8].Value.ToString().Trim(), out fileamount)) continue;
                                 st.amount = fileamount;
                                 st.polisNo = ws.Cells[row, 7].Value.ToString().Trim();
-                                st.ApprovalCode = ws.Cells[row, 9].Value.ToString().Trim();
+                                st.ApprovalCode = (ws.Cells[row, 9].Value == null) ? "" : ws.Cells[row, 9].Value.ToString().Trim();
                                 st.Description = ws.Cells[row, 10].Value.ToString().Trim();
                                 st.IsSuccess = (st.ApprovalCode == "") ? false : true;
                                 st.ACCno = ws.Cells[row, 4].Value.ToString().Trim();
@@ -2097,6 +2088,67 @@ WHERE fl.`id`=@id";
             return receiptOther;
         }
 
+        private int InsertPolicyNoteReceipt(ref System.Data.Common.DbCommand cm, Receipt rc, DateTime tgl)
+        {
+            cm.Parameters.Clear();
+            cm.CommandType = CommandType.Text;
+
+            string pesan = "RECEIPT INPUT RP (" + rc.receipt_source + ")";
+            cm.CommandType = CommandType.Text;
+            cm.Parameters.Clear();
+            cm.CommandText = @"insert into `prod_life21`.policy_note(policy_id, date_tran, message, staff_id) 
+                                    SELECT @PolisId, @tgl,@pesan,1000;SELECT LAST_INSERT_ID();";
+
+            cm.Parameters.Add(new MySqlParameter("@PolisId", MySqlDbType.Int32) { Value = rc.receipt_policy_id });
+            cm.Parameters.Add(new MySqlParameter("@tgl", MySqlDbType.DateTime) { Value = tgl });
+            cm.Parameters.Add(new MySqlParameter("@pesan", MySqlDbType.VarChar) { Value = pesan });
+
+            var PolicyNoteReceipt = 0;
+            try
+            {
+                PolicyNoteReceipt = Convert.ToInt32(cm.ExecuteScalar());
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("InsertPolicyNoteReceipt => (policyid = " + rc.receipt_policy_id.ToString() + ") " + ex.Message);
+            }
+            return PolicyNoteReceipt;
+        }
+
+        private int InsertPolicyNoteReceiptOther(ref System.Data.Common.DbCommand cm, ReceiptOther ro, DateTime tgl, int? receiptType)
+        {
+            cm.Parameters.Clear();
+            cm.CommandType = CommandType.Text;
+
+            var pesan = "RECEIPT INPUT";
+            if (receiptType == 0) // untuk receipt Other yang Cashless
+                pesan = "RECEIPT INPUT Pengguna Cashless";
+            else if (receiptType == 1)
+                pesan = "RECEIPT INPUT Endorsemen Cetak Polis";
+            else if (receiptType == 2)
+                pesan = "RECEIPT INPUT Cetak Kartu";
+
+            cm.CommandType = CommandType.Text;
+            cm.Parameters.Clear();
+            cm.CommandText = @"insert into `prod_life21`.policy_note(policy_id, date_tran, message, staff_id) 
+                                    SELECT @PolisId, @tgl,@pesan,1000;
+                                    SELECT LAST_INSERT_ID();";
+            cm.Parameters.Add(new MySqlParameter("@PolisId", MySqlDbType.Int32) { Value = ro.policy_id });
+            cm.Parameters.Add(new MySqlParameter("@tgl", MySqlDbType.DateTime) { Value = tgl });
+            cm.Parameters.Add(new MySqlParameter("@pesan", MySqlDbType.VarChar) { Value = pesan.ToUpper() });
+
+            var PolicyNoteReceiptOther = 0;
+            try
+            {
+                PolicyNoteReceiptOther = Convert.ToInt32(cm.ExecuteScalar());
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("InsertPolicyNoteReceiptOther => (policyid = " + ro.policy_id + ") " + ex.Message);
+            }
+            return PolicyNoteReceiptOther;
+        }
+
         private void BukaFlagDownloadBilling(ref System.Data.Common.DbCommand cm, StagingUploadVM st)
         { // hanya buka flag download, untuk transaksi Reject
             cm.Parameters.Clear();
@@ -2216,6 +2268,7 @@ WHERE fl.`id`=@id";
                                                         `PaidAmount`=@PaidAmount,
                                                         Life21TranID=@TransactionID,
 			                                            `ReceiptOtherID`=@receiptID,
+                                                        `policy_note_receiptOther`=@policy_note_receiptOther,
 			                                            `PaymentTransactionID`=@uid,UserUpload=@user
 		                                            WHERE `BillingID`=@idBill;";
             cm.Parameters.Add(new MySqlParameter("@idBill", MySqlDbType.VarChar) { Value = bm.BillingID });
@@ -2226,6 +2279,7 @@ WHERE fl.`id`=@id";
             cm.Parameters.Add(new MySqlParameter("@bankid", MySqlDbType.Int32) { Value = bm.BankidPaid });
             cm.Parameters.Add(new MySqlParameter("@TransactionID", MySqlDbType.Int32) { Value = bm.life21TranID });
             cm.Parameters.Add(new MySqlParameter("@receiptID", MySqlDbType.Int32) { Value = bm.receipt_other_id });
+            cm.Parameters.Add(new MySqlParameter("@policy_note_receiptOther", MySqlDbType.Int32) { Value = bm.policy_note_receiptOther });
             cm.Parameters.Add(new MySqlParameter("@uid", MySqlDbType.Int32) { Value = bm.PaymentTransactionID });
             cm.Parameters.Add(new MySqlParameter("@user", MySqlDbType.VarChar) { Value = User.Identity.Name });
             try
@@ -2260,6 +2314,8 @@ WHERE fl.`id`=@id";
                                         `PaymentTransactionID`=@uid,
                                         `ACCname`=@ACCname,
                                         `ACCno`=@ACCno,
+                                        `policy_note_receipt`=@policy_note_receipt,
+                                        `policy_note_receiptOther`=@policy_note_receiptOther,
                                         `cc_expiry`=@cc_expiry,
                                         `PolisRefundId`=@RefundId,
                                         `UserUpload`=@userupload
@@ -2274,11 +2330,11 @@ WHERE fl.`id`=@id";
             cm.Parameters.Add(new MySqlParameter("@PaidAmount", MySqlDbType.Decimal) { Value = bm.amount });
             cm.Parameters.Add(new MySqlParameter("@receiptID", MySqlDbType.Int32) { Value = bm.receipt_id });
             cm.Parameters.Add(new MySqlParameter("@ReceiptOtherID", MySqlDbType.Int32) { Value = bm.receipt_other_id });
-
+            cm.Parameters.Add(new MySqlParameter("@policy_note_receipt", MySqlDbType.Int32) { Value = bm.policy_note_receipt });
+            cm.Parameters.Add(new MySqlParameter("@policy_note_receiptOther", MySqlDbType.Int32) { Value = bm.policy_note_receiptOther });
             cm.Parameters.Add(new MySqlParameter("@ACCname", MySqlDbType.VarChar) { Value = bm.ACCname });
             cm.Parameters.Add(new MySqlParameter("@ACCno", MySqlDbType.VarChar) { Value = bm.ACCno });
             cm.Parameters.Add(new MySqlParameter("@cc_expiry", MySqlDbType.VarChar) { Value = bm.CC_Expiry });
-
             cm.Parameters.Add(new MySqlParameter("@userupload", MySqlDbType.VarChar) { Value = User.Identity.Name });
             cm.Parameters.Add(new MySqlParameter("@RefundId", MySqlDbType.Int32) { Value = bm.PolisRefundId });
             cm.Parameters.Add(new MySqlParameter("@idBill", MySqlDbType.Int32) { Value = bm.BillingID });
@@ -2700,37 +2756,6 @@ LIMIT 1;";
             return query;
         }
 
-        private int InsertPolisRefund(ref System.Data.Common.DbCommand cmd, PolicyRefundVM pf)
-        {
-            cmd.Parameters.Clear();
-            cmd.CommandType = CommandType.Text;
-            cmd.CommandText = @"INSERT INTO `policy_refund`(`policy_id`,`policy_commence_dt`,
-`refund_date`,`refund_type`,`policy_regular_premium`,`policy_single_premium`,`total_amount`,`receipt_id`,`receipt_other_id`)
-SELECT @policy_id, @commence_dt, @refund_date, @refund_type, @regular_premium, @single_premium, @total_amount, @receipt_id, @receipt_other_id;
-SELECT LAST_INSERT_ID();";
-            cmd.CommandType = CommandType.Text;
-            cmd.Parameters.Add(new MySqlParameter("@policy_id", MySqlDbType.Int32) { Value = pf.PolicyId });
-            cmd.Parameters.Add(new MySqlParameter("@commence_dt", MySqlDbType.Date) { Value = pf.commenceDate });
-            cmd.Parameters.Add(new MySqlParameter("@refund_date", MySqlDbType.Date) { Value = pf.refundDate });
-            cmd.Parameters.Add(new MySqlParameter("@refund_type", MySqlDbType.Int32) { Value = pf.refundType });
-            cmd.Parameters.Add(new MySqlParameter("@regular_premium", MySqlDbType.Decimal) { Value = pf.regularPremium });
-            cmd.Parameters.Add(new MySqlParameter("@single_premium", MySqlDbType.Decimal) { Value = pf.singlePremium });
-            cmd.Parameters.Add(new MySqlParameter("@total_amount", MySqlDbType.Decimal) { Value = pf.totalAmount });
-            cmd.Parameters.Add(new MySqlParameter("@receipt_id", MySqlDbType.Int32) { Value = pf.receiptId });
-            cmd.Parameters.Add(new MySqlParameter("@receipt_other_id", MySqlDbType.Int32) { Value = pf.receiptOtherId });
-            int hasil = 0;
-            try
-            {
-                hasil = Convert.ToInt32(cmd.ExecuteScalar());
-            }
-            catch (Exception ex)
-            {
-                throw new Exception("InsertPolisRefund => (polisNo = " + pf.PolicyId + ") " + ex.Message);
-                //return 0
-            }
-            return hasil;
-        }
-
         public async Task SendEmailAsync(string email, string subject, string message)
         {
             var emailMessage = new MimeMessage();
@@ -2805,6 +2830,7 @@ SELECT LAST_INSERT_ID();";
 <br>JAGADIRI ", EmailThanks.Salam, EmailThanks.CustomerName.ToUpper(), EmailThanks.ProductName, EmailThanks.PolicyNo, EmailThanks.PremiAmount.ToString("#,###"));
             try
             {
+                var email = new systemEmailQueueModel();
                 await SendEmailAsync(EmailThanks.CustomerEmail, SubjectEmail, BodyMessage, EmailPHS);
             }
             catch (Exception ex)
@@ -2812,6 +2838,7 @@ SELECT LAST_INSERT_ID();";
                 throw new Exception("AsyncSendEmailThanksRecurring => (BillID = " + BillID.ToString() + ") " + ex.Message);
             }
         }
+
         public async Task AsyncSendEmailThanksQuote(int Quoteid, Decimal jlhBayar)
         {
             var emailQ = await (from qb in _jbsDB.QuoteBillingModel
@@ -2963,6 +2990,7 @@ EmailRefund.PolicyNo, EmailRefund.CustomerName, EmailRefund.ProductName, EmailRe
                 throw new Exception("AsyncSendEmailRefundCancelRecurring => (BillID = " + BillID + ") " + ex.Message);
             }
         }
+
         public ActionResult FileSetting()
         {
             FileStringVM fls = new FileStringVM();
@@ -2973,22 +3001,5 @@ EmailRefund.PolicyNo, EmailRefund.CustomerName, EmailRefund.ProductName, EmailRe
 
             return View(fls);
         }
-
-        private DateTime? CekJobJalan()
-        {
-            DateTime? tgl = null;
-            var cmd = _jbsDB.Database.GetDbConnection().CreateCommand();
-            cmd.CommandType = CommandType.Text;
-            cmd.CommandText = @"SELECT g.`Tgl` FROM `GeneralSetting` g";
-            try
-            {
-                if (cmd.Connection.State == ConnectionState.Closed) cmd.Connection.Open();
-                tgl = Convert.ToDateTime(cmd.ExecuteScalar());
-            }
-            catch (Exception ex) { throw new Exception(ex.Message); }
-            finally { cmd.Connection.Close(); }
-            return tgl;
-        }
-
     }
 }

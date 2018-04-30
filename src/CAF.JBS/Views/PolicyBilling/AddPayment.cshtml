@@ -38,7 +38,7 @@
                 if (data.data == true) {
                     $('#myModal').modal('hide');
                     var table = $('#myTable').DataTable();
-                    table.ajax.reload(null,false);
+                    table.ajax.reload(null, false);
                 } else {
                     alert(data.message);
                     $("#savedata").attr("disabled", false);
@@ -60,6 +60,7 @@
                 @Html.ValidationSummary(true)
                 @Html.HiddenFor(m => m.PolicyId)
                 @Html.HiddenFor(m => m.BillingID)
+                @Html.HiddenFor(m => m.PaidAmount)
 
                 <table class="table table-bordered">
                     <tr>
@@ -103,10 +104,21 @@
                         <td>@Model.BillingID</td>
                     </tr>
                     <tr>
-                        <td>Due Date Pre</td>
-                        <td>@Model.Due_date_pre.ToString("dd MMM yyyy")</td>
+                        <td><b>Due Date Pre</b></td>
+                        <td><b>@Model.Due_date_pre.ToString("dd MMM yyyy")</b></td>
                     </tr>
-                   
+                    <tr>
+                        <td>Reguler Premium</td>
+                        <td>@Model.Premi</td>
+                    </tr>
+                    <tr>
+                        <td>CashLessFee Amount</td>
+                        <td>@Model.CashLess</td>
+                    </tr>
+                    <tr>
+                        <td>Total</td>
+                        <td><label id="total" />@Model.PaidAmount</td>
+                    </tr>
                     <tr>
                         <td>Paid Date</td>
                         <td>
@@ -119,43 +131,21 @@
                         </td>
                     </tr>
                     <tr>
-                        <td>Reguler Premium</td>
+                        <td>Payment Source</td>
                         <td>
-                            <div class="form-group">
-                                <div class="col-md-9">
-                                    <input asp-for="Premi" type="number" class="form-control" />
-                                    <span asp-validation-for="Premi" class="text-danger"></span>
-                                </div>
-                            </div>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>CashLessFee Amount</td>
-                        <td>
-                            <div class="form-group">
-                                <div class="col-md-9">
-                                    <input asp-for="CashLess" type="number" class="form-control" />
-                                    <span asp-validation-for="CashLess" class="text-danger"></span>
-                                </div>
-                            </div>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>Total</td>
-                        <td><label id="total" /></td>
-                    </tr>
-                    <tr>
-                        <td>Paid Amount</td>
-                        <td>
-                            <div class="form-group">
-                                <div class="col-md-9">
-                                    <input asp-for="PaidAmount" type="number" class="form-control" />
-                                    <span asp-validation-for="PaidAmount" class="text-danger"></span>
-                                </div>
-                            </div>
-                        </td>
-                    </tr>
-                </table>
+                            @Html.DropDownListFor(m => m.SourcePayment, new SelectList(
+                  new List<Object>{
+                       new { value = "BT" , text = "Bank Transfer" },
+                       new { value = "EDC" , text = "EDC"},
+                       new { value = "CP" , text = "Claim Payment"}
+                    }, "value", "text",Model.SourcePayment ) , new { @class = "form-control" })
+                    </td>
+                </tr>
+                <tr>
+                    <td>Payment Source</td>
+                    <td><label id="total" />@Model.PaidAmount</td>
+                </tr>
+            </table>
 
                 <div class="form-group" style="text-align:right;">
                     <input type="button" value="save" class="btn btn-success" id="savedata" />

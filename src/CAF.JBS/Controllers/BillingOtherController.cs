@@ -125,7 +125,7 @@ namespace CAF.JBS.Controllers
                         policy_id = Convert.ToInt32(rd["policy_Id"]),
                         PolicyNo = rd["policy_no"].ToString(),
                         BillingDate = rd["BillingDate"] == DBNull.Value ? (DateTime?)null : Convert.ToDateTime(rd["BillingDate"]),
-                        BillingType = rd["BillingType"].ToString() =="A2" ? "Cetak Polis" : (rd["BillingType"].ToString() == "A3" ? "Cetak Kartu" :"-"),
+                        BillingType = rd["BillingType"].ToString() =="A2" ? "Cetak Polis" : (rd["BillingType"].ToString() == "A3" ? "Cetak Kartu" : (rd["BillingType"].ToString() == "A1" ? "Cashless Fee" : "-")),
                         TotalAmount = Convert.ToDecimal(rd["TotalAmount"]),
                         status_billing = rd["status_billing"].ToString(),
                         //IsDownload = Convert.ToBoolean(rd["IsDownload"]),
@@ -186,7 +186,7 @@ namespace CAF.JBS.Controllers
             sql = @"SELECT "+ SelectData + @"
                     FROM `billing_others` b
                     INNER JOIN `policy_billing` pb ON pb.`policy_Id`=b.`policy_id`
-                    INNER JOIN `bank` bk ON bk.`bank_id`=b.`BankIdDownload` " + 
+                    LEFT JOIN `bank` bk ON bk.`bank_id`=b.`BankIdDownload` " + 
                     where + order + limit;
 
             return sql;

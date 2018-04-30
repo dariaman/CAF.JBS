@@ -39,6 +39,10 @@ namespace CAF.JBS.ViewModels
         public Decimal? CashlessFee { get; set; }
         public int receipt_id { get; set; }
         public int? receipt_other_id { get; set; }
+
+        public int? policy_note_receipt { get; set; }
+        public int? policy_note_receiptOther { get; set; }
+
         public int? PolisRefundId { get; set; }
         public int PaymentTransactionID { get; set; } // id di histori
         public string StatusBilling { get; set; } // status billing nantinya A,P,R

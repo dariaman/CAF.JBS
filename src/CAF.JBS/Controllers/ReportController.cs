@@ -319,5 +319,71 @@ namespace CAF.JBS.Controllers
             return File(new FileStream(fullePath, FileMode.Open), mimeType, fileName);
         }
 
+
+        public IActionResult DataDownload()
+        {
+            return DataBillingDownload();
+        }
+        public FileStreamResult DataBillingDownload()
+        {
+            // kosongkan folder tmp
+            var files = Directory.GetFiles(tempFile);
+            foreach (string file in files)
+            {
+                FileInfo FileName = new FileInfo(file);
+                if (FileName.Exists) System.IO.File.Delete(FileName.ToString());
+            }
+
+            var fileName = "DataBillingDownload" + DateTime.Now.ToString("yyyyMMdd") + ".xlsx";
+            var fullePath = tempFile + fileName;
+
+            var cmd = _jbsDB.Database.GetDbConnection().CreateCommand();
+            cmd.CommandType = CommandType.StoredProcedure;
+            cmd.Parameters.Clear();
+            cmd.CommandText = "DataCCBillingDownload";
+
+            using (ExcelPackage package = new ExcelPackage(new FileInfo(fullePath)))
+            {
+                var sheet = package.Workbook.Worksheets.Add("sheet1");
+
+                try
+                {
+                    cmd.Connection.Open();
+                    using (var result = cmd.ExecuteReader())
+                    {
+                        for(int x=0; x< result.FieldCount; x++)
+                        {
+                            sheet.Cells[1, x+1].Value = result.GetName(x);
+                        }
+
+                        var i = 2;
+                        while (result.Read())
+                        {
+                            for (int x = 0; x < result.FieldCount; x++)
+                            {
+                                sheet.Cells[i, x+1].Value = result[x];
+                            }
+                            i++;
+                        }
+                        for (int x = 0; x < result.FieldCount; x++)
+                        {
+                            sheet.Column(x+1).AutoFit();
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    throw ex;
+                }
+                finally
+                {
+                    cmd.Dispose();
+                    cmd.Connection.Close();
+                }
+                package.Save();
+            }
+            var mimeType = "application/vnd.ms-excel";
+            return File(new FileStream(fullePath, FileMode.Open), mimeType, fileName);
+        }
     }
 }

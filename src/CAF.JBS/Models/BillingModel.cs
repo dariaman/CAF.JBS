@@ -41,6 +41,7 @@ namespace CAF.JBS.Models
         public string AccName { get; set; }
         public string AccNo { get; set; }
         public string cc_expiry { get; set; }
+        public int? freq_payment { get; set; }
         public DateTime? DateCrt { get; set; }
         public string UserUpdate { get; set; }
         public DateTime? DateUpdate { get; set; }

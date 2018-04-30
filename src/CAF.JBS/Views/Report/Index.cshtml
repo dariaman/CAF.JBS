@@ -33,4 +33,15 @@
             </tr>
         </table>
     </form>
+    <br />
+    <form asp-action="DataDownload">
+        <table class="table table-bordered" style="width:600px;align-self:center;margin:auto;">
+            <tr><td colspan="3" class="bg-primary"><b>Data Download Billing</b></td></tr>
+            <tr>
+                <td style="width:100px;">Tanggal</td>
+                <td><b>@DateTime.Now.ToString("dd MMM yyyy") </b></td>
+                <td style="width:50px;"><input type="submit" value="Download" class="btn btn-success" /></td>
+            </tr>
+        </table>
+    </form>
 </div>

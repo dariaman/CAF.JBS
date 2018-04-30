@@ -261,16 +261,10 @@
             var row = table.row(tr);
             var url = '@Url.Action("AddPayment", "PolicyBilling")';
             url += '/' + row.data().policy_Id;
-            $.get('@Url.Action("CekUserAdmin", "PolicyBilling")', function (data) {
-                if (data.data == false) {
-                    alert(data.message);
-                }
-                else {
+            
                     $('#myModal').empty();
                     $('#myModal').load(url);
                     $('#myModal').modal('show');
-                }
-            })
         });
 
         $('#refresh').on('click', function () {
