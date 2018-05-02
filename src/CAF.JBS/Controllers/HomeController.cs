@@ -58,18 +58,6 @@ namespace CAF.JBS.Controllers
             {
                 cmd.Connection.Close();
             }
-
-
-            //    DashName = td.DashName,
-            //    Periode = periode,
-            //    PaidCount = fgi.PaidCount ?? 0,
-            //    PaidAmount = fgi.PaidAmount ?? 0,
-            //    UnPaidCount = fgi.UnPaidCount ?? 0,
-            //    UnPaidAmount = fgi.UnPaidAmount ?? 0,
-            //    TotalCount = fgi.TotalCount ?? 0,
-            //    TotalAmount = fgi.TotalAmount ?? 0,
-            //    DateUpdate = fgi.DateUpdate ?? fgi.DateCrt ?? fgi.DateUpdate
-            //}).ToList();
             return View(bs);
         }
 
