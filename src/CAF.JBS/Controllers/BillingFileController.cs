@@ -651,7 +651,7 @@ namespace CAF.JBS.Controllers
         protected void GenMandiriAcFile()
         {
             FileInfo FileName = new FileInfo(this.MandiriAcFile);
-            if (!FileName.Exists) //jika file belum ada akan di generate tp jika sudah ada maka akan pake file exist
+            if (!FileName.Exists) //jika file belum ada akan di generate tp jika sudah ada maka tidak akan terjadi apa2
             {
                 var cmd = _jbsDB.Database.GetDbConnection().CreateCommand();
                 cmd.CommandType = CommandType.StoredProcedure;

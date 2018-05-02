@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using CAF.JBS.ViewModels;
 using CAF.JBS.Data;
+using Microsoft.EntityFrameworkCore;
 
 namespace CAF.JBS.Controllers
 {
@@ -18,23 +19,57 @@ namespace CAF.JBS.Controllers
         public IActionResult Index()
         {
             var periode = DateTime.Now.ToString("yyyyMM");
-            List<BillingSumMonthlyVM> bs ;
-            bs = (from bl in _jbsDB.BillingSumMonthly
-                  join td in _jbsDB.TrancodeDashboard on bl.TranCode equals td.TranCode
-                  where bl.Periode==periode
-                  orderby bl.TranCode
-                  select new BillingSumMonthlyVM()
-                  {
-                      DashName = td.DashName,
-                      Periode = periode,
-                      PaidCount = bl.PaidCount,
-                      PaidAmount = bl.PaidAmount,
-                      UnPaidCount = bl.UnPaidCount,
-                      UnPaidAmount = bl.UnPaidAmount,
-                      TotalCount = bl.TotalCount,
-                      TotalAmount = bl.TotalAmount,
-                      DateUpdate = bl.DateUpdate == null ? bl.DateCrt : bl.DateUpdate
-                  }).ToList();
+            List<BillingSumMonthlyVM> bs = new List<BillingSumMonthlyVM>();
+            BillingSumMonthlyVM bil;
+
+            var cmd = _jbsDB.Database.GetDbConnection().CreateCommand();
+            cmd.CommandText = @"SELECT td.`DashName`,bs.*
+                                FROM `trancode_dashboard` td
+                                LEFT JOIN `billing_sum_monthly` bs ON td.`TranCode`=bs.`trancode` AND bs.`Periode`='" + periode + @"'
+                                order by bs.`trancode` ";
+            try
+            {
+                cmd.Connection.Open();
+                using (var rd = cmd.ExecuteReader())
+                {
+                    while (rd.Read())
+                    {
+                        bil = new BillingSumMonthlyVM()
+                        {
+                            DashName = rd["DashName"].ToString(),
+                            Periode = rd["Periode"].ToString(),
+                            PaidCount = rd["PaidCount"] == DBNull.Value ? 0 : Convert.ToInt32(rd["PaidCount"]) ,
+                            PaidAmount = rd["PaidAmount"] == DBNull.Value ? 0 : Convert.ToDecimal(rd["PaidAmount"]) ,
+                            UnPaidCount = rd["UnPaidCount"] == DBNull.Value ? 0 : Convert.ToInt32(rd["UnPaidCount"]) ,
+                            UnPaidAmount = rd["UnPaidAmount"] == DBNull.Value ? 0 : Convert.ToDecimal(rd["UnPaidAmount"]) ,
+                            TotalCount = rd["TotalCount"] == DBNull.Value ? 0 : Convert.ToInt32(rd["TotalCount"]) ,
+                            TotalAmount = rd["TotalAmount"] == DBNull.Value ? 0 : Convert.ToDecimal(rd["TotalAmount"]) ,
+                            DateUpdate = rd["DateUpdate"] == DBNull.Value ? (rd["DateCrt"] == DBNull.Value ? DateTime.Now : Convert.ToDateTime(rd["DateCrt"]) ) : Convert.ToDateTime(rd["DateUpdate"]) 
+                        };
+                        bs.Add(bil);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+            finally
+            {
+                cmd.Connection.Close();
+            }
+
+
+            //    DashName = td.DashName,
+            //    Periode = periode,
+            //    PaidCount = fgi.PaidCount ?? 0,
+            //    PaidAmount = fgi.PaidAmount ?? 0,
+            //    UnPaidCount = fgi.UnPaidCount ?? 0,
+            //    UnPaidAmount = fgi.UnPaidAmount ?? 0,
+            //    TotalCount = fgi.TotalCount ?? 0,
+            //    TotalAmount = fgi.TotalAmount ?? 0,
+            //    DateUpdate = fgi.DateUpdate ?? fgi.DateCrt ?? fgi.DateUpdate
+            //}).ToList();
             return View(bs);
         }
 
