@@ -16,11 +16,7 @@ namespace CAF.JBS.Data
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
-            builder.Entity<systemEmailQueueModel>().ToTable("system_email_queue");
             builder.Entity<systemEmailQueueModel>().Property(x => x.email_body).HasColumnType("text");
-            builder.Entity<policyNoteModel>().ToTable("policy_note");
-            builder.Entity<receiptOtherModel>().ToTable("receipt_other");
-            builder.Entity<receiptModel>().ToTable("receipt");
         }
 
         public DbSet<systemEmailQueueModel> systemEmailQueueModel { get; set; }

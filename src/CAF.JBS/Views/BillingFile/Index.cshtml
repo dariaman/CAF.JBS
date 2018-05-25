@@ -1,4 +1,4 @@
-@model CAF.JBS.ViewModels.DownloadBillingVM
+@model List<CAF.JBS.ViewModels.DownloadBillingVM>
 
 @{
     ViewData["Title"] = "Download Billing";
@@ -9,63 +9,48 @@
     $(document).ready(function () {
         $('#BniCC').change(function () {
             if (this.checked) {
-                $('#MegaCC').fadeOut('fast');
                 $('#MegaCC').checked = false;
+                $('#MegaCC').fadeOut('fast');
+                $('#CimbCC').checked = false;
+                $('#CimbCC').fadeOut('fast');
             }
             else {
-                $('#MegaCC').fadeIn('fast');
                 $('#MegaCC').checked = false;
+                $('#MegaCC').fadeIn('fast');
+                $('#CimbCC').checked = false;
+                $('#CimbCC').fadeIn('fast');
             }
         });
-
         $('#MegaCC').change(function () {
             if (this.checked) {
-                $('#BniCC').fadeOut('fast');
                 $('#BniCC').checked = false;
+                $('#BniCC').fadeOut('fast');
+                $('#CimbCC').checked = false;
+                $('#CimbCC').fadeOut('fast');
             }
             else {
-                $('#BniCC').fadeIn('fast');
                 $('#BniCC').checked = false;
+                $('#BniCC').fadeIn('fast');
+                $('#CimbCC').checked = false;
+                $('#CimbCC').fadeIn('fast');
+            }
+        });
+        $('#CimbCC').change(function () {
+            if (this.checked) {
+                $('#BniCC').checked = false;
+                $('#BniCC').fadeOut('fast');
+                $('#MegaCC').checked = false;
+                $('#MegaCC').fadeOut('fast');
+            }
+            else {
+                $('#BniCC').checked = false;
+                $('#BniCC').fadeIn('fast');
+                $('#MegaCC').checked = false;
+                $('#MegaCC').fadeIn('fast');
             }
         });
     });
 </script><br />
-<b>
-    <i>
-        <p class="text-danger">
-            @{
-                if (TempData["ModelState"] != null)
-                {
-                    var pesan = (string[])TempData["ModelState"];
-                    foreach (var lst in pesan)
-                    {
-                        @lst <br />
-                    }
-                }
-            }
-            @{
-                if (TempData["terimaError"] != null)
-                {
-                    var pesan = (string)TempData["terimaError"];
-                        @pesan <br />
-                }
-            }
-        </p>
-    </i>
-</b>
-<b>
-    <i>
-        <p class="text-success">
-            @{
-                if (TempData["pesanSukses"] != null)
-                {
-                    var pesanSukses = (string)TempData["pesanSukses"];
-                    @pesanSukses <br />
-                }
-            }
-        </p>
-    </i>
-</b>
 
 <form asp-action="Download">
     <div class="container" style="margin: auto; padding: 20px;">
@@ -74,320 +59,87 @@
             <div class="panel-heading">Download Billing</div>
             <div class="panel-body">
                 <h4>Billing CC</h4>
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <table class="table table-bordered table-striped">
-                <thead>
-                    <tr>
-                        <th style="width:250px;">Bank Collector</th>
-                        <th>File Billing</th>
-                        <th style="width:125px;">Result</th>
-                        <th>Jlh Data</th>
-                        <th>Total Amount</th>
-                    </tr>
-                </thead>
-                <tr>
-                    <td>
-                        @{ if (ViewBag.BCACC == null)
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                <table class="table table-bordered table-striped">
+                    <thead>
+                        <tr>
+                            <th style="width:150px;">Bank Collector</th>
+                            <th style="text-align:center">File Billing</th>
+                            <th style="text-align:center;width:150px;">Recurring</th>
+                            <th style="text-align:center;width:125px;">Others</th>
+                            <th style="text-align:center;width:150px;">Quote</th>
+                            <th style="text-align:center;width:175px;">Total</th>
+                            @*<th style="width:200px;">Jlh Data</th>*@
+                            @*<th style="width:250px;">Total Amount</th>*@
+                        </tr>
+                    </thead>
+                    @{ string group = "";}
+                    @foreach (var modelx in Model)
+                    {
+                        <tr>
+                            @if (group != modelx.group_name)
                             {
-                            <input type="checkbox" asp-for="BcaCC" />
-                            } }
-                    BCA
-                </td>
-                <td>
-                    <b>
-                        @{ if (ViewBag.BCACC != null)
-                            {
-                                @Html.ActionLink((string)ViewBag.BCACC, "DownloadFile", new { fileName = ViewBag.BCACC });
-                            } }
-                    </b>
-                </td>
-                <td>
-                    @{ if (ViewBag.BCACC != null) {
-                        @Html.ActionLink("Upload", "UploadResult", new { TranCode = "bcacc" });
-                        } }
-            </td>
-            <td style="text-align:right">
-                @{ if (ViewBag.BCACC != null)
-                    {
-                        <b>@Model.BillingSummary[0].TotalCountDWD.Value.ToString("#,###")</b><br>
-                        @:Recurring =  @Model.BillingSummary[0].BillingCountDWD.Value.ToString("#,###")<br>
-                        @:Others = @Model.BillingSummary[0].OthersCountDWD.Value.ToString("#,###")<br>
-                        @: Quote = @Model.BillingSummary[0].QuoteCountDWD.Value.ToString("#,###")
-                    } }
-                    </td>
-            <td style="text-align:right">
-                @{ if (ViewBag.BCACC != null)
-                    {
-                        <b>@Model.BillingSummary[0].TotalAmountDWD.Value.ToString("#,###")</b><br>
-                        @:Recurring = @Model.BillingSummary[0].BillingAmountDWD.Value.ToString("#,###")<br>
-                        @:Others = @Model.BillingSummary[0].OthersAmountDWD.Value.ToString("#,###")<br>
-                        @:Quote = @Model.BillingSummary[0].QuoteAmountDWD.Value.ToString("#,###")
-            } }
-            </td>
-        </tr>
-
-        <tr>
-            <td>
-                @{ if (ViewBag.MandiriCC == null)
-                    {
-                    <input type="checkbox" asp-for="MandiriCC" />
-                    } } Mandiri
-        </td>
-        <td>
-            <b>
-                @{ if (ViewBag.MandiriCC != null)
-                    {
-                        @Html.ActionLink((string)ViewBag.MandiriCC, "DownloadFile", new { fileName = ViewBag.MandiriCC });
-                    } }
-            </b>
-        </td>
-        <td>
-            @{ if (ViewBag.MandiriCC != null) {
-                @Html.ActionLink("Upload", "UploadResult", new { TranCode = "mandiricc" });
-                } }
-        </td>
-        <td style="text-align:right">
-            @{ if (ViewBag.MandiriCC != null) {
-                    <b>@Model.BillingSummary[1].TotalCountDWD.Value.ToString("#,###")</b><br>
-                    @:Recurring = @Model.BillingSummary[1].BillingCountDWD.Value.ToString("#,###")<br>
-                    @:Others = @Model.BillingSummary[1].OthersCountDWD.Value.ToString("#,###")<br>
-                    @:Quote = @Model.BillingSummary[1].QuoteCountDWD.Value.ToString("#,###")
-                } }
-        </td>
-        <td style="text-align:right">
-            @{ if (ViewBag.MandiriCC != null) {
-                <b>@Model.BillingSummary[1].TotalAmountDWD.Value.ToString("#,###")</b><br>
-                @:Recurring = @Model.BillingSummary[1].BillingAmountDWD.Value.ToString("#,###")<br>
-                @:Others = @Model.BillingSummary[1].OthersAmountDWD.Value.ToString("#,###")<br>
-                @:Quote = @Model.BillingSummary[1].QuoteAmountDWD.Value.ToString("#,###")
-            } }
-        </td>
-        </tr>
-
-        <tr>
-            <td rowspan="2">
-                @{ if (ViewBag.MegaOnUs == null || ViewBag.MegaOfUs == null)
-                    {
-                    <input type="checkbox" asp-for="MegaCC" />
-                    } } Mega
-        </td>
-        <td>
-            <b>
-                @{ if (ViewBag.MegaOnUs != null)
-                    {
-                        @Html.ActionLink((string)ViewBag.MegaOnUs, "DownloadFile", new { fileName = ViewBag.MegaOnUs });
-                    }
-                }
-            </b>
-        </td>
-        <td>
-            @{ if (ViewBag.MegaOnUs != null) {
-                    @Html.ActionLink("Upload", "UploadResult", new { TranCode = "megaonus" });
-                } }
-        </td>
-            <td style="text-align:right">
-                @{ if (ViewBag.MegaOnUs != null) {
-                <b>@Model.BillingSummary[2].TotalCountDWD.Value.ToString("#,###")</b><br>
-                @:Recurring = @Model.BillingSummary[2].BillingCountDWD.Value.ToString("#,###")<br>
-                @:Others = @Model.BillingSummary[2].OthersCountDWD.Value.ToString("#,###")<br>
-                @:Quote = @Model.BillingSummary[2].QuoteCountDWD.Value.ToString("#,###")
-                } }
-            </td>
-            <td style="text-align:right">
-                @{ if (ViewBag.MegaOnUs != null) {
-                <b>@Model.BillingSummary[2].TotalAmountDWD.Value.ToString("#,###")</b><br>
-                    @:Recurring = @Model.BillingSummary[2].BillingAmountDWD.Value.ToString("#,###")<br>
-                    @:Others = @Model.BillingSummary[2].OthersAmountDWD.Value.ToString("#,###")<br>
-                    @:Quote = @Model.BillingSummary[2].QuoteAmountDWD.Value.ToString("#,###")
-                } }
-            </td>
-        </tr>
-        <tr>
-            <td>
-                <b>
-                    @{
-                        if (ViewBag.MegaOfUs != null)
-                        {
-                            @Html.ActionLink((string)ViewBag.MegaOfUs, "DownloadFile", new { fileName = ViewBag.MegaOfUs });
-                        }
-
-                    }
-                </b>
-            </td>
-            <td>
-                @{ if (ViewBag.MegaOfUs != null) {
-                        @Html.ActionLink("Upload", "UploadResult", new { TranCode = "megaoffus" });
-                    }
-                }
-            </td>
-            <td style="text-align:right">
-                @{ if (ViewBag.MegaOfUs != null) {
-                <b>@Model.BillingSummary[3].TotalCountDWD.Value.ToString("#,###")</b><br>
-                        @:Recurring = @Model.BillingSummary[3].BillingCountDWD.Value.ToString("#,###")<br>
-                        @:Others = @Model.BillingSummary[3].OthersCountDWD.Value.ToString("#,###")<br>
-                            @:Quote = @Model.BillingSummary[3].QuoteCountDWD.Value.ToString("#,###")
-                                  } }
-            </td>
-            <td style="text-align:right">
-                @{ if (ViewBag.MegaOfUs != null)
-                    {
-                <b>@Model.BillingSummary[3].TotalAmountDWD.Value.ToString("#,###")</b><br>
-                @:Recurring = @Model.BillingSummary[3].BillingAmountDWD.Value.ToString("#,###")<br>
-                @:Others = @Model.BillingSummary[3].OthersAmountDWD.Value.ToString("#,###")<br>
-                @:Quote = @Model.BillingSummary[3].QuoteAmountDWD.Value.ToString("#,###")
-                } }
-            </td>
-        </tr>
-
-        <tr>
-            <td>
-                @{ if (ViewBag.BNICC == null)
-                    {
-                    <input type="checkbox" asp-for="BniCC" />
-                    }
-            } BNI
-        </td>
-        <td>
-            <b>
-                @{ if (ViewBag.BNICC != null)
-                    {
-                        @Html.ActionLink((string)ViewBag.BNICC, "DownloadFile", new { fileName = ViewBag.BNICC });
-                    }
-                }
-            </b>
-        </td>
-        <td>
-            @{ if (ViewBag.BNICC != null) {
-                    @Html.ActionLink("Upload", "UploadResult", new { TranCode = "bnicc" });
-                } }
-        </td>
-            <td style="text-align:right">
-                @{ if (ViewBag.BNICC != null) {
-                <b>@Model.BillingSummary[4].TotalCountDWD.Value.ToString("#,###")</b><br>
-                @:Recurring = @Model.BillingSummary[4].BillingCountDWD.Value.ToString("#,###")<br>
-                @:Others = @Model.BillingSummary[4].OthersCountDWD.Value.ToString("#,###")<br>
-                @:Quote = @Model.BillingSummary[4].QuoteCountDWD.Value.ToString("#,###")
-                } }
-            </td>
-            <td style="text-align:right">
-                @{ if (ViewBag.BNICC != null) {
-                <b>@Model.BillingSummary[4].TotalAmountDWD.Value.ToString("#,###")</b><br>
-                @:Recurring = @Model.BillingSummary[4].BillingAmountDWD.Value.ToString("#,###")<br>
-                @:Others = @Model.BillingSummary[4].OthersAmountDWD.Value.ToString("#,###")<br>
-                @:Quote = @Model.BillingSummary[4].QuoteAmountDWD.Value.ToString("#,###")
-                } }
-            </td>
-        </tr>
-        </table>
-
-        <h4>Billing AC</h4>
-        <table class="table table-bordered table-striped">
-            <thead>
-                <tr>
-                    <th style="width:250px;">Bank Collector</th>
-                    <th>File Billing</th>
-                    <th style="width:125px;">Upload Result</th>
-                    <th>Jlh Data</th>
-                    <th>Total Amount</th>
-                </tr>
-            </thead>
-            <tr>
-                <td>
-                    @{ if (ViewBag.BcaAC == null)
-                        {
-                            <input type="checkbox" asp-for="BcaAC" />
-                        } } BCA Auto Collection
-                </td>
-                <td>
-                    <b>
-                        @{ if (ViewBag.BcaAC != null)
-                            {
-                            @Html.ActionLink((string)ViewBag.BcaAC, "DownloadFile", new { fileName = ViewBag.BcaAC });
+                                <td rowspan=@modelx.row_span>
+                                    @if (modelx.file_download.Trim() == "" && (!(modelx.total_count_billing > 0)))
+                                    { @Html.CheckBox(modelx.group_code, false)}
+                                    @Html.Label(modelx.group_name)
+                                </td>
                             }
-                    }
-                </b>
-            </td>
-            <td>
-                @{ if (ViewBag.BcaAC != null) {
-                        @Html.ActionLink("Upload", "UploadResult", new { TranCode = "bcaac" });
-                    } }
-            </td>
-                <td style="text-align:right">
-                    @{ if (ViewBag.BcaAC != null)
-                        {
-                    <b>@Model.BillingSummary[5].TotalCountDWD.Value.ToString("#,###")</b><br>
-                    @:Recurring = @Model.BillingSummary[5].BillingCountDWD.Value.ToString("#,###")<br>
-                    @:Others = @Model.BillingSummary[5].OthersCountDWD.Value.ToString("#,###")<br>
-                    @:Quote = @Model.BillingSummary[5].QuoteCountDWD.Value.ToString("#,###")
-                    } }
-                </td>
-                <td style="text-align:right">
-                    @{ if (ViewBag.BcaAC != null) {
-                    <b>@Model.BillingSummary[5].TotalAmountDWD.Value.ToString("#,###")</b><br>
-                    @:Recurring = @Model.BillingSummary[5].BillingAmountDWD.Value.ToString("#,###")<br>
-                    @:Others = @Model.BillingSummary[5].OthersAmountDWD.Value.ToString("#,###")<br>
-                    @:Quote = @Model.BillingSummary[5].QuoteAmountDWD.Value.ToString("#,###")
-                    } }
-                </td>
-        </tr>
-        <tr>
-            <td>
-                @{ if (ViewBag.MandiriAC == null)
-                    {
-                        <input type="checkbox" asp-for="MandiriAC" />
-                    } } Mandiri Auto Collection
-            </td>
-            <td>
-                <b>
-                    @{ if (ViewBag.MandiriAC != null)
-                        {
-                            @Html.ActionLink((string)ViewBag.MandiriAC, "DownloadFile", new { fileName = ViewBag.MandiriAC });
-                        }
-                    }
-                </b>
-            </td>
-            <td>
-                @{ if (ViewBag.MandiriAC != null) {
-                    @Html.ActionLink("Upload", "UploadResult", new { TranCode = "mandiriac" });
-                    } }
-        </td>
-            <td style="text-align:right">
-                @{ if (ViewBag.MandiriAC != null) {
-                <b>@Model.BillingSummary[6].TotalCountDWD.Value.ToString("#,###")</b><br>
-                @:Recurring = @Model.BillingSummary[6].BillingCountDWD.Value.ToString("#,###")<br>
-                @:Others = @Model.BillingSummary[6].OthersCountDWD.Value.ToString("#,###")<br>
-                @:Quote = @Model.BillingSummary[6].QuoteCountDWD.Value.ToString("#,###")
-                } }
-            </td>
-            <td style="text-align:right">
-                @{ if (ViewBag.MandiriAC != null) {
-                <b>@Model.BillingSummary[6].TotalAmountDWD.Value.ToString("#,###")</b><br>
-                @:Recurring = @Model.BillingSummary[6].BillingAmountDWD.Value.ToString("#,###")<br>
-                @:Others = @Model.BillingSummary[6].OthersAmountDWD.Value.ToString("#,###")<br>
-                @:Quote = @Model.BillingSummary[6].QuoteAmountDWD.Value.ToString("#,###")
-                } }
-            </td>
-        </tr>
-        </table>
+                            <td>@Html.ActionLink(modelx.file_download, "DownloadFile", new { fileName = modelx.file_download })</td>
+                            <td style="text-align:right">
+                                @if (@modelx.recurring_count_billing > 0)
+                                {@modelx.recurring_count_billing.ToString("Jlh = #,###")}
+                                @if (@modelx.recurring_amount_billing > 0)
+                                { <br /> @modelx.recurring_amount_billing.ToString("Rp #,###");
+                                }
+                            </td>
 
-        <h4>Virtual Account</h4>
-        <table class="table table-bordered table-striped">
-            <tr>
-                <td style="width:250px;">BCA Reguler Premium (VA) </td>
-                <td><b>@Html.ActionLink("Download Data VA", "DownloadVA")</b>
-                </td>
-                <td style="width:250px;">@Html.ActionLink("Realtime Result", "UploadResult", new { TranCode = "varealtime" }, new { @class = "btn btn-danger" })
-                    @Html.ActionLink("Daily Result", "UploadResult", new { TranCode = "vadaily" }, new { @class = "btn btn-primary" })
-                </td>
-            </tr>
-        </table>
-        </div>
+                            <td style="text-align:right">
+                                @if (@modelx.other_count_billing > 0)
+                                {@modelx.other_count_billing.ToString("Jlh = #,###")}
+                                @if (@modelx.other_amount_billing > 0)
+                                { <br /> @modelx.other_amount_billing.ToString("Rp #,###");
+                                }
+                            </td>
+
+                            <td style="text-align:right">
+                                @if (@modelx.quote_count_billing > 0)
+                                {@modelx.quote_count_billing.ToString("Jlh = #,###")}
+                                @if (@modelx.quote_amount_billing > 0)
+                                { <br /> @modelx.quote_amount_billing.ToString("Rp #,###");
+                                }
+                            </td>
+
+                            <td style="text-align:right">
+                                @if (@modelx.total_count_billing > 0)
+                                {@modelx.total_count_billing.ToString("Jlh = #,###")}
+                                @if (@modelx.total_amount_billing > 0)
+                                { <br /> @modelx.total_amount_billing.ToString("Rp #,###");
+                                }
+                            </td>
+                        </tr>
+                        group = modelx.group_name;
+                    }
+                </table>
+
+                <h4>Virtual Account</h4>
+                <table class="table table-bordered table-striped">
+                    <tr>
+                        <td style="width:250px;">BCA Reguler Premium (VA)</td>
+                        <td style="text-align:right;">
+                            <b>
+                                <input type="button" value="Download Data VA" class="btn btn-primary" onclick="location.href='@Url.Action("DownloadVA")'" />
+                            </b>
+                        </td>
+                    </tr>
+                </table>
+            </div>
 
             <div class="panel-footer" style="margin: auto; text-align:center; padding: 10px;">
-                <input type="submit" value="Create File" class="btn btn-success" onclick="return confirm('Opsi data download sudah benar ?')"/>
+                <input type="submit" value="Create File" class="btn btn-success" onclick="return confirm('Pilihan data download sudah benar ?')" />
                 <input type="button" value="Reset Data Billing" class="btn btn-danger" onclick="location.href='@Url.Action("reset", "BillingFile")'" />
             </div>
-        </div>            
+        </div>
     </div>
 
 </form>

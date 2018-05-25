@@ -34,12 +34,14 @@
             <th>CancelDate</th>
             <th style="min-width:80px;">PaidDate</th>
             <th>PaymentSource</th>
-            <th>IsHold</th>
+            <th>Hold</th>
+            <th>Download</th>
             <th style="min-width:80px;">DateCrt</th>
         </tr>
     </thead>
     <tfoot>
         <tr>
+            <th class="search"></th>
             <th class="search"></th>
             <th class="search"></th>
             <th class="search"></th>
@@ -119,15 +121,15 @@
                     select.append('<option value="CC">CreditCard</option>');
                 });
 
-                this.api().columns([15]).every(function () {
+                this.api().columns([15,16]).every(function () {
                     var column = this;
                     var select = $('<select><option value=""> ... </option></select>')
                         .appendTo($(column.footer()).empty())
                         .on('change', function () {
                             column.search(this.value).draw();
                         });
-                    select.append('<option value="1">True</option>');
-                    select.append('<option value="0">False</option>');
+                    select.append('<option value="1">Yes</option>');
+                    select.append('<option value="0">No</option>');
                 });
             },
             dom: '<"top"B>tr<"bottom"ip>',
@@ -211,6 +213,13 @@
                 { data: "paymentSource", className: "dt-center" },
                 {
                     data: "isHold",
+                    className: "dt-center",
+                    render: function (data) {
+                        return (data ? "<span class='glyphicon glyphicon-ok text-success'></span>" : "<span class='glyphicon glyphicon-remove text-danger'></span>");
+                    }
+                },
+                {
+                    data: "isDownload",
                     className: "dt-center",
                     render: function (data) {
                         return (data ? "<span class='glyphicon glyphicon-ok text-success'></span>" : "<span class='glyphicon glyphicon-remove text-danger'></span>");

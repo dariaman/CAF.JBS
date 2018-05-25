@@ -24,6 +24,7 @@ namespace CAF.JBS.ViewModels
 
         public string status_billing { get; set; }
         public Boolean IsHold { get; set; }
+        public Boolean IsDownload { get; set; }
         public string PaymentSource { get; set; }
         public DateTime? paid_date { get; set; }
         public DateTime? cancel_date { get; set; }

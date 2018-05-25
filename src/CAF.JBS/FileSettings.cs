@@ -26,6 +26,9 @@ namespace CAF.JBS
         public string MegaOffUsCC { get; private set; }
         public string BNIcc { get; private set; }
 
+        public string CIMBOnUsccFile { get; private set; }
+        public string CIMBOffUsccFile { get; private set; }
+
         public string BCAac { get; private set; }
         public string MandiriAC { get; private set; }
 
@@ -62,12 +65,15 @@ namespace CAF.JBS
             TempBCAac = Configuration.GetValue<string>("FileSetting:TemplateBCAac");
 
             BCAcc = FileBilling + "CAF" + DateTime.Now.ToString("ddMM") + ".prn";
-            MandiriCC = FileBilling + "Mandiri_" + DateTime.Now.ToString("ddMMyyyy") + ".xls";
+            MandiriCC = FileBilling + "Mandiri_" + DateTime.Now.ToString("ddMMyyyy") + ".xlsx";
             MegaonUsCC = FileBilling + "CAF" + DateTime.Now.ToString("yyyyMMdd") + "_MegaOnUs.bpmt";
             MegaOffUsCC = FileBilling + "CAF" + DateTime.Now.ToString("yyyyMMdd") + "_MegaOffUs.bpmt";
             BNIcc = FileBilling + "BNI_" + DateTime.Now.ToString("ddMMyyyy") + ".xlsx";
 
-            BCAac = FileBilling + "BCAac" + DateTime.Now.ToString("yyyyMMdd") + ".xls";
+            CIMBOnUsccFile = FileBilling + "CAF" + DateTime.Now.ToString("yyyyMMdd") + "_CIMBOnUs.txt";
+            CIMBOffUsccFile = FileBilling + "CAF" + DateTime.Now.ToString("yyyyMMdd") + "_CIMBOffUs.txt";
+
+            BCAac = FileBilling + "BCAac" + DateTime.Now.ToString("yyyyMMdd") + ".xlsx";
             MandiriAC = FileBilling + "MandiriAc" + DateTime.Now.ToString("yyyyMMdd") + ".csv";
             BCAva = FileBilling + "VARegulerPremi" + DateTime.Now.ToString("yyyyMMdd") + ".xls";
             s = System.IO.File.ReadAllLines("appsettings.json");

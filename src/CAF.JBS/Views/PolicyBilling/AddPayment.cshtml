@@ -16,6 +16,15 @@
         $('#CashLess').on('keyup change', function (ev) {
             $('#total').html(jumlahTotal());
         });
+
+        $('#SourcePayment').change(function () {
+            var itm = this.value;
+            if (itm == 'EDC') {
+                $('#tableAddPayment > tbody:last-child').append('<tr id=trApprovalCode><td>ApprCode</td><td><div class="form-group"><div class="col-md-9"><input type="text" name="ApprovalCode" asp-for="ApprovalCode" class="form-control" maxlength="20"/><span asp-validation-for="ApprovalCode" class="text-danger"></span></div></div></td></tr>');
+            } else {
+                $('tr').parent().parent().find("#trApprovalCode").remove();
+            }
+        });
     });
 
     function jumlahTotal() {
@@ -62,7 +71,7 @@
                 @Html.HiddenFor(m => m.BillingID)
                 @Html.HiddenFor(m => m.PaidAmount)
 
-                <table class="table table-bordered">
+                <table class="table table-bordered" id="tableAddPayment">
                     <tr>
                         <td>Polis ID</td>
                         <td>@Model.PolicyId</td>
@@ -109,15 +118,15 @@
                     </tr>
                     <tr>
                         <td>Reguler Premium</td>
-                        <td>@Model.Premi</td>
+                        <td>@Model.Premi.ToString("#,#")</td>
                     </tr>
                     <tr>
                         <td>CashLessFee Amount</td>
-                        <td>@Model.CashLess</td>
+                        <td>@Model.CashLess.ToString("#,#")</td>
                     </tr>
                     <tr>
                         <td>Total</td>
-                        <td><label id="total" />@Model.PaidAmount</td>
+                        <td><label id="total" />@Model.PaidAmount.ToString("#,#")</td>
                     </tr>
                     <tr>
                         <td>Paid Date</td>
@@ -138,14 +147,10 @@
                        new { value = "BT" , text = "Bank Transfer" },
                        new { value = "EDC" , text = "EDC"},
                        new { value = "CP" , text = "Claim Payment"}
-                    }, "value", "text",Model.SourcePayment ) , new { @class = "form-control" })
-                    </td>
-                </tr>
-                <tr>
-                    <td>Payment Source</td>
-                    <td><label id="total" />@Model.PaidAmount</td>
-                </tr>
-            </table>
+                    }, "value", "text", Model.SourcePayment), new { @class = "form-control" })
+                        </td>
+                    </tr>
+                </table>
 
                 <div class="form-group" style="text-align:right;">
                     <input type="button" value="save" class="btn btn-success" id="savedata" />

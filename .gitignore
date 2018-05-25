@@ -301,3 +301,4 @@ src/CAF.JBS/Properties/launchSettings.json
 src/CAF.JBS/appsettings.json
 /.vs
 /src/CAF.JBS/appsettings.json
+*.db

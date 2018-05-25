@@ -7,6 +7,8 @@ using CAF.JBS.Models;
 using CAF.JBS.ViewModels;
 using System.Collections.Generic;
 using System;
+using System.Data;
+using MySql.Data.MySqlClient;
 
 namespace CAF.JBS.Controllers
 {
@@ -16,7 +18,7 @@ namespace CAF.JBS.Controllers
 
         public BillingHoldController(JbsDbContext context)
         {
-            _context = context;    
+            _context = context;
         }
 
         // GET: BillingHold
@@ -26,12 +28,12 @@ namespace CAF.JBS.Controllers
             BillingHoldView = (from cd in _context.BillingHoldModel
                                join bk in _context.PolicyBillingModel on cd.policy_Id equals bk.policy_Id
                                select new BillingHoldViewModel()
-                           {
-                               policy_Id=cd.policy_Id,
-                               policy_No=bk.policy_no,
-                               ReleaseDate=cd.ReleaseDate,
-                               Description=cd.Description
-                           });
+                               {
+                                   policy_Id = cd.policy_Id,
+                                   policy_No = bk.policy_no,
+                                   ReleaseDate = cd.ReleaseDate,
+                                   Description = cd.Description
+                               });
             return View(BillingHoldView);
         }
 
@@ -47,26 +49,37 @@ namespace CAF.JBS.Controllers
         {
             var polisID = this.FindPolicyID(HoldViewModel.policy_No);
             var tgl = DateTime.Now.Date;
-            if (HoldViewModel.ReleaseDate < tgl)
-            {
-                ModelState.AddModelError("ReleaseDate", " HoldDate harus minimal tgl sekarang ");
-            }
-            if (polisID == 0)
-            {
-                ModelState.AddModelError("policy_No", "PolisNo Tidak Valid");
-            }
+            if (HoldViewModel.ReleaseDate < tgl) ModelState.AddModelError("ReleaseDate", " HoldDate harus minimal tgl sekarang ");
+            if (polisID == 0) ModelState.AddModelError("policy_No", "PolisNo Tidak Valid");
 
             if (ModelState.IsValid)
             {
-                var model = new BillingHoldModel
+                var cmdx = _context.Database;
+                var cmd = _context.Database.GetDbConnection().CreateCommand();
+                try
                 {
-                    policy_Id = Convert.ToInt32(FindPolicyID(HoldViewModel.policy_No)),
-                    ReleaseDate = HoldViewModel.ReleaseDate.AddDays(1),
-                    Description = HoldViewModel.Description,
-                    UserCrt= User.Identity.Name
-                };
-                _context.BillingHoldModel.Add(model);
-                await _context.SaveChangesAsync();
+                    cmdx.OpenConnection(); cmdx.BeginTransaction();
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.CommandText = "delete_bin_number";
+                    cmd.Parameters.Clear();
+                    cmd.Parameters.Add(new MySqlParameter("@prefix", MySqlDbType.Int32) { Value = polisID });
+                    cmd.Parameters.Add(new MySqlParameter("@prefix", MySqlDbType.Date) { Value = HoldViewModel.ReleaseDate });
+                    cmd.Parameters.Add(new MySqlParameter("@prefix", MySqlDbType.VarChar) { Value = HoldViewModel.Description });
+
+                    await cmd.ExecuteNonQueryAsync();
+                    cmdx.CommitTransaction();
+                }
+                catch (Exception ex)
+                {
+                    cmdx.RollbackTransaction();
+                    throw new Exception(ex.Message);
+                }
+                finally
+                {
+                    if (cmdx.CurrentTransaction != null) cmdx.RollbackTransaction();
+                    cmdx.CloseConnection();
+                }
+
                 return RedirectToAction("Index");
             }
             return View(HoldViewModel);
@@ -78,11 +91,12 @@ namespace CAF.JBS.Controllers
             var HoldModel = await _context.BillingHoldModel.SingleOrDefaultAsync(m => m.policy_Id == id);
             BillingHoldViewModel HoldViewModel = new BillingHoldViewModel();
             HoldViewModel.policy_Id = id;
-            HoldViewModel.policy_No= this.FindPolicyNo(HoldModel.policy_Id);
+            HoldViewModel.policy_No = this.FindPolicyNo(HoldModel.policy_Id);
 
             if (HoldModel == null) { return NotFound(); }
             if (HoldViewModel.policy_No == null) { return NotFound(); }
-            else {
+            else
+            {
                 HoldViewModel.ReleaseDate = HoldModel.ReleaseDate.AddDays(-1);
                 HoldViewModel.Description = HoldModel.Description;
             }

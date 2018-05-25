@@ -29,7 +29,6 @@
                                 @if (@Model[i].FileName != "")
                                 {
                                     @Html.ActionLink(@Model[i].FileName, "DownloadFile", new { fileName = @Model[i].FileName });
-
                                 }
                             </td>
                             <td>
@@ -39,7 +38,7 @@
                                 }
                             </td>
                             <td align="center">
-                                @if ((@Model[i].billCountDwd > 0) && (@Model[i].FileName == ""))
+                                @if ((@Model[i].billCountDwd > 0) && (@Model[i].FileName == "") || ((@Model[i].id == 11 || @Model[i].id == 12) && (@Model[i].FileName == "")))
                                 {
                                     @Html.ActionLink("Upload", "UploadResult", new { id = @Model[i].id }, new { @class = "btn btn-success" })
                                 }
@@ -53,7 +52,7 @@
                             </td>
 
                             <td align="center">
-                                @if (@Model[i].FileName != "" && User.Identity.Name == "dariaman.siagian@jagadiri.co.id")
+                                @if (@Model[i].FileName != "")
                                 {
                                     @Html.ActionLink("Execute", "Execute",
                                     new { id = @Model[i].id },
@@ -70,7 +69,7 @@
                 <center>
                     @if (User.Identity.Name == "dariaman.siagian@jagadiri.co.id")
                     {
-                        @Html.ActionLink(linkText: "Submit", actionName: "ExecuteAll", routeValues: null, htmlAttributes: new { @class = "btn btn-warning" , onclick = "return confirm('Yakin untuk eksekusi Semua File ');" })
+                        @Html.ActionLink(linkText: "Submit", actionName: "ExecuteAll", routeValues: null, htmlAttributes: new { @class = "btn btn-warning", onclick = "return confirm('Yakin untuk eksekusi Semua File ');" })
                     }
                 </center>
             </div>

@@ -56,7 +56,7 @@ namespace CAF.JBS.Controllers
                         deskripsi = rd["deskripsi"].ToString(),
                         FileName = rd["FileName"].ToString(),
                         tglProses = (rd["tglProses"] == DBNull.Value) ? (DateTime?)null : Convert.ToDateTime(rd["tglProses"]),
-                        billCountDwd = Convert.ToInt32(rd["BillingCountDWD"])
+                        billCountDwd = (rd["BillingCountDWD"] == DBNull.Value) ? 0 : Convert.ToInt32(rd["BillingCountDWD"])
                     });
 
                 }

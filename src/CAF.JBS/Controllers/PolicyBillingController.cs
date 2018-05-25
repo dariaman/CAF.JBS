@@ -214,7 +214,7 @@ WHERE pb.`policy_Id`=@polis";
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult AddPayment(int id, [Bind("PolicyId,BillingID,PaidDate,SourcePayment,PaidAmount")] PolicyAddPaymentSave polisVM)
+        public ActionResult AddPayment(int id, [Bind("PolicyId,BillingID,PaidDate,SourcePayment,PaidAmount,ApprovalCode")] PolicyAddPaymentSave polisVM)
         {
             Boolean retval = false;
             string message = "";
@@ -229,6 +229,7 @@ WHERE pb.`policy_Id`=@polis";
             cmd.Parameters.Add(new MySqlParameter("@polis_idx", MySqlDbType.Int32) { Value = polisVM.PolicyId });
             cmd.Parameters.Add(new MySqlParameter("@paid_datex", MySqlDbType.DateTime) { Value = polisVM.PaidDate });
             cmd.Parameters.Add(new MySqlParameter("@source_paymentx", MySqlDbType.VarChar) { Value = polisVM.SourcePayment });
+            cmd.Parameters.Add(new MySqlParameter("@appr_code", MySqlDbType.VarChar) { Value = polisVM.ApprovalCode });
             cmd.Parameters.Add(new MySqlParameter("@user_life21", MySqlDbType.VarChar) { Value = "2000" });
             cmd.Parameters.Add(new MySqlParameter("@user_jbs", MySqlDbType.VarChar) { Value = User.Identity.Name });
             try
@@ -239,10 +240,9 @@ WHERE pb.`policy_Id`=@polis";
                 {
                     systemEmailQueueModel emailSent = new systemEmailQueueModel();
                     SetEmailThanksRecurring(bill, "UploadCCResult", ref emailSent);
-
                     cmd.CommandType = CommandType.Text;
                     cmd.Parameters.Clear();
-                    cmd.CommandText = @"INSERT INTO `prod_life21`.`system_email_queue`(`email_to`, `email_subject`, `email_body`,`email_created_dt`, `email_status`, `email_bcc`, `email_type`)
+                    cmd.CommandText = @"INSERT INTO `prod_life21`.`system_email_queue`(`email_to`, `email_subject`,`email_body`,`email_created_dt`, `email_status`, `email_bcc`, `email_type`)
                     VALUES (@email_to, @email_subject, @email_body, @tgl, 'P', @email_bcc, 'UploadCCResult')";
                     cmd.Parameters.Add(new MySqlParameter("@email_to", MySqlDbType.VarChar) { Value = emailSent.email_to });
                     cmd.Parameters.Add(new MySqlParameter("@email_subject", MySqlDbType.VarChar) { Value = emailSent.email_subject });

@@ -4,8 +4,8 @@
   "dependencies": {
     "BundlerMinifier.Core": "2.4.337",
     "DataTables.AspNet.AspNetCore": "2.0.2",
-    "EPPlus.Core": "1.5.1",
-    "MailKit": "1.16.2",
+    "EPPlus.Core": "1.5.4",
+    "MailKit": "2.0.3",
     "microsoft.aspnet.mvc": "5.2.3",
     "Microsoft.AspNetCore.Authentication.Cookies": "1.1.2",
     "Microsoft.AspNetCore.Diagnostics": "1.1.2",
@@ -41,10 +41,6 @@
     "Microsoft.VisualStudio.Web.CodeGeneration.Tools": {
       "type": "build",
       "version": "1.1.0-preview4-final"
-    },
-    "Microsoft.VisualStudio.Web.CodeGenerators.Mvc": {
-      "version": "1.1.1",
-      "type": "build"
     },
     "NonFactors.Grid.Mvc6": "1.4.0",
     "SapientGuardian.EntityFrameworkCore.MySql": "7.1.23",

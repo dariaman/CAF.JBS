@@ -23,6 +23,7 @@ namespace CAF.JBS.ViewModels
         public DateTime Due_date_pre { get; set; }
         public DateTime BillingDate { get; set; }
         public DateTime PaidDate { get; set; }
+        public String ApprovalCode { get; set; }
 
         public Decimal Premi { get; set; }
         public Decimal CashLess { get; set; }

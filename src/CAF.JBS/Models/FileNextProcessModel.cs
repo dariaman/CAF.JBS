@@ -14,7 +14,6 @@ namespace CAF.JBS.Models
         [Key]
         public int id { get; set; }
         public string trancode { get; set; }
-        public string FileBilling { get; set; } // file billing (file download)
         public string FileName { get; set; } // File upload
 
         public string source { get; set; }

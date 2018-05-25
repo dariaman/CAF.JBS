@@ -96,7 +96,7 @@ namespace CAF.JBS.Controllers
                 else if (req.Field == "recurring_seq" && !string.IsNullOrEmpty(req.Search.Value))
                 {
                     var tmp = Regex.Replace(req.Search.Value, "[^0-9]", "");
-                    FilterSql += " AND b.`recurring_seq`='" + tmp + "'";
+                    FilterSql += " AND b.`recurring_seq`=" + tmp ;
                 }
                 else if (req.Field == "status_billing" && !string.IsNullOrEmpty(req.Search.Value))
                 {
@@ -111,7 +111,12 @@ namespace CAF.JBS.Controllers
                 else if (req.Field == "isHold" && !string.IsNullOrEmpty(req.Search.Value))
                 {
                     var tmp = Regex.Replace(req.Search.Value, "[^0-1]", "");
-                    FilterSql += " AND COALESCE(NULLIF(b.`IsPending`,0),pb.`IsHoldBilling`)='" + tmp + "'";
+                    FilterSql += " AND COALESCE(NULLIF(b.`IsPending`,0),pb.`IsHoldBilling`)=" + tmp;
+                }
+                else if (req.Field == "isDownload" && !string.IsNullOrEmpty(req.Search.Value))
+                {
+                    var tmp = Regex.Replace(req.Search.Value, "[^0-1]", "");
+                    FilterSql += " AND b.`IsDownload`=" + tmp ;
                 }
                 else if (req.Field == "lastUploadDate" && !string.IsNullOrEmpty(req.Search.Value))
                 {
@@ -159,6 +164,7 @@ namespace CAF.JBS.Controllers
                         status_billing = rd["status_billing"].ToString(),
                         PaymentSource = rd["PaymentSource"].ToString(),
                         IsHold = Convert.ToBoolean(Convert.ToInt16(rd["IsHold"])),
+                        IsDownload = Convert.ToBoolean(Convert.ToInt16(rd["IsDownload"])),
                         DateCrt = rd["DateCrt"] == DBNull.Value ? (DateTime?)null : Convert.ToDateTime(rd["DateCrt"]),
                         LastUploadDate = rd["LastUploadDate"] == DBNull.Value ? (DateTime?)null : Convert.ToDateTime(rd["LastUploadDate"]),
                         cancel_date = rd["cancel_date"] == DBNull.Value ? (DateTime?)null : Convert.ToDateTime(rd["cancel_date"]),
@@ -237,6 +243,7 @@ namespace CAF.JBS.Controllers
                             b.`paid_date`,
                             b.`PaymentSource`,
                             COALESCE(NULLIF(b.`IsPending`,0),pb.`IsHoldBilling`) AS IsHold,
+                            b.`IsDownload`,
                             b.`DateCrt`";
             return select;
         }
