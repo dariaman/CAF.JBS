@@ -59,7 +59,7 @@ namespace CAF.JBS.Controllers
                 if (req.Field == "policyId" && !string.IsNullOrEmpty(req.Search.Value))
                 {
                     var tmp = Regex.Replace(req.Search.Value, paternAngka, "");
-                    FilterSql += " AND pa.`PolicyId` like '" + tmp + "'";
+                    FilterSql += " AND pc.`PolicyId` like '" + tmp + "'";
                 }
                 else if (req.Field == "policy_no" && !string.IsNullOrEmpty(req.Search.Value))
                 {

@@ -26,7 +26,6 @@ namespace CAF.JBS.Controllers
     {
         private readonly JbsDbContext _jbsDB;
         private readonly Life21DbContext _life21;
-        private readonly Life21pDbContext _life21p;
         private readonly UserDbContext _user;
         private readonly string DirBilling;     //folder Billing yang standby hari ini
         private readonly string BackupFile;     //folder Backup billing hari2 sebelumnya
@@ -57,12 +56,11 @@ namespace CAF.JBS.Controllers
         private IFlashMessage flashMessage;
         private FileSettings filesettings;
 
-        public BillingFileController(JbsDbContext context1, Life21DbContext context2, Life21pDbContext context4, UserDbContext context3, IFlashMessage flash)
+        public BillingFileController(JbsDbContext context1, Life21DbContext context2,  UserDbContext context3, IFlashMessage flash)
         {
             filesettings = new FileSettings();
             _jbsDB = context1;
             _life21 = context2;
-            _life21p = context4;
             _user = context3;
             flashMessage = flash;
 
@@ -1119,50 +1117,50 @@ namespace CAF.JBS.Controllers
             return View(fls);
         }
 
-        public ActionResult reset()
-        {
-            var cmd = _jbsDB.Database.GetDbConnection().CreateCommand();
-            cmd.CommandType = CommandType.Text;
-            cmd.CommandText = @"UPDATE `billing` AS b SET b.`IsDownload`=0; ";
-            try
-            {
-                cmd.Connection.Open();
-                cmd.ExecuteNonQuery();
-                cmd.CommandText = @"UPDATE `billing_download_summary` AS bs
-                                    SET bs.`file_download`=NULL,
-                                    bs.`BillingCountDWD`=0,
-                                    bs.`BillingAmountDWD`=0,
-                                    bs.`OthersCountDWD`=0,
-                                    bs.`OthersAmountDWD`=0,
-                                    bs.`QuoteCountDWD`=0,
-                                    bs.`QuoteAmountDWD`=0,
-                                    bs.`TotalCountDWD`=0,
-                                    bs.`TotalAmountDWD`=0; ";
-                cmd.ExecuteNonQuery();
+        //public ActionResult reset()
+        //{
+        //    var cmd = _jbsDB.Database.GetDbConnection().CreateCommand();
+        //    cmd.CommandType = CommandType.Text;
+        //    cmd.CommandText = @"UPDATE `billing` AS b SET b.`IsDownload`=0; ";
+        //    try
+        //    {
+        //        cmd.Connection.Open();
+        //        cmd.ExecuteNonQuery();
+        //        cmd.CommandText = @"UPDATE `billing_download_summary` AS bs
+        //                            SET bs.`file_download`=NULL,
+        //                            bs.`BillingCountDWD`=0,
+        //                            bs.`BillingAmountDWD`=0,
+        //                            bs.`OthersCountDWD`=0,
+        //                            bs.`OthersAmountDWD`=0,
+        //                            bs.`QuoteCountDWD`=0,
+        //                            bs.`QuoteAmountDWD`=0,
+        //                            bs.`TotalCountDWD`=0,
+        //                            bs.`TotalAmountDWD`=0; ";
+        //        cmd.ExecuteNonQuery();
 
-                cmd.CommandText = @"UPDATE `billing_others` AS b SET b.`IsDownload`=0; ";
-                cmd.ExecuteNonQuery();
+        //        cmd.CommandText = @"UPDATE `billing_others` AS b SET b.`IsDownload`=0; ";
+        //        cmd.ExecuteNonQuery();
 
-                cmd.CommandText = @"UPDATE `quote_billing` AS b SET b.`IsDownload`=0; ";
-                cmd.ExecuteNonQuery();
+        //        cmd.CommandText = @"UPDATE `quote_billing` AS b SET b.`IsDownload`=0; ";
+        //        cmd.ExecuteNonQuery();
 
-                var files = Directory.GetFiles(DirBilling);
-                foreach (string file in files)
-                {
-                    FileInfo fileBill = new FileInfo(file);
-                    fileBill.Delete();
-                }
-            }
-            catch (Exception ex)
-            {
-                throw ex;
-            }
-            finally
-            {
-                cmd.Connection.Close();
-            }
+        //        var files = Directory.GetFiles(DirBilling);
+        //        foreach (string file in files)
+        //        {
+        //            FileInfo fileBill = new FileInfo(file);
+        //            fileBill.Delete();
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        throw ex;
+        //    }
+        //    finally
+        //    {
+        //        cmd.Connection.Close();
+        //    }
 
-            return RedirectToAction("Index");
-        }
+        //    return RedirectToAction("Index");
+        //}
     }
 }

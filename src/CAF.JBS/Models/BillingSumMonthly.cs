@@ -11,7 +11,6 @@ namespace CAF.JBS.Models
     public class BillingSumMonthly
     {
         [Key, Column(Order = 0)]
-
         public int TranCode { get; set; }
         [Key, Column(Order = 1)]
         public string Periode { get; set; }

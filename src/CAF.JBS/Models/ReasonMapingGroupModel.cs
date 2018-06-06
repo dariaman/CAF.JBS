@@ -4,14 +4,21 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace CAF.JBS.Models
 {
-    [Table("ReasonMapingGroup")]
+    [Table("reason_maping_group")]
     public class ReasonMapingGroupModel
     {
         [Required]
         [Key]
         public int id { get; }
+        public int bank_id { get; }
+        public string RejectCode { get; set; }
         public string ReajectReason { get; set; }
         public int GroupRejectMappingID { get; set; }
+
+        public string user_crt { get; set; }
+        public string user_update { get; set; }
+        public string note { get; set; }
+
         public DateTime? DateCrt { get; set; }
         public DateTime? DateUpdate { get; set; }
     }

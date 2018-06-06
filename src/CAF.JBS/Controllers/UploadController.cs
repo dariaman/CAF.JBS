@@ -41,7 +41,7 @@ namespace CAF.JBS.Controllers
 
             var cmd = _context.Database.GetDbConnection().CreateCommand();
             cmd.CommandType = CommandType.Text;
-            cmd.CommandText = @"SELECT fp.`id`,fp.`deskripsi`,fp.`FileName`,fp.`tglProses`,bs.`BillingCountDWD`
+            cmd.CommandText = @"SELECT fp.`id`,fp.`deskripsi`,fp.`FileName`,fp.`tglProses`,(bs.`BillingCountDWD`+bs.`QuoteCountDWD`+bs.`OthersCountDWD`) AS BillingCountDWD
                                 FROM `FileNextProcess` fp
                                 LEFT JOIN `billing_download_summary` bs ON bs.`id`= fp.`id_billing_download`; ";
             try

@@ -15,6 +15,28 @@ namespace CAF.JBS.Data
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
+            builder.Entity<BillingSumMonthly>().HasKey(T => new { T.TranCode, T.Periode });
+            builder.Entity<cctypeModel>().ToTable("cctype");
+            builder.Entity<BankModel>().ToTable("bank");
+            builder.Entity<BillingModel>().ToTable("billing");
+            builder.Entity<prefixcardModel>().ToTable("prefixcard");
+            builder.Entity<BillingHoldModel>().ToTable("billinghold");
+            builder.Entity<PolicyBillingModel>().ToTable("policy_billing");
+            builder.Entity<CustomerInfo>().ToTable("customer_info");
+            builder.Entity<PolicyAcModel>().ToTable("policy_ac");
+            builder.Entity<PolicyCCModel>().ToTable("policy_cc");
+            builder.Entity<PolicyVa>().ToTable("policy_va");
+            builder.Entity<PolicyLastTrans>().ToTable("policy_last_trans");
+            builder.Entity<BillingSummary>().ToTable("billing_download_summary");
+            builder.Entity<Product>().ToTable("product");
+            builder.Entity<StagingUpload>().ToTable("stagingupload");
+            builder.Entity<BillingSumMonthly>().ToTable("billing_sum_monthly");
+            builder.Entity<TrancodeDashboard>().ToTable("trancode_dashboard");
+            builder.Entity<Quote>().ToTable("quote");
+            builder.Entity<QuoteBillingModel>().ToTable("quote_billing");
+            builder.Entity<BillingOtherModel>().ToTable("billing_others");
+            builder.Entity<FileNextProcessModel>().ToTable("FileNextProcess");
+            builder.Entity<PolicyPrerenewalModel>().ToTable("policy_prerenewal");
         }
 
         public DbSet<cctypeModel> cctypeModel { get; set; }

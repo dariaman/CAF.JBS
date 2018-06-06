@@ -23,10 +23,7 @@ namespace CAF.JBS.Controllers
             BillingSumMonthlyVM bil;
 
             var cmd = _jbsDB.Database.GetDbConnection().CreateCommand();
-            cmd.CommandText = @"SELECT td.`DashName`,bs.*
-                                FROM `trancode_dashboard` td
-                                LEFT JOIN `billing_sum_monthly` bs ON td.`TranCode`=bs.`trancode` AND bs.`Periode`='" + periode + @"'
-                                order by bs.`trancode` ";
+            cmd.CommandText = @"SELECT td.* FROM `trancode_dashboard` td order by td.`TranCode`;";
             try
             {
                 cmd.Connection.Open();
@@ -37,13 +34,14 @@ namespace CAF.JBS.Controllers
                         bil = new BillingSumMonthlyVM()
                         {
                             DashName = rd["DashName"].ToString(),
-                            Periode = rd["Periode"].ToString(),
-                            PaidCount = rd["PaidCount"] == DBNull.Value ? 0 : Convert.ToInt32(rd["PaidCount"]) ,
-                            PaidAmount = rd["PaidAmount"] == DBNull.Value ? 0 : Convert.ToDecimal(rd["PaidAmount"]) ,
-                            UnPaidCount = rd["UnPaidCount"] == DBNull.Value ? 0 : Convert.ToInt32(rd["UnPaidCount"]) ,
-                            UnPaidAmount = rd["UnPaidAmount"] == DBNull.Value ? 0 : Convert.ToDecimal(rd["UnPaidAmount"]) ,
-                            TotalCount = rd["TotalCount"] == DBNull.Value ? 0 : Convert.ToInt32(rd["TotalCount"]) ,
-                            TotalAmount = rd["TotalAmount"] == DBNull.Value ? 0 : Convert.ToDecimal(rd["TotalAmount"]) ,
+                            PaidCount = rd["count_paid"] == DBNull.Value ? 0 : Convert.ToInt32(rd["count_paid"]) ,
+                            PaidAmount = rd["amount_paid"] == DBNull.Value ? 0 : Convert.ToDecimal(rd["amount_paid"]) ,
+                            UnPaidCount = rd["count_unpaid"] == DBNull.Value ? 0 : Convert.ToInt32(rd["count_unpaid"]) ,
+                            UnPaidAmount = rd["amount_unpaid"] == DBNull.Value ? 0 : Convert.ToDecimal(rd["amount_unpaid"]) ,
+                            CancelCount = rd["count_cancel"] == DBNull.Value ? 0 : Convert.ToInt32(rd["count_cancel"]),
+                            CancelAmount = rd["amount_cancel"] == DBNull.Value ? 0 : Convert.ToDecimal(rd["amount_cancel"]),
+                            TotalCount = rd["count_total"] == DBNull.Value ? 0 : Convert.ToInt32(rd["count_total"]) ,
+                            TotalAmount = rd["amount_total"] == DBNull.Value ? 0 : Convert.ToDecimal(rd["amount_total"]) ,
                             DateUpdate = rd["DateUpdate"] == DBNull.Value ? (rd["DateCrt"] == DBNull.Value ? DateTime.Now : Convert.ToDateTime(rd["DateCrt"]) ) : Convert.ToDateTime(rd["DateUpdate"]) 
                         };
                         bs.Add(bil);
