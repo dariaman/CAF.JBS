@@ -40,10 +40,12 @@ namespace CAF.JBS.Controllers
                             UnPaidAmount = rd["amount_unpaid"] == DBNull.Value ? 0 : Convert.ToDecimal(rd["amount_unpaid"]) ,
                             CancelCount = rd["count_cancel"] == DBNull.Value ? 0 : Convert.ToInt32(rd["count_cancel"]),
                             CancelAmount = rd["amount_cancel"] == DBNull.Value ? 0 : Convert.ToDecimal(rd["amount_cancel"]),
-                            TotalCount = rd["count_total"] == DBNull.Value ? 0 : Convert.ToInt32(rd["count_total"]) ,
-                            TotalAmount = rd["amount_total"] == DBNull.Value ? 0 : Convert.ToDecimal(rd["amount_total"]) ,
+                            //TotalCount = rd["count_total"] == DBNull.Value ? 0 : Convert.ToInt32(rd["count_total"]) ,
+                            //TotalAmount = rd["amount_total"] == DBNull.Value ? 0 : Convert.ToDecimal(rd["amount_total"]) ,
                             DateUpdate = rd["DateUpdate"] == DBNull.Value ? (rd["DateCrt"] == DBNull.Value ? DateTime.Now : Convert.ToDateTime(rd["DateCrt"]) ) : Convert.ToDateTime(rd["DateUpdate"]) 
                         };
+                        bil.TotalCount = bil.PaidCount+bil.UnPaidCount+bil.CancelCount;
+                        bil.TotalAmount = bil.PaidAmount+bil.UnPaidAmount+bil.CancelAmount;
                         bs.Add(bil);
                     }
                 }

@@ -60,11 +60,11 @@ namespace CAF.JBS.Controllers
                 {
                     cmdx.OpenConnection(); cmdx.BeginTransaction();
                     cmd.CommandType = CommandType.StoredProcedure;
-                    cmd.CommandText = "delete_bin_number";
+                    cmd.CommandText = "hold_billing";
                     cmd.Parameters.Clear();
-                    cmd.Parameters.Add(new MySqlParameter("@prefix", MySqlDbType.Int32) { Value = polisID });
-                    cmd.Parameters.Add(new MySqlParameter("@prefix", MySqlDbType.Date) { Value = HoldViewModel.ReleaseDate });
-                    cmd.Parameters.Add(new MySqlParameter("@prefix", MySqlDbType.VarChar) { Value = HoldViewModel.Description });
+                    cmd.Parameters.Add(new MySqlParameter("@polis_id", MySqlDbType.Int32) { Value = polisID });
+                    cmd.Parameters.Add(new MySqlParameter("@release_date", MySqlDbType.Date) { Value = HoldViewModel.ReleaseDate });
+                    cmd.Parameters.Add(new MySqlParameter("@deskripsi", MySqlDbType.VarChar) { Value = HoldViewModel.Description });
 
                     await cmd.ExecuteNonQueryAsync();
                     cmdx.CommitTransaction();
