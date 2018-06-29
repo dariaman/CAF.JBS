@@ -46,7 +46,7 @@ namespace CAF.JBS.Controllers
             var sqlFilter = GenerateFilter(request, ref sort);
 
             List<BillingViewModel> Billing= new List<BillingViewModel>();
-            Billing = GetPageData(request.Start, sort, sqlFilter, ref jlhFilter, ref jlh);
+            Billing = GetPageData(request.Start, request.Length, sort, sqlFilter, ref jlhFilter, ref jlh);
 
             var filteredData = Billing;
 
@@ -131,11 +131,11 @@ namespace CAF.JBS.Controllers
             return FilterSql;
         }
 
-        private List<BillingViewModel> GetPageData(int rowStart, string orderString, string FilterWhere, ref int jlhdataFilter, ref int jlhData)
+        private List<BillingViewModel> GetPageData(int rowStart,int limitData, string orderString, string FilterWhere, ref int jlhdataFilter, ref int jlhData)
         {
             FilterWhere = string.Concat(" WHERE 1=1 ", FilterWhere);
             string order = (orderString == "" ? "" : string.Format(" ORDER BY {0} ", orderString));
-            string limit = string.Format(" LIMIT {0},10 ", rowStart);
+            string limit = string.Format(" LIMIT {0},{1} ", rowStart, limitData);
             BillingViewModel dt = new BillingViewModel();
             List<BillingViewModel> ls = new List<BillingViewModel>();
 
