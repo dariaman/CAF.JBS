@@ -165,10 +165,10 @@ namespace CAF.JBS.Controllers
             {
                 cmd.CommandType = CommandType.Text;
                 cmd.Connection.Open();
-                if (id == 1 || id == 2)
+                if (id == 1 || id == 2 || id == 7 || id == 8 || id == 9 || id == 10)
                 {
                     cmd.CommandText = @"DELETE up
-                                FROM `UploadBcaCC` up
+                                FROM " + FileNextProses.stageTable + @" up
                                 INNER JOIN `FileNextProcess` fp ON up.`FileName`=fp.`FileName`
                                 WHERE fp.id=@idx ;";
                     cmd.Parameters.Clear();

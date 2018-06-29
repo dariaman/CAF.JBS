@@ -38,7 +38,8 @@
                                 }
                             </td>
                             <td align="center">
-                                @if ((@Model[i].billCountDwd > 0) && (@Model[i].FileName == "") || ((@Model[i].id == 11 || @Model[i].id == 12) && (@Model[i].FileName == "")))
+                                @* 13,14 => hardcode untuk va daily dan va realtime *@
+                                @if ((@Model[i].billCountDwd > 0) && (@Model[i].FileName == "") || ((@Model[i].id == 13 || @Model[i].id == 14) && (@Model[i].FileName == "")))
                                 {
                                     @Html.ActionLink("Upload", "UploadResult", new { id = @Model[i].id }, new { @class = "btn btn-success" })
                                 }
