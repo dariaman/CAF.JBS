@@ -35,7 +35,7 @@ namespace CAF.JBS.Controllers
             flashMessage = flash;
         }
 
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
             List<UploadResultIndexVM> StagingUploadx = new List<UploadResultIndexVM>();
 
@@ -61,13 +61,16 @@ namespace CAF.JBS.Controllers
 
                 }
             }
-            catch (Exception ex)
+            catch (Exception ex) { flashMessage.Danger(ex.Message); }
+            finally { cmd.Connection.Close(); }
+
+            try
             {
-                throw new Exception(ex.Message);
+                ViewBag.data = await _context.UploadSumModel.ToListAsync();
             }
-            finally
+            catch(Exception ex)
             {
-                cmd.Connection.Close();
+                flashMessage.Danger(ex.Message);
             }
 
             return View(StagingUploadx);
@@ -155,54 +158,27 @@ namespace CAF.JBS.Controllers
         [HttpGet]
         public ActionResult RemoveFile(int id)
         {
-            var FileNextProses = _context.FileNextProcessModel.SingleOrDefault(m => m.id == id);
-
-            FileInfo filex = new FileInfo(FileResult + FileNextProses.FileName);
-            if (filex.Exists) filex.Delete();
-
-            var cmd = _context.Database.GetDbConnection().CreateCommand();
+            foreach (Process proc in Process.GetProcessesByName("ExecFileBilling")) { proc.Kill(); }
             try
             {
-                cmd.CommandType = CommandType.Text;
-                cmd.Connection.Open();
-                if (id == 1 || id == 2 || id == 7 || id == 8 || id == 9 || id == 10)
-                {
-                    cmd.CommandText = @"DELETE up
-                                FROM " + FileNextProses.stageTable + @" up
-                                INNER JOIN `FileNextProcess` fp ON up.`FileName`=fp.`FileName`
-                                WHERE fp.id=@idx ;";
-                    cmd.Parameters.Clear();
-                    cmd.Parameters.Add(new MySqlParameter("@idx", MySqlDbType.Int32) { Value = id });
-                    cmd.ExecuteNonQuery();
-                }
-                else
-                {
-                    cmd.Parameters.Clear();
-                    cmd.CommandText = @"DELETE FROM " + FileNextProses.stageTable + " ;";
-                    cmd.ExecuteNonQuery();
-                }
-            }
-            catch (Exception ex) { flashMessage.Danger(ex.Message); }
-            finally { cmd.Connection.Close(); }
+                var process = new Process();
+                process.StartInfo.FileName = "dotnet";
+                process.StartInfo.WorkingDirectory = DirCommand;
+                process.StartInfo.Arguments = ConsoleExecResult + " remove " + id.ToString();
+                process.StartInfo.UseShellExecute = false;
+                process.StartInfo.CreateNoWindow = true;
 
-            try
-            {
-                FileNextProses.tglProses = null;
-                FileNextProses.FileName = null;
-                _context.Update(FileNextProses);
-                _context.SaveChanges();
+                process.Start();
+                process.WaitForExit();
                 flashMessage.Confirmation("Sukses");
             }
             catch (Exception ex) { flashMessage.Danger(ex.Message); }
-
             return RedirectToAction("index");
         }
 
         [HttpGet]
         public ActionResult Execute(int id)
         {
-            if (User.Identity.Name != "dariaman.siagian@jagadiri.co.id") return RedirectToAction("index");
-
             foreach (Process proc in Process.GetProcessesByName("ExecFileBilling")) { proc.Kill(); }
             try
             {

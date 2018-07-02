@@ -37,6 +37,7 @@ namespace CAF.JBS.Data
             builder.Entity<BillingOtherModel>().ToTable("billing_others");
             builder.Entity<FileNextProcessModel>().ToTable("FileNextProcess");
             builder.Entity<PolicyPrerenewalModel>().ToTable("policy_prerenewal");
+            builder.Entity<UploadSumModel>().ToTable("upload_sum");
         }
 
         public DbSet<cctypeModel> cctypeModel { get; set; }
@@ -61,5 +62,6 @@ namespace CAF.JBS.Data
         public DbSet<FileNextProcessModel> FileNextProcessModel { get; set; }
         public DbSet<PolicyPrerenewalModel> PolicyPrerenewalModel { get; set; }
         public DbSet<RejectReasonModel> RejectReasonModel { get; set; }
+        public DbSet<UploadSumModel> UploadSumModel { get; set; }
     }
 }

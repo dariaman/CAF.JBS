@@ -76,5 +76,37 @@
             </div>
         </div>
     </div>
-
 </form>
+
+@{ if (ViewBag.data == null)
+    {
+        @Html.Raw("No data!");
+    }
+    else
+    {
+        <div class="panel panel-primary" style="margin: auto;width:600px;">
+            <div class="panel-heading">Summary Upload</div>
+            <div class="panel-body">
+                <table class="table table-bordered table-striped">
+                    <thead>
+                        <tr>
+                            <th>Bank Collector</th>
+                            <th>Approve</th>
+                            <th>Reject</th>
+                            <th style="width:150px;">Total</th>
+                        </tr>
+                        @foreach (var upload in ViewBag.data)
+                        {
+                            <tr>
+                                <td>@upload.deskripsi</td>
+                                <td style="text-align:right;width:100px;">@upload.count_approve</td>
+                                <td style="text-align:right;width:100px;">@upload.count_reject</td>
+                                <td style="text-align:right;width:100px;">@upload.total_upload</td>
+                            </tr>
+                        }
+                    </thead>
+                </table>
+            </div>
+        </div>
+    }
+}
