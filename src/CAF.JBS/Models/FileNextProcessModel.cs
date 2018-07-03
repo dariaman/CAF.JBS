@@ -15,7 +15,8 @@ namespace CAF.JBS.Models
         public int id { get; set; }
         public string trancode { get; set; }
         public string FileName { get; set; } // File upload
-
+        public int total_data { get; set; }
+        
         public string source { get; set; }
 
         public DateTime? tglProses { get; set; }

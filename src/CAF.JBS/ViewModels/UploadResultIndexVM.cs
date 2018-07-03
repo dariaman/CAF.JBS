@@ -17,6 +17,7 @@ namespace CAF.JBS.ViewModels
         public string FileName { get; set; }
         public DateTime? tglProses { get; set; }
         public int billCountDwd { get; set; }
+        public int total_data_upload { get; set; }
         public string deskripsi { get; set; }
     }
 }

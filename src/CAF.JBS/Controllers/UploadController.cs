@@ -41,7 +41,7 @@ namespace CAF.JBS.Controllers
 
             var cmd = _context.Database.GetDbConnection().CreateCommand();
             cmd.CommandType = CommandType.Text;
-            cmd.CommandText = @"SELECT fp.`id`,fp.`deskripsi`,fp.`FileName`,fp.`tglProses`,(bs.`BillingCountDWD`+bs.`QuoteCountDWD`+bs.`OthersCountDWD`) AS BillingCountDWD
+            cmd.CommandText = @"SELECT fp.`id`,fp.`deskripsi`,fp.`FileName`,fp.`tglProses`,fp.`total_data`,(bs.`BillingCountDWD`+bs.`QuoteCountDWD`+bs.`OthersCountDWD`) AS BillingCountDWD
                                 FROM `FileNextProcess` fp
                                 LEFT JOIN `billing_download_summary` bs ON bs.`id`= fp.`id_billing_download`; ";
             try
@@ -54,6 +54,7 @@ namespace CAF.JBS.Controllers
                     {
                         id = Convert.ToInt32(rd["id"]),
                         deskripsi = rd["deskripsi"].ToString(),
+                        total_data_upload = (rd["total_data"] == DBNull.Value) ? 0 : Convert.ToInt32(rd["total_data"]),
                         FileName = rd["FileName"].ToString(),
                         tglProses = (rd["tglProses"] == DBNull.Value) ? (DateTime?)null : Convert.ToDateTime(rd["tglProses"]),
                         billCountDwd = (rd["BillingCountDWD"] == DBNull.Value) ? 0 : Convert.ToInt32(rd["BillingCountDWD"])
