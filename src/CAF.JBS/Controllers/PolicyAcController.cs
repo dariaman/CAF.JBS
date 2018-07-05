@@ -120,7 +120,7 @@ namespace CAF.JBS.Controllers
             var sqlFilter = GenerateFilter(request, ref sort);
 
             List<PolicyAcVM> polisAC = new List<PolicyAcVM>();
-            polisAC = GetPageData(request.Start, sort, sqlFilter, ref jlhFilter, ref jlh);
+            polisAC = GetPageData(request.Start, request.Length, sort, sqlFilter, ref jlhFilter, ref jlh);
             var response = DataTablesResponse.Create(request, jlh, jlhFilter, polisAC);
 
             return new DataTablesJsonResult(response);
@@ -185,11 +185,11 @@ namespace CAF.JBS.Controllers
             return FilterSql;
         }
 
-        private List<PolicyAcVM> GetPageData(int rowStart, string orderString, string FilterWhere, ref int jlhdataFilter, ref int jlhData)
+        private List<PolicyAcVM> GetPageData(int rowStart, int limitData, string orderString, string FilterWhere, ref int jlhdataFilter, ref int jlhData)
         {
             FilterWhere = string.Concat(" WHERE 1=1 ", FilterWhere);
             string order = (orderString == "" ? "" : string.Format(" ORDER BY {0} ", orderString));
-            string limit = string.Format(" LIMIT {0},10 ", rowStart);
+            string limit = string.Format(" LIMIT {0},{1} ", rowStart, limitData);
             PolicyAcVM dt = new PolicyAcVM();
             List<PolicyAcVM> ls = new List<PolicyAcVM>();
 

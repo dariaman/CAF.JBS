@@ -300,7 +300,7 @@ WHERE pb.`policy_Id`=@polis";
             var sqlFilter = GenerateFilter(request, ref sort);
 
             List<PolicyBillingViewModel> Polis = new List<PolicyBillingViewModel>();
-            Polis = GetPageData(request.Start, sort, sqlFilter, ref jlhFilter, ref jlh);
+            Polis = GetPageData(request.Start, request.Length, sort, sqlFilter, ref jlhFilter, ref jlh);
             var response = DataTablesResponse.Create(request, jlh, jlhFilter, Polis);
 
             return new DataTablesJsonResult(response);
@@ -395,11 +395,11 @@ WHERE pb.`policy_Id`=@polis";
             return FilterSql;
         }
 
-        private List<PolicyBillingViewModel> GetPageData(int rowStart, string orderString, string FilterWhere, ref int jlhdataFilter, ref int jlhData)
+        private List<PolicyBillingViewModel> GetPageData(int rowStart, int limitData, string orderString, string FilterWhere, ref int jlhdataFilter, ref int jlhData)
         {
             FilterWhere = string.Concat(" WHERE 1=1 ", FilterWhere);
             string order = (orderString == "" ? "" : string.Format(" ORDER BY {0} ", orderString));
-            string limit = string.Format(" LIMIT {0},10 ", rowStart);
+            string limit = string.Format(" LIMIT {0},{1} ", rowStart, limitData);
             PolicyBillingViewModel dt = new PolicyBillingViewModel();
             List<PolicyBillingViewModel> ls = new List<PolicyBillingViewModel>();
 
