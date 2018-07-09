@@ -9,16 +9,19 @@ using System.Collections.Generic;
 using System;
 using System.Data;
 using MySql.Data.MySqlClient;
+using Vereyon.Web;
 
 namespace CAF.JBS.Controllers
 {
     public class BillingHoldController : Controller
     {
         private readonly JbsDbContext _context;
+        private IFlashMessage flashMessage;
 
-        public BillingHoldController(JbsDbContext context)
+        public BillingHoldController(JbsDbContext context, IFlashMessage flash)
         {
             _context = context;
+            flashMessage = flash;
         }
 
         // GET: BillingHold
@@ -72,7 +75,7 @@ namespace CAF.JBS.Controllers
                 catch (Exception ex)
                 {
                     cmdx.RollbackTransaction();
-                    throw new Exception(ex.Message);
+                    flashMessage.Danger(ex.Message);
                 }
                 finally
                 {
@@ -142,7 +145,6 @@ namespace CAF.JBS.Controllers
             return View(HoldViewModel);
         }
 
-
         // GET: aaaaaa/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
@@ -167,8 +169,29 @@ namespace CAF.JBS.Controllers
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var billingHoldModel = await _context.BillingHoldModel.SingleOrDefaultAsync(m => m.policy_Id == id);
-            _context.BillingHoldModel.Remove(billingHoldModel);
-            await _context.SaveChangesAsync();
+            var cmdx = _context.Database;
+            var cmd = _context.Database.GetDbConnection().CreateCommand();
+            try
+            {
+                cmdx.OpenConnection(); cmdx.BeginTransaction();
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.CommandText = "hold_billing_delete_by_user";
+                cmd.Parameters.Clear();
+                cmd.Parameters.Add(new MySqlParameter("@polis_id", MySqlDbType.Int32) { Value = id });
+
+                await cmd.ExecuteNonQueryAsync();
+                cmdx.CommitTransaction();
+            }
+            catch (Exception ex)
+            {
+                cmdx.RollbackTransaction();
+                flashMessage.Danger(ex.Message);
+            }
+            finally
+            {
+                if (cmdx.CurrentTransaction != null) cmdx.RollbackTransaction();
+                cmdx.CloseConnection();
+            }
             return RedirectToAction("Index");
         }
 
