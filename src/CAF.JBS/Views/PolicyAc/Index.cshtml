@@ -13,7 +13,9 @@
 </style>
 <h2>Policy AC</h2>
 <br />
-
+<p align="right">
+    <input type="button" value="Refresh" class="btn btn-success" id="refresh" />
+</p>
 <br />
 <table id="myTable" class="stripe">
     <thead>
@@ -280,6 +282,12 @@
             $('#myModal').empty();
             $('#myModal').load(url);
             $('#myModal').modal('show');
+        });
+
+        $('#refresh').on('click', function () {
+            var table = $('#myTable').DataTable();
+            table.clearPipeline();
+            table.ajax.reload(null, false);
         });
     });
 </script>

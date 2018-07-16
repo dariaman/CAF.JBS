@@ -392,6 +392,7 @@
 
         $('#refresh').on('click', function () {
             var table = $('#myTable').DataTable();
+            table.clearPipeline();
             table.ajax.reload(null, false);
         });
 
