@@ -226,7 +226,7 @@ namespace CAF.JBS.Controllers
                     GenMandiriCCFile(); // Mandiri 2
                     GenBniCCFile(2); // BNI 1 3 4 (<> 2)
                 }
-                else if (dw.BcaAC && dw.CimbCC && !(dw.MegaCC || dw.MandiriCC || dw.BniCC))
+                else if (dw.BcaCC && dw.CimbCC && !(dw.MegaCC || dw.MandiriCC || dw.BniCC))
                 {   // jika dipilih BCA dan CIMB
                     GenBcaCCFile(1); // BCA 1
                     GenCimbNiagaOnUsCCFile(); // CIMB 4
