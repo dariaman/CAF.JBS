@@ -28,5 +28,8 @@ namespace CAF.JBS.ViewModels
         public int? ReceiptOtherID { get; set; }
         public int? PaymentTransactionID { get; set; }
         public DateTime? DateCrt { get; set; }
+
+        public string ApprovalCode { get; set; }
+        public string deskripsi_reject { get; set; }
     }
 }

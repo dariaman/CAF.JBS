@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 
 namespace CAF.JBS.Models
 {
-    [Table("policy_ac")]
     public class PolicyAcModel
     {
         [Key]

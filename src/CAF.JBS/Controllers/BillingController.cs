@@ -45,7 +45,7 @@ namespace CAF.JBS.Controllers
             string sort = "";
             var sqlFilter = GenerateFilter(request, ref sort);
 
-            List<BillingViewModel> Billing= new List<BillingViewModel>();
+            List<BillingViewModel> Billing = new List<BillingViewModel>();
             Billing = GetPageData(request.Start, request.Length, sort, sqlFilter, ref jlhFilter, ref jlh);
 
             var filteredData = Billing;
@@ -96,7 +96,7 @@ namespace CAF.JBS.Controllers
                 else if (req.Field == "recurring_seq" && !string.IsNullOrEmpty(req.Search.Value))
                 {
                     var tmp = Regex.Replace(req.Search.Value, "[^0-9]", "");
-                    FilterSql += " AND b.`recurring_seq`=" + tmp ;
+                    FilterSql += " AND b.`recurring_seq`=" + tmp;
                 }
                 else if (req.Field == "status_billing" && !string.IsNullOrEmpty(req.Search.Value))
                 {
@@ -116,14 +116,13 @@ namespace CAF.JBS.Controllers
                 else if (req.Field == "isDownload" && !string.IsNullOrEmpty(req.Search.Value))
                 {
                     var tmp = Regex.Replace(req.Search.Value, "[^0-1]", "");
-                    FilterSql += " AND b.`IsDownload`=" + tmp ;
+                    FilterSql += " AND b.`IsDownload`=" + tmp;
                 }
                 else if (req.Field == "lastUploadDate" && !string.IsNullOrEmpty(req.Search.Value))
                 {
                     if (DateTime.TryParse(req.Search.Value, out tgl))
                     {
-                        FilterSql += " AND b.`LastUploadDate` >= '" + tgl.ToString("yyyy-MM-dd") + "'";
-                        FilterSql += " AND b.`LastUploadDate` <  '" + tgl.AddDays(1).ToString("yyyy-MM-dd") + "'";
+                        FilterSql += " AND DATE(b.`LastUploadDate`) = '" + tgl.ToString("yyyy-MM-dd") + "'";
                     }
                 }
             }
@@ -131,9 +130,9 @@ namespace CAF.JBS.Controllers
             return FilterSql;
         }
 
-        private List<BillingViewModel> GetPageData(int rowStart,int limitData, string orderString, string FilterWhere, ref int jlhdataFilter, ref int jlhData)
+        private List<BillingViewModel> GetPageData(int rowStart, int limitData, string orderString, string FilterWhere, ref int jlhdataFilter, ref int jlhData)
         {
-            FilterWhere = string.Concat(" WHERE 1=1 ", FilterWhere);
+            FilterWhere = (FilterWhere == "") ? "" : string.Concat(" WHERE 1=1 ", FilterWhere);
             string order = (orderString == "" ? "" : string.Format(" ORDER BY {0} ", orderString));
             string limit = string.Format(" LIMIT {0},{1} ", rowStart, limitData);
             BillingViewModel dt = new BillingViewModel();
@@ -154,11 +153,11 @@ namespace CAF.JBS.Controllers
                         BillingID = rd["BillingID"].ToString(),
                         policy_id = rd["policy_id"].ToString(),
                         PolicyNo = rd["policy_no"].ToString(),
-                        payment_method= rd["payment_method"].ToString(),
-                        recurring_seq= rd["recurring_seq"].ToString(),
+                        payment_method = rd["payment_method"].ToString(),
+                        recurring_seq = rd["recurring_seq"].ToString(),
                         BillingDate = rd["BillingDate"] == DBNull.Value ? (DateTime?)null : Convert.ToDateTime(rd["BillingDate"]),
                         due_dt_pre = Convert.ToDateTime(rd["due_dt_pre"]),
-                        policy_regular_premium= Convert.ToDecimal(rd["policy_regular_premium"]),
+                        policy_regular_premium = Convert.ToDecimal(rd["policy_regular_premium"]),
                         cashless_fee_amount = Convert.ToDecimal(rd["cashless_fee_amount"]),
                         TotalAmount = Convert.ToDecimal(rd["TotalAmount"]),
                         status_billing = rd["status_billing"].ToString(),
@@ -168,7 +167,9 @@ namespace CAF.JBS.Controllers
                         DateCrt = rd["DateCrt"] == DBNull.Value ? (DateTime?)null : Convert.ToDateTime(rd["DateCrt"]),
                         LastUploadDate = rd["LastUploadDate"] == DBNull.Value ? (DateTime?)null : Convert.ToDateTime(rd["LastUploadDate"]),
                         cancel_date = rd["cancel_date"] == DBNull.Value ? (DateTime?)null : Convert.ToDateTime(rd["cancel_date"]),
-                        paid_date = rd["paid_date"] == DBNull.Value ? (DateTime?)null : Convert.ToDateTime(rd["paid_date"])
+                        paid_date = rd["paid_date"] == DBNull.Value ? (DateTime?)null : Convert.ToDateTime(rd["paid_date"]),
+                        ApprovalCode = rd["ApprovalCode"].ToString(),
+                        Description = rd["Description"].ToString()
                     });
                 }
             }
@@ -219,7 +220,8 @@ namespace CAF.JBS.Controllers
             string sql = "";
             sql = @"SELECT " + SelectData + @"
                     FROM `billing` b
-                    INNER JOIN `policy_billing` pb ON pb.`policy_Id`=b.`policy_id` " +
+                    INNER JOIN `policy_billing` pb ON pb.`policy_Id`=b.`policy_id` 
+                    LEFT JOIN `transaction_bank` tb ON b.`PaymentTransactionID`=tb.`id` " +
                     where + order + limit;
 
             return sql;
@@ -244,7 +246,7 @@ namespace CAF.JBS.Controllers
                             b.`PaymentSource`,
                             COALESCE(NULLIF(b.`IsPending`,0),pb.`IsHoldBilling`) AS IsHold,
                             b.`IsDownload`,
-                            b.`DateCrt`";
+                            b.`DateCrt`,tb.`ApprovalCode`,tb.`Description` ";
             return select;
         }
     }

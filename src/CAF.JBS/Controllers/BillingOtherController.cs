@@ -51,7 +51,6 @@ namespace CAF.JBS.Controllers
 
             string paternAngka = @"[^0-9,%]";
             string paternAngkaHuruf = @"[^0-9a-zA-Z,%]";
-            //string paternHuruf = @"[^a-zA-Z]+(?=[%])";
 
             int i = 0;
             foreach (var req in request.Columns)
@@ -134,7 +133,10 @@ namespace CAF.JBS.Controllers
                         DateCrt = rd["DateCrt"] == DBNull.Value ? (DateTime?)null : Convert.ToDateTime(rd["DateCrt"]),
                         LastUploadDate = rd["LastUploadDate"] == DBNull.Value ? (DateTime?)null : Convert.ToDateTime(rd["LastUploadDate"]),
                         cancel_date = rd["cancel_date"] == DBNull.Value ? (DateTime?)null : Convert.ToDateTime(rd["cancel_date"]),
-                        paid_date = rd["paid_date"] == DBNull.Value ? (DateTime?)null : Convert.ToDateTime(rd["paid_date"])
+                        paid_date = rd["paid_date"] == DBNull.Value ? (DateTime?)null : Convert.ToDateTime(rd["paid_date"]),
+
+                        ApprovalCode = rd["ApprovalCode"].ToString(),
+                        deskripsi_reject = rd["deskripsi_reject"].ToString(),
                     });
                 }
             }
@@ -186,7 +188,8 @@ namespace CAF.JBS.Controllers
             sql = @"SELECT "+ SelectData + @"
                     FROM `billing_others` b
                     INNER JOIN `policy_billing` pb ON pb.`policy_Id`=b.`policy_id`
-                    LEFT JOIN `bank` bk ON bk.`bank_id`=b.`BankIdDownload` " + 
+                    LEFT JOIN `bank` bk ON bk.`bank_id`=b.`BankIdDownload` 
+                    LEFT JOIN `transaction_bank` tb ON b.`PaymentTransactionID`=tb.id " + 
                     where + order + limit;
 
             return sql;
@@ -204,7 +207,7 @@ namespace CAF.JBS.Controllers
 	                    b.`DateCrt`,
 	                    b.`LastUploadDate`,
 	                    b.`cancel_date`,
-	                    b.`paid_date`";
+	                    b.`paid_date`,tb.`ApprovalCode`,tb.`Description` AS deskripsi_reject ";
             return select;
         }
     }

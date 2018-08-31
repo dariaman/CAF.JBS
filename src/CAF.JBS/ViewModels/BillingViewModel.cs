@@ -23,6 +23,9 @@ namespace CAF.JBS.ViewModels
         public Decimal TotalAmount { get; set; }
 
         public string status_billing { get; set; }
+        public string ApprovalCode { get; set; }
+        public string Description { get; set; }
+
         public Boolean IsHold { get; set; }
         public Boolean IsDownload { get; set; }
         public string PaymentSource { get; set; }

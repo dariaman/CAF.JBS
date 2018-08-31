@@ -29,5 +29,8 @@ namespace CAF.JBS.ViewModels
         public string acc_name { get; set; }
         public string cc_expiry { get; set; }
         public string bank_code { get; set; }
+        public string ApprovalCode { get; set; }
+        public string Description { get; set; }
+
     }
 }

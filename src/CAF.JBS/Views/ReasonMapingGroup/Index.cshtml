@@ -1,5 +1,5 @@
 @{
-    ViewData["Title"] = "Billing Others";
+    ViewData["Title"] = "Reject Mapping Group";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 <style>
@@ -11,24 +11,22 @@
         padding: 10px 8px;
     }
 </style>
-<h2>Billing Others</h2>
+<h2>Reject Mapping Group</h2>
+<br />
+<p style="text-align:right;">
+    <a class="btn btn-primary" asp-action="Create">ADD</a>
+</p>
 <br />
 <table id="myTable" class="stripe">
     <thead>
         <tr>
-            <th>BillingID</th>
-            <th>PolicyID</th>
-            <th>PolicyNo</th>
-            <th>BillingDate</th>
-            <th>BillingType</th>
-            <th>TotalAmount</th>
-            <th>StatusBilling</th>
-            <th style="min-width:80px;">DateCrt</th>
-            <th>LastUploadDate</th>
-            <th>CancelDate</th>
-            <th style="min-width:80px;">PaidDate</th>
-            <th>Reject/Approval Code</th>
-            <th>Reject/Approval Desc</th>
+            <th>ID</th>
+            <th>Bank</th>
+            <th>Reject Code</th>
+            <th>Reject Description</th>
+            <th>Reject Group</th>
+            <th>Note</th>
+            <th>Update</th>
         </tr>
     </thead>
     <tfoot>
@@ -39,19 +37,13 @@
             <th class="search"></th>
             <th class="search"></th>
             <th class="search"></th>
-            <th class="search"></th>
-            <th class="search"></th>
-            <th class="search"></th>
-            <th class="search"></th>
-            <th class="search"></th>
-            <th class="search"></th>
-            <th class="search"></th>
+            <th></th>
         </tr>
     </tfoot>
 </table>
 
-<script>
 
+<script>
     /* ===========  Pipeline  ===============*/
     $.fn.dataTable.pipeline = function (opts) {
         // Configuration options
@@ -165,6 +157,7 @@
         });
     });
     /* ===========  END Pipeline  ===============*/
+
     $(document).ready(function () {
         $('#myTable').dataTable({
             serverSide: true,
@@ -174,43 +167,28 @@
                 $('#myTable thead').append(r);
                 $('#search_0').css('text-align', 'center');
 
-                this.api().columns([4]).every(function () {
+                this.api().columns([1]).every(function () {
                     var column = this;
                     var select = $('<select><option value=""> ... </option></select>')
                         .appendTo($(column.footer()).empty())
                         .on('change', function () {
                             column.search(this.value).draw();
                         });
-                    select.append('<option value=A1>Cashless Fee</option>');
-                    select.append('<option value=A2>Cetak Polis</option>');
-                    select.append('<option value=A3>Cetak Kartu</option>');
-                });
-
-                this.api().columns([6]).every(function () {
-                    var column = this;
-                    var select = $('<select><option value=""> ... </option></select>')
-                        .appendTo($(column.footer()).empty())
-                        .on('change', function () {
-                            column.search(this.value).draw();
-                        });
-                    select.append('<option value="A">Unpaid</option>');
-                    select.append('<option value="C">Cancel</option>');
-                    select.append('<option value="P">Paid</option>');
-                });
-
-                this.api().columns([8]).every(function () {
-                    var column = this;
-                    var select = $('<input type="date" placeholder=" ... " />')
-                        .appendTo($(column.footer()).empty())
-                        .on('keyup change', function () {
-                            if (column.search() !== this.value) {
-                                if (this.value == 'mm/dd/yyyy') { this.value =''}
-                                column.search(this.value).draw();
-                            }
-                        });
+                    select.append('<option value=1>BCA</option>');
+                    select.append('<option value=2>Mandiri</option>');
+                    select.append('<option value=3>BNI</option>');
+                    select.append('<option value=12>Mega</option>');
+                    select.append('<option value=14>CIMB Niaga</option>');
                 });
             },
             dom: '<"top"B>tr<"bottom"ip>',
+            fixedColumns: true,
+            columnDefs: [
+                { width: '50px', targets: 0 },
+                { width: '150px', targets: 2 },
+                { width: '120px', targets: 5 },
+                { width: '50px', targets: 6 }
+            ],
             language: {
                 "decimal": ",",
                 "thousands": ".",
@@ -218,79 +196,30 @@
                 "infoEmpty": "No Data",
             },
             ajax: $.fn.dataTable.pipeline({
-                "url": "@Url.Action("PageData", "BillingOther")",
-                pages: 5, // number of pages to cache
-                "type": "POST"
+                "url": "@Url.Action("PageData", "ReasonMapingGroup")",
+                "type": "POST",
+                pages: 5 // number of pages to cache
             }),
             columns: [
-                { data: "billingID" },
-                { data: "policy_id" },
-                { data: "policyNo" },
+                { data: "id", className: "dt-right" },
+                { data: "bank" },
+                { data: "rejectCode" },
+                { data: "rejectReason" },
+                { data: "groupReject" },
+                { data: "note" },
                 {
-                    data: "billingDate",
+                    data: "Update",
                     searchable: false,
-                    className: "dt-right",
-                    render: function (data) {
-                        var tgl = new Date(data);
-                        return data == null ? "" : tgl.toLocaleDateString("en-GB", { year: "numeric", month: "short", day: "numeric" })
-                    }
-                },
-                {
-                    data: "billingType",
-                    className: "dt-center"
-                },
-                {
-                    data: "totalAmount",
-                    searchable: false,
-                    render: $.fn.dataTable.render.number(',', '.', 0, ''),
-                    className: "dt-right"
-                },
-                {
-                    data: "status_billing",
+                    orderable: false,
                     className: "dt-center",
-                    render: function (data) { return (data == "P" ? "Paid" : (data == "C" ? "Cancel" : "Unpaid")) }
-                },
-                {
-                    data: "dateCrt",
-                    searchable: false,
-                    className: "dt-right",
-                    render: function (data) {
-                        var tgl = new Date(data);
-                        return data == null ? "" : tgl.toLocaleDateString("en-GB", { year: "numeric", month: "short", day: "numeric" })
+                    render: function (data, type, row) {
+                        return '<a data-toggle="modal" class="updatemapping" data-id=' + row.id + '><span class="glyphicon glyphicon-pencil text-success"></span></a>';
                     }
-                },
-                {
-                    data: "lastUploadDate",
-                    className: "dt-right",
-                    render: function (data) {
-                        var tgl = new Date(data);
-                        return data == null ? "" : tgl.toLocaleDateString("en-GB", { year: "numeric", month: "short", day: "numeric" })
-                    }
-                },
-                {
-                    data: "cancel_date",
-                    searchable: false,
-                    className: "dt-right",
-                    render: function (data) {
-                        var tgl = new Date(data);
-                        return data == null ? "" : tgl.toLocaleDateString("en-GB", { year: "numeric", month: "short", day: "numeric" })
-                    }
-                },
-                {
-                    data: "paid_date",
-                    searchable: false,
-                    className: "dt-right",
-                    render: function (data) {
-                        var tgl = new Date(data);
-                        return data == null ? "" : tgl.toLocaleDateString("en-GB", { year: "numeric", month: "short", day: "numeric" })
-                    }
-                },
-                { data: "approvalCode" },
-                { data: "deskripsi_reject" },
+                }
             ]
         });
 
-        $('#myTable tfoot th').filter(":eq(0),:eq(1),:eq(2),:eq(8)").each(function () {
+        $('#myTable tfoot th').filter(":eq(0),:eq(1),:eq(2),:eq(3),:eq(4),:eq(5)").each(function () {
             var title = $(this).text();
             $(this).html('<input type="text" placeholder=" ... " />');
         });
@@ -314,6 +243,17 @@
                     }
                 }
             });
+        });
+
+        $('#myTable tbody').on('click', 'td .updatemapping', function () {
+            var tr = $(this).closest('tr');
+            var row = table.row(tr);
+            var url = '@Url.Action("Edit", "ReasonMapingGroup")';
+            url += '/' + row.data().id;
+
+            $('#myModal').empty();
+            $('#myModal').load(url);
+            $('#myModal').modal('show');
         });
 
         $('#myTable tbody').on('click', 'tr', function () {

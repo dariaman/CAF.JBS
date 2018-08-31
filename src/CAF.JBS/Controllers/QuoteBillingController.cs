@@ -149,6 +149,8 @@ namespace CAF.JBS.Controllers
                         acc_name= rd["acc_name"].ToString(),
                         cc_expiry= rd["cc_expiry"].ToString(),
                         bank_code= rd["bank_code"].ToString(),
+                        ApprovalCode = rd["ApprovalCode"].ToString(),
+                        Description = rd["Description"].ToString(),
                     });
                 }
             }
@@ -200,7 +202,8 @@ namespace CAF.JBS.Controllers
             sql = @"SELECT " + SelectData + @"
                     FROM `quote_billing` q
                     LEFT JOIN `policy_billing` pb ON pb.`policy_Id`=q.`policy_id`
-                    LEFT JOIN bank b ON b.`bank_id`=q.`acc_bankid` " +
+                    LEFT JOIN bank b ON b.`bank_id`=q.`acc_bankid` 
+                    LEFT JOIN `transaction_bank` tb ON q.`PaymentTransactionID`=tb.`id` " +
                     where + order + limit;
 
             return sql;
@@ -225,7 +228,7 @@ namespace CAF.JBS.Controllers
                             q.`acc_no`,
                             q.`acc_name`,
                             q.`cc_expiry`,
-                            b.`bank_code`";
+                            b.`bank_code`,tb.`ApprovalCode`,tb.`Description` ";
             return select;
         }
     }

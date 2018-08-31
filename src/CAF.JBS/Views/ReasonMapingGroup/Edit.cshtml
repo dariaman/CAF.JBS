@@ -1,0 +1,100 @@
+@model CAF.JBS.ViewModels.ReasonMapingGroupEditVM
+
+@{
+    ViewData["Title"] = "Edit Reject Reason Group";
+}
+
+
+<script>
+    $("#savedata").on("click", function (e) {
+        e.preventDefault();  // prevent standard form submission
+        $("#savedata").attr("disabled", true);
+
+        var form = $('#form-edit');
+        $.ajax({
+            url: form.attr("action"),
+            method: form.attr("method"),  // post
+            data: form.serialize(),
+            success: function (data) {
+                if (data.data == true) {
+                    $('#myModal').modal('hide');
+                    var table = $('#myTable').DataTable();
+                    table.ajax.reload(null, false);
+                } else {
+                    alert(data.message);
+                    $("#savedata").attr("disabled", false);
+                }
+            }
+        });
+    });
+</script>
+
+<div class="modal-dialog" style="width:700px;" role="document">
+    <div class="modal-content">
+        <div class="modal-header" style="padding:15px;">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">X</button>
+            <h4><b>Edit Reject Reason Group</b></h4>
+        </div>
+        <div class="modal-body">
+
+            @using (Html.BeginForm("Edit", "ReasonMapingGroup", FormMethod.Post, new { id = "form-edit" }))
+            {
+                @Html.ValidationSummary(true)
+                @Html.HiddenFor(m => m.id)
+                <div class="form-horizontal">
+                    
+                    <div class="form-group">
+                        <label asp-for="bank_id" class="control-label col-md-3">Jenis Kartu </label>
+                        <div class="col-md-9">
+                            @Html.DropDownListFor(m => m.bank_id, Model.banks, "--Bank--", new { @class = "form-control" })
+                            <span asp-validation-for="bank_id" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label asp-for="RejectCode" class="control-label col-md-3">Reject Code</label>
+                        <div class="col-md-9">
+                            <input asp-for="RejectCode" class="form-control" />
+                            <span asp-validation-for="RejectCode" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label asp-for="RejectReason" class="control-label col-md-3">Reaject Reason </label>
+                        <div class="col-md-9">
+                            <input asp-for="RejectReason" class="form-control" />
+                            <span asp-validation-for="RejectReason" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label asp-for="GroupRejectMappingID" class="control-label col-md-3">Group Reject </label>
+                        <div class="col-md-9">
+                            @Html.DropDownListFor(m => m.GroupRejectMappingID, Model.GroupReject, "--Group Reject--", new { @class = "form-control" })
+                            <span asp-validation-for="GroupRejectMappingID" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label asp-for="note" class="control-label col-md-3">Note</label>
+                        <div class="col-md-9">
+                            <textarea asp-for="note" class="form-control"></textarea>
+                            <span asp-validation-for="note" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group" style="text-align:right;">
+                    <input type="button" value="save" class="btn btn-success" id="savedata" />
+                </div>
+
+            }
+        </div>
+    </div>
+    <div class="modal-footer">
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

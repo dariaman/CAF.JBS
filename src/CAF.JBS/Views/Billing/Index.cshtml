@@ -37,10 +37,14 @@
             <th>Hold</th>
             <th>Download</th>
             <th style="min-width:80px;">DateCrt</th>
+            <th>Reject/Approval Code</th>
+            <th>Reject/Approval Desc</th>
         </tr>
     </thead>
     <tfoot>
         <tr>
+            <th class="search"></th>
+            <th class="search"></th>
             <th class="search"></th>
             <th class="search"></th>
             <th class="search"></th>
@@ -352,6 +356,8 @@
                         return data == null ? "" : tgl.toLocaleDateString("en-GB", { year: "numeric", month: "short", day: "numeric" })
                     }
                 },
+                { data: "approvalCode" },
+                { data: "description" },
             ]
         });
         // DataTable

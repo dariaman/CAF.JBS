@@ -180,8 +180,8 @@
                         .on('change', function () {
                             column.search(this.value).draw();
                         });
-                    select.append('<option value="1">True</option>');
-                    select.append('<option value="0">False</option>');
+                    select.append('<option value="1">Yes</option>');
+                    select.append('<option value="0">No</option>');
                 });
             },
             dom: '<"top"B>tr<"bottom"ip>',
@@ -198,8 +198,8 @@
             }),
             columns: [
                 { data: "policyId", className: "dt-right" },
-                { data: "policy_no", className: "dt-right" },
-                { data: "acc_no", className: "dt-right" },
+                { data: "policy_no"},
+                { data: "acc_no"},
                 { data: "acc_name" },
                 { data: "bank_code" },
                 {

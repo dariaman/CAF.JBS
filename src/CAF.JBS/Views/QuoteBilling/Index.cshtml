@@ -36,10 +36,14 @@
             <th>ACCName</th>
             <th>CCExpiry</th>
             <th>CardIssuerBank</th>
+            <th>Reject/Approval Code</th>
+            <th>Reject/Approval Desc</th>
         </tr>
     </thead>
     <tfoot>
         <tr>
+            <th class="search"></th>
+            <th class="search"></th>
             <th class="search"></th>
             <th class="search"></th>
             <th class="search"></th>
@@ -297,6 +301,8 @@
                 { data: "acc_name" },
                 { data: "cc_expiry", className: "dt-right" },
                 { data: "bank_code" },
+                { data: "approvalCode" },
+                { data: "description" },
             ]
         });
 
